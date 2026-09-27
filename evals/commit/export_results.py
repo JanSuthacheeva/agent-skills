@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export a graded eval run and render it as a paper-style report.
+"""Export a graded eval run and render it as a report.
 
 Usage:
   export_results.py export <run-dir> <out-dir> --version V --model M [--harness H]
@@ -8,7 +8,7 @@ Usage:
 `export` copies per run grading.json, timing.json, the agent's reply and the
 resulting git history (no repos, raw transcripts or session ids), scrubs
 local paths, writes summary.json and renders README.md. `render` rebuilds
-README.md from an existing export, e.g. after editing paper.md.
+README.md from an existing export, e.g. after editing report.md.
 """
 import argparse, json, math, re, shutil, statistics as st
 from collections import Counter
@@ -173,7 +173,7 @@ def render(out):
                               f"{fmt.format(mean(b, k))} ({fmt.format(sd(b, k))})")
                              for label, k, fmt in measures]),
     }
-    text = re.sub(r"<!--.*?-->\n", "", (HERE / "paper.md").read_text(), count=1, flags=re.S)
+    text = re.sub(r"<!--.*?-->\n", "", (HERE / "report.md").read_text(), count=1, flags=re.S)
     text = re.sub(r"\{\{(\w+)\}\}", lambda m: str(values[m.group(1)]), text)
     (out / "README.md").write_text(text)
 

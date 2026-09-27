@@ -1,21 +1,21 @@
 <!--
 Template for results/<harness>/README.md, rendered by export_results.py.
 {{placeholders}} are filled from the exported results. The prose in the
-Introduction, Discussion and Threats to Validity interprets one specific
+Question, Discussion and Limitations interprets one specific
 run: review it by hand after every new export.
 -->
-# Measuring the Behavioral Effect of an Agent Skill for Git Commits: The `commit` Skill (v{{version}}) in Claude Code
+# Evaluation of the `commit` skill v{{version}} in Claude Code
 
-Jan Suthacheeva, {{date_long}}
+{{harness}}, `{{model}}`, {{n_scenarios}} scenarios, {{trials}} trials per scenario and condition, {{date_long}}.
 
-## Abstract
+## Summary
 
 Agent skills are instruction files that a coding agent loads on demand to
 follow a specific workflow. It is not self-evident that such a file changes
-behavior once the agent is already told which output format is expected. We
-evaluate the `commit` skill, which specifies how commits are written in the
-Scoped Commits format, against a baseline that is informed of the same format
-but has no access to the skill. Across {{n_scenarios}} scenarios with
+behavior once the agent is already told which output format is expected. The
+`commit` skill specifies how commits are written in the Scoped Commits format;
+it is evaluated against a baseline that is informed of the same format but
+has no access to the skill. Across {{n_scenarios}} scenarios with
 {{trials}} trials each ({{n_trials}} trials per condition), trials
 with the skill satisfied every check in {{skill_pass}} of {{n_trials}} cases
 ({{skill_rate}}; 95% CI {{skill_ci}}), compared with {{base_pass}} of
@@ -25,7 +25,7 @@ keeping git's default revert and merge messages, adding a ticket trailer, and
 keeping one logical change in one commit. Mean cost per trial was comparable
 ({{skill_cost}} versus {{base_cost}}).
 
-## 1 Introduction
+## 1 Question
 
 A skill is loaded into the agent's context only when the task matches its
 description, which makes it a cheap way to encode team conventions. Its value,
@@ -36,7 +36,7 @@ example history is visible. The contribution of a commit skill must therefore
 be measured against a baseline that already knows the target format, not
 against an uninformed one.
 
-This report asks two questions. First, does the skill raise the rate at which
+The evaluation addresses two questions. First, does the skill raise the rate at which
 the agent produces commits that satisfy the convention in full? Second, which
 parts of the convention account for the difference?
 
@@ -163,7 +163,7 @@ unprompted, such as the imperative mood, were removed.
 Loading the skill added roughly {{turn_delta}} agent turns per trial without
 increasing cost, since the skill condition produced fewer output tokens.
 
-## 5 Threats to validity
+## 5 Limitations
 
 - **Sample size.** Five trials per scenario cannot establish low failure
   rates. The interval for the skill condition still admits a failure rate of
@@ -200,7 +200,7 @@ evals/commit/grade.py <run-dir>
 evals/commit/export_results.py export <run-dir> {{out_dir}} --version {{version}} --model {{model}}
 ```
 
-## References
+## Sources
 
 [1] Anthropic. skill-creator. https://github.com/anthropics/skills/tree/main/skills/skill-creator
 
