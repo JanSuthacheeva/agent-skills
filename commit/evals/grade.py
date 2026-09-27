@@ -7,7 +7,9 @@ Writes <run>/grading.json and <run>/outputs/git_result.txt for every run.
 import json, re, subprocess, sys
 from pathlib import Path
 
-TYPE_RE = re.compile(r"^(feat|fix|chore|docs|refactor|test|perf|style|build|ci)(\(.+\))?!?:", re.I)
+# `docs` and `test` double as real scopes (`docs: add readme`), so they only
+# count as a type prefix in the parenthesised Conventional Commits form.
+TYPE_RE = re.compile(r"^((feat|fix|chore|refactor|perf|style|build|ci)(\(.+\))?|(docs|test)\(.+\))!?:", re.I)
 
 def git(repo, *args):
     return subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True).stdout
