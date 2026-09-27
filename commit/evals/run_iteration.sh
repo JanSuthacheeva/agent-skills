@@ -20,4 +20,4 @@ for e in json.load(open(evals))["evals"]:
 P
 }
 
-{ jobs with_skill; jobs without_skill; } | xargs -0 -n5 -P"$par" "$here/run_trials.sh"
+{ jobs with_skill; jobs skill_lite; jobs without_skill; } | xargs -0 -n5 -P"$par" "$here/run_trials.sh"
