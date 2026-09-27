@@ -1,8 +1,8 @@
 ---
 name: commit
 description: >-
-  Write and create a git commit in Scoped Commits format (`<scope>:
-  <description>`). Use when the user says "commit" or asks for a commit
+  Write and create a git commit in Scoped Commits format (`scope:
+  description`). Use when the user says "commit" or asks for a commit
   message, or when a finished unit of work is ready to commit. Never pushes,
   pulls, merges or rebases.
 compatibility: >-
