@@ -8,7 +8,7 @@ description: >-
 compatibility: Requires git
 metadata:
     author: Jan Suthacheeva
-    version: "2.6"
+    version: "2.7"
 allowed-tools: >-
   Bash(git status:*) Bash(git branch:*) Bash(git log:*) Bash(git diff:*)
   Bash(git add:*) Bash(git commit:*) Read
@@ -32,8 +32,8 @@ Commit the staged changes with one Scoped Commits message.
 
 ## Rules
 
-- Subject `<scope>: <description>`: max 72 chars, imperative, lowercase,
-  no period, no type prefix (`feat`, `fix`).
+- Subject `<scope>: <description>`: max 72 chars, start lowercase, no
+  type prefix (`feat`, `fix`) even if the log uses them.
 - Scope: the area touched, named as the codebase names it; reuse scopes
   from the log. Nest for precision (`api: auth: ...`), comma-separate
   multiple (`api, worker: ...`), `treewide` for the whole tree, or omit
