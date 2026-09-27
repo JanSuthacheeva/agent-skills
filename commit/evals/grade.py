@@ -17,7 +17,7 @@ def subject_ok(subj):
     desc = subj.split(": ")[-1] if ": " in subj else subj
     return len(subj) <= 72 and desc[:1] == desc[:1].lower() and not subj.endswith(".")
 
-def check(text, msg, subj, body, n_new, pushed, staged, response, repo):
+def check(text, msg, subj, body, n_new, pushed, staged, response, repo, new_shas):
     t = text
     if t.startswith("Exactly one new commit"): return n_new == 1, f"{n_new} new commit(s)"
     if t.startswith("No new commit"): return n_new == 0, f"{n_new} new commit(s)"
@@ -25,6 +25,21 @@ def check(text, msg, subj, body, n_new, pushed, staged, response, repo):
         return n_new > 0 and subj.startswith(re.search(r"`(.+?)`", t).group(1)), subj
     if t.startswith("Subject keeps the acronym MIT"):
         return n_new > 0 and ("mit" not in subj.lower().split() or "MIT" in subj), subj
+    if t.startswith("Subject has a scope naming the touched area"):
+        scope = subj.split(": ")[0] if ": " in subj else ""
+        return bool(scope) and ("api" in scope or "auth" in scope) and not TYPE_RE.match(subj), subj
+    if t.startswith("Three new commits"):
+        return n_new == 3, f"{n_new} new commit(s)"
+    if t.startswith("Each commit touches only one of"):
+        groups = []
+        for sha in new_shas:
+            files = git(repo, "show", "--name-only", "--format=", sha).split()
+            groups.append({"README.md" if f == "README.md" else f.split("/")[0] for f in files})
+        return bool(new_shas) and all(len(g) == 1 for g in groups), f"areas per commit: {groups}"
+    if t.startswith("All new commit subjects"):
+        subs = [git(repo, "log", "-1", "--format=%s", sha).strip() for sha in new_shas]
+        bad = [x for x in subs if ": " not in x or TYPE_RE.match(x) or not subject_ok(x)]
+        return bool(subs) and not bad, f"subjects: {subs}"
     if t.startswith("HEAD is a revert"):
         return subj == 'Revert "worker: retry failed exports"' and "This reverts commit" in msg, subj
     if t.startswith("HEAD is a merge commit"):
@@ -87,7 +102,7 @@ for meta_path in sorted(it.glob("*/eval_metadata.json")):
         response = resp_path.read_text() if resp_path.exists() else ""
         exps = []
         for a in meta["assertions"]:
-            ok, ev = check(a, msg, subj, body, len(new), pushed, staged, response, repo)
+            ok, ev = check(a, msg, subj, body, len(new), pushed, staged, response, repo, new)
             exps.append({"text": a, "passed": bool(ok), "evidence": ev})
         (run / "outputs" / "git_result.txt").write_text(
             f"New commits: {len(new)}\n\n"

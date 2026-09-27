@@ -11,9 +11,18 @@ git config user.name "Eval User"; git config user.email "eval@example.com"
 git config commit.gpgsign false
 git remote add origin "$dest/origin.git"
 
-# c <scoped message> [conventional message]: the conventional-history eval
-# builds the same tree with a Conventional Commits log instead.
-c() { git add -A; if [ "$name" = conventional-history ] && [ -n "${2:-}" ]; then git commit -q -m "$2"; else git commit -q -m "$1"; fi; }
+# c <scoped message> [conventional message]: conventional-history builds the
+# same tree with a Conventional Commits log, no-scope-history with plain
+# capitalized messages that carry no scope at all.
+c() {
+  git add -A
+  msg=$1
+  if [ "$name" = conventional-history ] && [ -n "${2:-}" ]; then msg=$2
+  elif [ "$name" = no-scope-history ]; then
+    msg=$(echo "$1" | sed -E 's/^.*: //' | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
+  fi
+  git commit -q -m "$msg"
+}
 mkdir -p billing api worker
 cat > billing/totals.py <<'P'
 from decimal import Decimal, ROUND_HALF_UP
@@ -174,5 +183,22 @@ treewide)
   printf '\n## License\n\nMIT\n' >> README.md
   printf 'MIT License\n' > LICENSE
   git add -A ;;
+no-scope-history)
+  cat > api/auth.py <<'P'
+import time
+
+# Mobile clients drift by up to a minute; without leeway their fresh
+# tokens are rejected as expired.
+CLOCK_SKEW_LEEWAY = 60
+
+def token_valid(token, now=None):
+    now = now or time.time()
+    return token["exp"] + CLOCK_SKEW_LEEWAY > now
+P
+  git add api/auth.py ;;
+split-unrelated)
+  sed -i '' 's/ROUND_HALF_UP/ROUND_HALF_EVEN/g' billing/totals.py
+  sed -i '' 's/retries=3/retries=5/' worker/export.py
+  printf '# shop\n\nInvoicing service: billing, API and export worker.\n' > README.md ;;
 *) echo "unknown eval $name" >&2; exit 1 ;;
 esac

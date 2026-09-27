@@ -149,6 +149,38 @@
         "Subject keeps the acronym MIT uppercase if it mentions it",
         "Nothing was pushed to origin"
       ]
+    },
+    {
+      "id": 10,
+      "name": "no-scope-history",
+      "prompt": "commit",
+      "expected_output": "Scoped subject naming the touched area (api / api: auth) even though the log has no scopes.",
+      "files": [
+        "evals/setup_fixture.sh"
+      ],
+      "expectations": [
+        "Exactly one new commit was created",
+        "Subject has a scope naming the touched area (api or auth)",
+        "Subject has no conventional type prefix (feat/fix/chore...)",
+        "Subject is <=72 chars, lowercase after the scope, no trailing period",
+        "Message has no Refs trailer (branch has no ticket id)",
+        "Nothing was pushed to origin"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "split-unrelated",
+      "prompt": "all of these changes are done, commit them",
+      "expected_output": "Three commits, one per independent change (billing, worker, README), each in scoped format.",
+      "files": [
+        "evals/setup_fixture.sh"
+      ],
+      "expectations": [
+        "Three new commits were created, one per change",
+        "Each commit touches only one of billing/, worker/ or README.md",
+        "All new commit subjects are scoped with no type prefix, <=72 chars, lowercase, no period",
+        "Nothing was pushed to origin"
+      ]
     }
   ]
 }
