@@ -8,19 +8,10 @@ description: >-
 compatibility: Requires git
 metadata:
     author: Jan Suthacheeva
-    version: "2.3"
+    version: "2.4"
 allowed-tools: >-
   Bash(git status:*) Bash(git branch:*) Bash(git log:*) Bash(git diff:*)
   Bash(git add:*) Bash(git commit:*) Read
-hooks:
-  PreToolUse:
-    - matcher: Bash
-      hooks:
-        - type: command
-          command: >-
-            grep -Eq '(^|[^[:alnum:]_-])git([[:space:]]+(-C[[:space:]]+[^[:space:]]+|-[^[:space:]]+))*[[:space:]]+(push|pull|merge|rebase)([^[:alnum:]_-]|$)'
-            && { echo "commit skill: git push, pull, merge and rebase are not allowed" >&2; exit 2; };
-            exit 0
 ---
 
 Commit the staged changes with one Scoped Commits message.
