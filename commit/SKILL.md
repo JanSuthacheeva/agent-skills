@@ -5,7 +5,9 @@ description: >-
   <description>`). Use when the user says "commit" or asks for a commit
   message, or when a finished unit of work is ready to commit. Never pushes,
   pulls, merges or rebases.
-compatibility: Requires git
+compatibility: >-
+  Requires git. Tested in Claude Code with Claude Opus 5.5 (see
+  evals/results/claude-code).
 metadata:
     author: Jan Suthacheeva
     version: "2.8"
