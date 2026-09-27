@@ -1,91 +1,16 @@
 {
   "skill_version": "2.8",
   "model": "claude-opus-5-5",
+  "harness": "Claude Code 2.1.283",
   "date": "2026-09-27",
-  "evals": [
-    {
-      "name": "eval-1-staged-ticket-branch",
-      "prompt": "commit this",
-      "with_skill": "5/5",
-      "without_skill": "4/5"
-    },
-    {
-      "name": "eval-2-nothing-staged-mixed",
-      "prompt": "ok the exponential backoff for the export worker is done, commit it",
-      "with_skill": "5/5",
-      "without_skill": "5/5"
-    },
-    {
-      "name": "eval-3-push-multi-scope",
-      "prompt": "commit and push this",
-      "with_skill": "5/5",
-      "without_skill": "2/5"
-    },
-    {
-      "name": "eval-4-breaking-change",
-      "prompt": "commit",
-      "with_skill": "5/5",
-      "without_skill": "2/5"
-    },
-    {
-      "name": "eval-5-revert-default-message",
-      "prompt": "revert the export retry commit, it's causing duplicate exports",
-      "with_skill": "5/5",
-      "without_skill": "0/5"
-    },
-    {
-      "name": "eval-6-merge-default-message",
-      "prompt": "I resolved the conflicts, finish the merge",
-      "with_skill": "5/5",
-      "without_skill": "2/5"
-    },
-    {
-      "name": "eval-7-mixed-unrelated",
-      "prompt": "pagination for the invoice list endpoint is done, commit it",
-      "with_skill": "5/5",
-      "without_skill": "5/5"
-    },
-    {
-      "name": "eval-8-conventional-history",
-      "prompt": "commit",
-      "with_skill": "5/5",
-      "without_skill": "5/5"
-    },
-    {
-      "name": "eval-9-treewide",
-      "prompt": "commit",
-      "with_skill": "5/5",
-      "without_skill": "5/5"
-    },
-    {
-      "name": "eval-10-no-scope-history",
-      "prompt": "commit",
-      "with_skill": "5/5",
-      "without_skill": "5/5"
-    },
-    {
-      "name": "eval-11-split-unrelated",
-      "prompt": "all of these changes are done, commit them",
-      "with_skill": "5/5",
-      "without_skill": "5/5"
-    }
-  ],
-  "totals": {
+  "skill_invocations": {
     "with_skill": {
-      "all_checks_passed": "55/55",
-      "mean_pass_rate": "100.0%",
-      "cost_usd": "$0.205",
-      "output_tokens": "719",
-      "turns": "6.2",
-      "seconds": "15.3"
+      "target": 55,
+      "other": 0
     },
     "without_skill": {
-      "all_checks_passed": "40/55",
-      "mean_pass_rate": "91.2%",
-      "cost_usd": "$0.210",
-      "output_tokens": "864",
-      "turns": "4.8",
-      "seconds": "14.8"
+      "target": 0,
+      "other": 25
     }
   }
 }
