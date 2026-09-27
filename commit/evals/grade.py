@@ -23,6 +23,8 @@ def check(text, msg, subj, body, n_new, pushed, staged, response, repo):
     if t.startswith("No new commit"): return n_new == 0, f"{n_new} new commit(s)"
     if t.startswith("Subject starts with"):
         return n_new > 0 and subj.startswith(re.search(r"`(.+?)`", t).group(1)), subj
+    if t.startswith("Subject keeps the acronym MIT"):
+        return n_new > 0 and ("mit" not in subj.lower().split() or "MIT" in subj), subj
     if t.startswith("HEAD is a revert"):
         return subj == 'Revert "worker: retry failed exports"' and "This reverts commit" in msg, subj
     if t.startswith("HEAD is a merge commit"):

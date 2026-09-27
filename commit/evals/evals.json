@@ -146,6 +146,7 @@
         "Subject starts with `treewide:`",
         "Subject has no conventional type prefix (feat/fix/chore...)",
         "Subject is <=72 chars, lowercase after the scope, no trailing period",
+        "Subject keeps the acronym MIT uppercase if it mentions it",
         "Nothing was pushed to origin"
       ]
     }
