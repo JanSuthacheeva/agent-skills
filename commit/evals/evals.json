@@ -1,0 +1,75 @@
+{
+  "skill_name": "commit",
+  "evals": [
+    {
+      "id": 1,
+      "name": "staged-ticket-branch",
+      "prompt": "commit this",
+      "expected_output": "One commit reusing the nested `api: auth:` scope about clock-skew leeway, Refs: HGAI-3187 trailer, not pushed.",
+      "files": [
+        "evals/setup_fixture.sh"
+      ],
+      "expectations": [
+        "Exactly one new commit was created",
+        "Subject starts with the reused nested `api: auth:` scope",
+        "Subject has no conventional type prefix (feat/fix/chore...)",
+        "Subject is <=72 chars, lowercase after the scope, no trailing period",
+        "Message contains the trailer `Refs: HGAI-3187`",
+        "Message has no Co-Authored-By trailer",
+        "Nothing was pushed to origin"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "nothing-staged-mixed",
+      "prompt": "ok the exponential backoff for the export worker is done, commit it",
+      "expected_output": "Stages worker/export.py and worker/test_export.py itself, commits once, leaves the scratch files out and names them.",
+      "files": [
+        "evals/setup_fixture.sh"
+      ],
+      "expectations": [
+        "Exactly one new commit was created",
+        "Commit contains exactly worker/export.py and worker/test_export.py",
+        "Scratch files debug_dump.txt and notes.md were neither staged nor committed",
+        "Response names the left-out scratch files",
+        "Nothing was pushed to origin"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "push-multi-scope",
+      "prompt": "commit and push this",
+      "expected_output": "One commit with multi-area scope (api, worker), no Refs trailer. Pushing afterwards is allowed.",
+      "files": [
+        "evals/setup_fixture.sh"
+      ],
+      "expectations": [
+        "Exactly one new commit was created",
+        "Subject scope covers both areas (e.g. `api, worker:`)",
+        "Subject has no conventional type prefix (feat/fix/chore...)",
+        "Subject is <=72 chars, lowercase after the scope, no trailing period",
+        "Message has no Refs trailer (branch has no ticket id)"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "breaking-change",
+      "prompt": "commit",
+      "expected_output": "Commit `api: ...` whose body states the removed currency param and the client migration, Refs: ECOM-88.",
+      "files": [
+        "evals/setup_fixture.sh"
+      ],
+      "expectations": [
+        "Exactly one new commit was created",
+        "Subject starts with `api` scope",
+        "Subject has no conventional type prefix (feat/fix/chore...)",
+        "Subject is <=72 chars, lowercase after the scope, no trailing period",
+        "Body states the breaking removal of the `currency` query parameter",
+        "Body gives the client migration (drop the param / read currency from response)",
+        "Body lines wrapped at <=72 chars",
+        "Message contains the trailer `Refs: ECOM-88`",
+        "Nothing was pushed to origin"
+      ]
+    }
+  ]
+}
