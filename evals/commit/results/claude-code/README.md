@@ -1,15 +1,15 @@
-# Measuring the Behavioral Effect of an Agent Skill for Git Commits: The `commit` Skill (v2.8) in Claude Code
+# Evaluation of the `commit` skill v2.8 in Claude Code
 
-Jan Suthacheeva, 27 September 2026
+Claude Code 2.1.283, `claude-opus-5-5`, 11 scenarios, 5 trials per scenario and condition, 27 September 2026.
 
-## Abstract
+## Summary
 
 Agent skills are instruction files that a coding agent loads on demand to
 follow a specific workflow. It is not self-evident that such a file changes
-behavior once the agent is already told which output format is expected. We
-evaluate the `commit` skill, which specifies how commits are written in the
-Scoped Commits format, against a baseline that is informed of the same format
-but has no access to the skill. Across 11 scenarios with
+behavior once the agent is already told which output format is expected. The
+`commit` skill specifies how commits are written in the Scoped Commits format;
+it is evaluated against a baseline that is informed of the same format but
+has no access to the skill. Across 11 scenarios with
 5 trials each (55 trials per condition), trials
 with the skill satisfied every check in 55 of 55 cases
 (100.0%; 95% CI 93.5%-100.0%), compared with 40 of
@@ -19,7 +19,7 @@ keeping git's default revert and merge messages, adding a ticket trailer, and
 keeping one logical change in one commit. Mean cost per trial was comparable
 ($0.205 versus $0.210).
 
-## 1 Introduction
+## 1 Question
 
 A skill is loaded into the agent's context only when the task matches its
 description, which makes it a cheap way to encode team conventions. Its value,
@@ -30,7 +30,7 @@ example history is visible. The contribution of a commit skill must therefore
 be measured against a baseline that already knows the target format, not
 against an uninformed one.
 
-This report asks two questions. First, does the skill raise the rate at which
+The evaluation addresses two questions. First, does the skill raise the rate at which
 the agent produces commits that satisfy the convention in full? Second, which
 parts of the convention account for the difference?
 
@@ -194,7 +194,7 @@ unprompted, such as the imperative mood, were removed.
 Loading the skill added roughly 1.4 agent turns per trial without
 increasing cost, since the skill condition produced fewer output tokens.
 
-## 5 Threats to validity
+## 5 Limitations
 
 - **Sample size.** Five trials per scenario cannot establish low failure
   rates. The interval for the skill condition still admits a failure rate of
@@ -231,7 +231,7 @@ evals/commit/grade.py <run-dir>
 evals/commit/export_results.py export <run-dir> evals/commit/results/claude-code --version 2.8 --model claude-opus-5-5
 ```
 
-## References
+## Sources
 
 [1] Anthropic. skill-creator. https://github.com/anthropics/skills/tree/main/skills/skill-creator
 
