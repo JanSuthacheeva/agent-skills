@@ -1,0 +1,44 @@
+New commits: 1
+
+commit 9f8af52e71c3d728a1ec99e241b1c0b4a7c8e4f0
+Author: Eval User <eval@example.com>
+Date:   Sun Sep 27 18:03:58 2026 +0700
+
+    worker: back off exponentially on export retries
+
+diff --git a/worker/export.py b/worker/export.py
+index 252d0aa..6fcab4c 100644
+--- a/worker/export.py
++++ b/worker/export.py
+@@ -1,9 +1,9 @@
+ import time
+ 
+-def export(invoice, client, retries=3):
++def export(invoice, client, retries=5, base_delay=0.5):
+     for attempt in range(retries):
+         try:
+             return client.send({"amount": invoice.amount})
+         except ConnectionError:
+-            time.sleep(1)
++            time.sleep(base_delay * 2 ** attempt)
+     raise RuntimeError("export failed")
+diff --git a/worker/test_export.py b/worker/test_export.py
+index 686ad03..ec28458 100644
+--- a/worker/test_export.py
++++ b/worker/test_export.py
+@@ -3,3 +3,8 @@ from worker.export import export
+ def test_export_retries(fake_client):
+     fake_client.fail_times(2)
+     assert export(fake_invoice(), fake_client)
++
++def test_export_backs_off_exponentially(fake_client, sleeps):
++    fake_client.fail_times(3)
++    export(fake_invoice(), fake_client)
++    assert sleeps == [0.5, 1.0, 2.0]
+
+--- git status --short ---
+?? debug_dump.txt
+?? notes.md
+
+--- origin refs ---
+refs/heads/main 85bbc684e59d22e53fd7d25a64226da20c279695

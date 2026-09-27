@@ -1,0 +1,12 @@
+{
+  "eval_id": 2,
+  "eval_name": "nothing-staged-mixed",
+  "prompt": "ok the exponential backoff for the export worker is done, commit it",
+  "assertions": [
+    "Exactly one new commit was created",
+    "Commit contains exactly worker/export.py and worker/test_export.py",
+    "Scratch files debug_dump.txt and notes.md were neither staged nor committed",
+    "Response names the left-out scratch files",
+    "Nothing was pushed to origin"
+  ]
+}

@@ -1,0 +1,46 @@
+New commits: 1
+
+commit 823bf560b0da878d3337fbc17beb126b78908995
+Author: Eval User <eval@example.com>
+Date:   Sun Sep 27 18:04:05 2026 +0700
+
+    worker: use exponential backoff for export retries
+    
+    Retry delay now doubles per attempt starting at base_delay (0.5s) instead of a fixed 1s sleep, and default retries go from 3 to 5.
+
+diff --git a/worker/export.py b/worker/export.py
+index 252d0aa..6fcab4c 100644
+--- a/worker/export.py
++++ b/worker/export.py
+@@ -1,9 +1,9 @@
+ import time
+ 
+-def export(invoice, client, retries=3):
++def export(invoice, client, retries=5, base_delay=0.5):
+     for attempt in range(retries):
+         try:
+             return client.send({"amount": invoice.amount})
+         except ConnectionError:
+-            time.sleep(1)
++            time.sleep(base_delay * 2 ** attempt)
+     raise RuntimeError("export failed")
+diff --git a/worker/test_export.py b/worker/test_export.py
+index 686ad03..ec28458 100644
+--- a/worker/test_export.py
++++ b/worker/test_export.py
+@@ -3,3 +3,8 @@ from worker.export import export
+ def test_export_retries(fake_client):
+     fake_client.fail_times(2)
+     assert export(fake_invoice(), fake_client)
++
++def test_export_backs_off_exponentially(fake_client, sleeps):
++    fake_client.fail_times(3)
++    export(fake_invoice(), fake_client)
++    assert sleeps == [0.5, 1.0, 2.0]
+
+--- git status --short ---
+?? debug_dump.txt
+?? notes.md
+
+--- origin refs ---
+refs/heads/main 1322d2d1c0928adca1b3a15e559018c4e17c1105

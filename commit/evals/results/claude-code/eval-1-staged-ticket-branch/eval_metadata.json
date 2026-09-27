@@ -1,0 +1,14 @@
+{
+  "eval_id": 1,
+  "eval_name": "staged-ticket-branch",
+  "prompt": "commit this",
+  "assertions": [
+    "Exactly one new commit was created",
+    "Subject starts with the reused nested `api: auth:` scope",
+    "Subject has no conventional type prefix (feat/fix/chore...)",
+    "Subject is <=72 chars, lowercase after the scope, no trailing period",
+    "Message contains the trailer `Refs: HGAI-3187`",
+    "Message has no Co-Authored-By trailer",
+    "Nothing was pushed to origin"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "total_tokens": 20893,
+  "output_tokens": 1037,
+  "cache_read_tokens": 105280,
+  "cost_usd": 0.20061200000000004,
+  "num_turns": 4,
+  "duration_ms": 14710,
+  "total_duration_seconds": 14.7
+}

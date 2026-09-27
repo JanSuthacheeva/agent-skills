@@ -1,0 +1,5 @@
+I reverted `1d3601c` as `ed16b24 worker: revert "retry failed exports"`, and the working tree is clean. I didn't push it or run the tests.
+
+- **The revert removes more than the retry.** That commit created `worker/export.py` and `worker/test_export.py` from scratch, so both files are now deleted and `export()` no longer exists. I checked: nothing else in the repo uses it, and no later commit touched `worker/`. If you want to keep a single-attempt `export()`, I can add it back without the loop.
+- **I didn't reproduce the duplicates.** The commit body says retrying after a `ConnectionError` re-sends exports the server had already received. That's my guess at the cause, not something I confirmed. If it's right, a safe retry later would need the server to ignore repeat sends (e.g. an idempotency key).
+- **I committed with `git revert` directly.** There's no `/commit` skill in this session, so I rewrote the default "Revert ..." message into the `worker:` scope format.

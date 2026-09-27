@@ -1,0 +1,4 @@
+I committed the staged change as `ee481c3 worker: add jitter to export retry delay`. It changes `worker/export.py` so the wait between export retries is a random 1-2 seconds instead of a fixed 1 second.
+
+- **Message format:** I used the `<scope>: <description>` format from the session instructions. Earlier commits in this repo use a different style (`fix(worker): ...`), so the log now mixes the two. Tell me if you'd rather match the repo's history and I'll change the message.
+- **Commit skill:** Your global instructions say to use the `/commit` skill, but it isn't installed in this session, so I committed with plain git.

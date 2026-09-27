@@ -1,0 +1,3 @@
+I committed the staged change to `api/auth.py` as `29818cb auth: allow 60s clock skew leeway on token expiry`. The commit body says mobile clients drift by up to a minute, which caused fresh tokens to be rejected as expired.
+
+There's no `/commit` skill available here, so I wrote the message by hand. None of the earlier commits in this repo use scopes, so I went with `auth` because the change is in `api/auth.py`.

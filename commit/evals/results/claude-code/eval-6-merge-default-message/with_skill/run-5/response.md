@@ -1,0 +1,3 @@
+I committed the merge as `f08811f` on `main`, using git's default message: "Merge branch 'feature/invoice-currency'".
+
+Before committing I checked `api/invoices.py`: it has no leftover conflict markers. Your resolution takes the currency from `invoice.account.currency`, so the `currency` request parameter is no longer used and there's no "USD" default anymore. The working tree is clean, and nothing was pushed.

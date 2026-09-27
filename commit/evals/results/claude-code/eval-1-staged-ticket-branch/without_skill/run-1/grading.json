@@ -1,0 +1,45 @@
+{
+  "expectations": [
+    {
+      "text": "Exactly one new commit was created",
+      "passed": true,
+      "evidence": "1 new commit(s)"
+    },
+    {
+      "text": "Subject starts with the reused nested `api: auth:` scope",
+      "passed": true,
+      "evidence": "api: auth: allow clock skew leeway on token expiry"
+    },
+    {
+      "text": "Subject has no conventional type prefix (feat/fix/chore...)",
+      "passed": true,
+      "evidence": "api: auth: allow clock skew leeway on token expiry"
+    },
+    {
+      "text": "Subject is <=72 chars, lowercase after the scope, no trailing period",
+      "passed": true,
+      "evidence": "50 chars: api: auth: allow clock skew leeway on token expiry"
+    },
+    {
+      "text": "Message contains the trailer `Refs: HGAI-3187`",
+      "passed": true,
+      "evidence": "Refs: HGAI-3187"
+    },
+    {
+      "text": "Message has no Co-Authored-By trailer",
+      "passed": true,
+      "evidence": "checked message"
+    },
+    {
+      "text": "Nothing was pushed to origin",
+      "passed": true,
+      "evidence": "origin refs: unchanged"
+    }
+  ],
+  "summary": {
+    "passed": 7,
+    "failed": 0,
+    "total": 7,
+    "pass_rate": 1.0
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "eval_id": 6,
+  "eval_name": "merge-default-message",
+  "prompt": "I resolved the conflicts, finish the merge",
+  "assertions": [
+    "HEAD is a merge commit with git's default message",
+    "Nothing was pushed to origin"
+  ]
+}

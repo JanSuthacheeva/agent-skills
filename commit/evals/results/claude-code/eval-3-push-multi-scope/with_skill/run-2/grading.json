@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "Exactly one new commit was created",
+      "passed": true,
+      "evidence": "1 new commit(s)"
+    },
+    {
+      "text": "Subject scope covers both areas (e.g. `api, worker:`)",
+      "passed": true,
+      "evidence": "api, worker: send invoice amounts as integer cents"
+    },
+    {
+      "text": "Subject has no conventional type prefix (feat/fix/chore...)",
+      "passed": true,
+      "evidence": "api, worker: send invoice amounts as integer cents"
+    },
+    {
+      "text": "Subject is <=72 chars, lowercase after the scope, no trailing period",
+      "passed": true,
+      "evidence": "50 chars: api, worker: send invoice amounts as integer cents"
+    },
+    {
+      "text": "Message has no Refs trailer (branch has no ticket id)",
+      "passed": true,
+      "evidence": "payload. Consumers must read amount_cents and divide by 100."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  }
+}

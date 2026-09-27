@@ -1,0 +1,5 @@
+I reverted `1d3601c` ("worker: retry failed exports") as `2191638` with the message `worker: revert retry failed exports`. It hasn't been pushed. I didn't run any tests after the revert.
+
+- **What it removes:** `worker/export.py` and `worker/test_export.py`, both added by that commit. No later commits touched `worker/` and nothing else imports it, so the revert was clean.
+- **Likely cause of the duplicates:** the retry loop retried on any `ConnectionError`, but a send can fail on the connection after the receiving service already processed it. The retry then sends the same export again. If you want retries back, they'll need an idempotency key per invoice (or the receiving service has to ignore repeats).
+- **Commit method:** your instructions say to use the `/commit` skill, but it isn't installed in this session, so I used `git revert` and set the message myself.

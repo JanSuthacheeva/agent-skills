@@ -1,0 +1,43 @@
+New commits: 2
+
+commit 04a93dc9650b84c52f1273f02a3c6428ab1dfb2b
+Author: Eval User <eval@example.com>
+Date:   Sun Sep 27 18:04:18 2026 +0700
+
+    worker: export invoice amount in cents
+
+diff --git a/worker/export.py b/worker/export.py
+index 252d0aa..8c75da7 100644
+--- a/worker/export.py
++++ b/worker/export.py
+@@ -3,7 +3,7 @@ import time
+ def export(invoice, client, retries=3):
+     for attempt in range(retries):
+         try:
+-            return client.send({"amount": invoice.amount})
++            return client.send({"amount_cents": int(invoice.amount * 100)})
+         except ConnectionError:
+             time.sleep(1)
+     raise RuntimeError("export failed")
+
+commit 75560d42586d2b12bfcf02532d2219735421293c
+Author: Eval User <eval@example.com>
+Date:   Sun Sep 27 18:04:18 2026 +0700
+
+    api: return invoice amount in cents
+
+diff --git a/api/invoices.py b/api/invoices.py
+index 9103f89..9e4eece 100644
+--- a/api/invoices.py
++++ b/api/invoices.py
+@@ -2,4 +2,4 @@ from billing.totals import invoice_total
+ 
+ def get_invoice(request, invoice):
+     currency = request.args.get("currency", "EUR")
+-    return {"id": invoice.id, "amount": invoice_total(invoice.lines), "currency": currency}
++    return {"id": invoice.id, "amount_cents": int(invoice_total(invoice.lines) * 100), "currency": currency}
+
+--- git status --short ---
+
+--- origin refs ---
+refs/heads/main 04a93dc9650b84c52f1273f02a3c6428ab1dfb2b

@@ -1,0 +1,40 @@
+New commits: 1
+
+commit e3b13cbdd3133fb2045de51b452a2e08f56b5111
+Author: Eval User <eval@example.com>
+Date:   Sun Sep 27 18:02:00 2026 +0700
+
+    api, worker: send invoice amounts as integer cents
+    
+    Breaking: the invoice endpoint and the export payload now use
+    amount_cents instead of amount. Consumers must read amount_cents and
+    divide by 100 to get the major-unit value.
+
+diff --git a/api/invoices.py b/api/invoices.py
+index 9103f89..9e4eece 100644
+--- a/api/invoices.py
++++ b/api/invoices.py
+@@ -2,4 +2,4 @@ from billing.totals import invoice_total
+ 
+ def get_invoice(request, invoice):
+     currency = request.args.get("currency", "EUR")
+-    return {"id": invoice.id, "amount": invoice_total(invoice.lines), "currency": currency}
++    return {"id": invoice.id, "amount_cents": int(invoice_total(invoice.lines) * 100), "currency": currency}
+diff --git a/worker/export.py b/worker/export.py
+index 252d0aa..8c75da7 100644
+--- a/worker/export.py
++++ b/worker/export.py
+@@ -3,7 +3,7 @@ import time
+ def export(invoice, client, retries=3):
+     for attempt in range(retries):
+         try:
+-            return client.send({"amount": invoice.amount})
++            return client.send({"amount_cents": int(invoice.amount * 100)})
+         except ConnectionError:
+             time.sleep(1)
+     raise RuntimeError("export failed")
+
+--- git status --short ---
+
+--- origin refs ---
+refs/heads/main e3b13cbdd3133fb2045de51b452a2e08f56b5111

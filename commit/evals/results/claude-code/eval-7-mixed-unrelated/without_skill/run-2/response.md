@@ -1,0 +1,4 @@
+I committed the pagination work as `b4feb5e api: paginate invoice list endpoint` on `feature/invoice-pagination`. It includes `api/invoices.py` and the new `api/test_invoices.py`. Nothing has been pushed.
+
+- **Left out:** `worker/export.py` still has uncommitted changes. That diff is only a `# WIP: try jitter here, not done yet` comment in the export retry loop, and it isn't related to pagination.
+- **The new test probably can't run:** it uses the `fake_request` and `invoices` fixtures, but there's no `conftest.py` anywhere in the repo that defines them. I didn't run it. If you want, I can add those fixtures and run the test, then commit that as a follow-up.

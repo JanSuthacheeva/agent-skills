@@ -1,0 +1,3 @@
+I committed the staged change as `dc57980 worker: add jitter to export retry delay`. It changes `worker/export.py` so each retry waits a random 1-2 seconds instead of exactly 1.
+
+Your earlier commits use the `type(scope): ...` style, such as `fix(worker): ...`. I used the `<scope>: <description>` format this session was set up with instead. There's no `/commit` skill available here, so I made the commit with plain git, without a co-author line.

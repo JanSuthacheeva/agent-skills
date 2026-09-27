@@ -1,0 +1,25 @@
+{
+  "expectations": [
+    {
+      "text": "Exactly one new commit was created",
+      "passed": true,
+      "evidence": "1 new commit(s)"
+    },
+    {
+      "text": "HEAD is a revert with git's default message",
+      "passed": false,
+      "evidence": "worker: revert retry failed exports"
+    },
+    {
+      "text": "Nothing was pushed to origin",
+      "passed": true,
+      "evidence": "origin refs: unchanged"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 1,
+    "total": 3,
+    "pass_rate": 0.67
+  }
+}

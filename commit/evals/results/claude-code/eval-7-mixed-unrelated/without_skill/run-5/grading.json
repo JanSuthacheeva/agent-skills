@@ -1,0 +1,50 @@
+{
+  "expectations": [
+    {
+      "text": "Exactly one new commit was created",
+      "passed": true,
+      "evidence": "1 new commit(s)"
+    },
+    {
+      "text": "Commit contains exactly api/invoices.py and api/test_invoices.py",
+      "passed": true,
+      "evidence": "committed: ['api/invoices.py', 'api/test_invoices.py']"
+    },
+    {
+      "text": "Unrelated worker/export.py change was left uncommitted and unstaged",
+      "passed": true,
+      "evidence": "status: M worker/export.py"
+    },
+    {
+      "text": "Response mentions the left-out worker/export.py change",
+      "passed": true,
+      "evidence": "keyword check on response.md"
+    },
+    {
+      "text": "Subject starts with `api` scope",
+      "passed": true,
+      "evidence": "api: paginate invoice list endpoint"
+    },
+    {
+      "text": "Subject has no conventional type prefix (feat/fix/chore...)",
+      "passed": true,
+      "evidence": "api: paginate invoice list endpoint"
+    },
+    {
+      "text": "Subject is <=72 chars, lowercase after the scope, no trailing period",
+      "passed": true,
+      "evidence": "35 chars: api: paginate invoice list endpoint"
+    },
+    {
+      "text": "Nothing was pushed to origin",
+      "passed": true,
+      "evidence": "origin refs: unchanged"
+    }
+  ],
+  "summary": {
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "pass_rate": 1.0
+  }
+}

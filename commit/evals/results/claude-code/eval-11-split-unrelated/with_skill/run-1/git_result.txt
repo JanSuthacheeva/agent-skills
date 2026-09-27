@@ -1,0 +1,59 @@
+New commits: 3
+
+commit 22f81b59fa89228ab8caf27069fd19e3e10dcde0
+Author: Eval User <eval@example.com>
+Date:   Sun Sep 27 18:03:35 2026 +0700
+
+    docs: describe the service in readme
+
+diff --git a/README.md b/README.md
+index 310f398..bda4e27 100644
+--- a/README.md
++++ b/README.md
+@@ -1 +1,3 @@
+ # shop
++
++Invoicing service: billing, API and export worker.
+
+commit 05abde30d6b7a078c32566cf8fa404dcbf007705
+Author: Eval User <eval@example.com>
+Date:   Sun Sep 27 18:03:35 2026 +0700
+
+    worker: raise export retries from 3 to 5
+
+diff --git a/worker/export.py b/worker/export.py
+index 252d0aa..9fd365b 100644
+--- a/worker/export.py
++++ b/worker/export.py
+@@ -1,6 +1,6 @@
+ import time
+ 
+-def export(invoice, client, retries=3):
++def export(invoice, client, retries=5):
+     for attempt in range(retries):
+         try:
+             return client.send({"amount": invoice.amount})
+
+commit a07c224e04cdbb81f772cb88c0003e5b4963898b
+Author: Eval User <eval@example.com>
+Date:   Sun Sep 27 18:03:35 2026 +0700
+
+    billing: use banker's rounding for invoice totals
+
+diff --git a/billing/totals.py b/billing/totals.py
+index f6dac0d..63573d1 100644
+--- a/billing/totals.py
++++ b/billing/totals.py
+@@ -1,5 +1,5 @@
+-from decimal import Decimal, ROUND_HALF_UP
++from decimal import Decimal, ROUND_HALF_EVEN
+ 
+ def invoice_total(lines):
+     raw = sum(Decimal(l["qty"]) * Decimal(l["price"]) for l in lines)
+-    return raw.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
++    return raw.quantize(Decimal("0.01"), rounding=ROUND_HALF_EVEN)
+
+--- git status --short ---
+
+--- origin refs ---
+refs/heads/main e326b9b31d6b108c23c1169410bdaede3ef74ee3

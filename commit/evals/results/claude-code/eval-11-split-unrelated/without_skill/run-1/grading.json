@@ -1,0 +1,30 @@
+{
+  "expectations": [
+    {
+      "text": "Three new commits were created, one per change",
+      "passed": true,
+      "evidence": "3 new commit(s)"
+    },
+    {
+      "text": "Each commit touches only one of billing/, worker/ or README.md",
+      "passed": true,
+      "evidence": "areas per commit: [{'README.md'}, {'worker'}, {'billing'}]"
+    },
+    {
+      "text": "All new commit subjects are scoped with no type prefix, <=72 chars, lowercase, no period",
+      "passed": true,
+      "evidence": "subjects: ['docs: describe service in readme', 'worker: raise default export retries to 5', 'billing: round invoice totals half-even']"
+    },
+    {
+      "text": "Nothing was pushed to origin",
+      "passed": true,
+      "evidence": "origin refs: unchanged"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  }
+}

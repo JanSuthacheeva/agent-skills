@@ -1,0 +1,52 @@
+New commits: 3
+
+commit 95479e8d1dd04f1c902a1d36657a39658899af80
+Merge: e6f2b0d 023c674
+Author: Eval User <eval@example.com>
+Date:   Sun Sep 27 18:05:08 2026 +0700
+
+    Merge branch 'feature/invoice-currency'
+    
+    # Conflicts:
+    #       api/invoices.py
+
+commit e6f2b0d7eff1b54a29e58069a8011217c493119d
+Author: Eval User <eval@example.com>
+Date:   Sun Sep 27 18:04:51 2026 +0700
+
+    api: default invoice currency to usd
+
+diff --git a/api/invoices.py b/api/invoices.py
+index 9103f89..8b7621e 100644
+--- a/api/invoices.py
++++ b/api/invoices.py
+@@ -1,5 +1,5 @@
+ from billing.totals import invoice_total
+ 
+ def get_invoice(request, invoice):
+-    currency = request.args.get("currency", "EUR")
++    currency = request.args.get("currency", "USD")
+     return {"id": invoice.id, "amount": invoice_total(invoice.lines), "currency": currency}
+
+commit 023c6744cce57955e310fc7acd51975a0b9e13e7
+Author: Eval User <eval@example.com>
+Date:   Sun Sep 27 18:04:51 2026 +0700
+
+    api: take invoice currency from the account
+
+diff --git a/api/invoices.py b/api/invoices.py
+index 9103f89..426ff1a 100644
+--- a/api/invoices.py
++++ b/api/invoices.py
+@@ -1,5 +1,5 @@
+ from billing.totals import invoice_total
+ 
+ def get_invoice(request, invoice):
+-    currency = request.args.get("currency", "EUR")
++    currency = invoice.account.currency
+     return {"id": invoice.id, "amount": invoice_total(invoice.lines), "currency": currency}
+
+--- git status --short ---
+
+--- origin refs ---
+refs/heads/main e439428558e385704897bab87dfe7599fdf4d257

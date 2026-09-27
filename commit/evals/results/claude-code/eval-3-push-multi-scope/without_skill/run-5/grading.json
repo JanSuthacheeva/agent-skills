@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "Exactly one new commit was created",
+      "passed": false,
+      "evidence": "2 new commit(s)"
+    },
+    {
+      "text": "Subject scope covers both areas (e.g. `api, worker:`)",
+      "passed": false,
+      "evidence": "worker: export invoice amount in cents"
+    },
+    {
+      "text": "Subject has no conventional type prefix (feat/fix/chore...)",
+      "passed": true,
+      "evidence": "worker: export invoice amount in cents"
+    },
+    {
+      "text": "Subject is <=72 chars, lowercase after the scope, no trailing period",
+      "passed": true,
+      "evidence": "38 chars: worker: export invoice amount in cents"
+    },
+    {
+      "text": "Message has no Refs trailer (branch has no ticket id)",
+      "passed": true,
+      "evidence": "worker: export invoice amount in cents"
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 2,
+    "total": 5,
+    "pass_rate": 0.6
+  }
+}

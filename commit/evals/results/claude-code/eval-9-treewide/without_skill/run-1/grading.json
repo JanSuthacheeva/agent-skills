@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Exactly one new commit was created",
+      "passed": true,
+      "evidence": "1 new commit(s)"
+    },
+    {
+      "text": "Subject starts with `treewide:`",
+      "passed": true,
+      "evidence": "treewide: add MIT license"
+    },
+    {
+      "text": "Subject has no conventional type prefix (feat/fix/chore...)",
+      "passed": true,
+      "evidence": "treewide: add MIT license"
+    },
+    {
+      "text": "Subject is <=72 chars, lowercase after the scope, no trailing period",
+      "passed": true,
+      "evidence": "25 chars: treewide: add MIT license"
+    },
+    {
+      "text": "Subject keeps the acronym MIT uppercase if it mentions it",
+      "passed": true,
+      "evidence": "treewide: add MIT license"
+    },
+    {
+      "text": "Nothing was pushed to origin",
+      "passed": true,
+      "evidence": "origin refs: unchanged"
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

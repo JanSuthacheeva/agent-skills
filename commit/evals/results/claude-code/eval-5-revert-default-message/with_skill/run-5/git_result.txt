@@ -1,0 +1,41 @@
+New commits: 1
+
+commit 6011d493e27f46c843d16a5545e20fa13b03a36f
+Author: Eval User <eval@example.com>
+Date:   Sun Sep 27 18:02:30 2026 +0700
+
+    Revert "worker: retry failed exports"
+    
+    This reverts commit b6115e4d48462256b803db9a5ed357fa1455f05c.
+
+diff --git a/worker/export.py b/worker/export.py
+deleted file mode 100644
+index 252d0aa..0000000
+--- a/worker/export.py
++++ /dev/null
+@@ -1,9 +0,0 @@
+-import time
+-
+-def export(invoice, client, retries=3):
+-    for attempt in range(retries):
+-        try:
+-            return client.send({"amount": invoice.amount})
+-        except ConnectionError:
+-            time.sleep(1)
+-    raise RuntimeError("export failed")
+diff --git a/worker/test_export.py b/worker/test_export.py
+deleted file mode 100644
+index 686ad03..0000000
+--- a/worker/test_export.py
++++ /dev/null
+@@ -1,5 +0,0 @@
+-from worker.export import export
+-
+-def test_export_retries(fake_client):
+-    fake_client.fail_times(2)
+-    assert export(fake_invoice(), fake_client)
+
+--- git status --short ---
+
+--- origin refs ---
+refs/heads/main 809051f68867a672074160e90e471ed8cea0143c

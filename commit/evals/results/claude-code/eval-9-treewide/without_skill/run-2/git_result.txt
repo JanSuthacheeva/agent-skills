@@ -1,0 +1,75 @@
+New commits: 1
+
+commit 42c946e42319337dd847eca03b26b46fc14f267c
+Author: Eval User <eval@example.com>
+Date:   Sun Sep 27 18:05:30 2026 +0700
+
+    treewide: add MIT license
+
+diff --git a/LICENSE b/LICENSE
+new file mode 100644
+index 0000000..d1e1072
+--- /dev/null
++++ b/LICENSE
+@@ -0,0 +1 @@
++MIT License
+diff --git a/README.md b/README.md
+index 310f398..d99e9f3 100644
+--- a/README.md
++++ b/README.md
+@@ -1 +1,5 @@
+ # shop
++
++## License
++
++MIT
+diff --git a/api/auth.py b/api/auth.py
+index c8860f7..ae3bcd7 100644
+--- a/api/auth.py
++++ b/api/auth.py
+@@ -1,3 +1,4 @@
++# SPDX-License-Identifier: MIT
+ import time
+ 
+ def token_valid(token, now=None):
+diff --git a/api/invoices.py b/api/invoices.py
+index 9103f89..729b393 100644
+--- a/api/invoices.py
++++ b/api/invoices.py
+@@ -1,3 +1,4 @@
++# SPDX-License-Identifier: MIT
+ from billing.totals import invoice_total
+ 
+ def get_invoice(request, invoice):
+diff --git a/billing/totals.py b/billing/totals.py
+index f6dac0d..4ef808d 100644
+--- a/billing/totals.py
++++ b/billing/totals.py
+@@ -1,3 +1,4 @@
++# SPDX-License-Identifier: MIT
+ from decimal import Decimal, ROUND_HALF_UP
+ 
+ def invoice_total(lines):
+diff --git a/worker/export.py b/worker/export.py
+index 252d0aa..686a378 100644
+--- a/worker/export.py
++++ b/worker/export.py
+@@ -1,3 +1,4 @@
++# SPDX-License-Identifier: MIT
+ import time
+ 
+ def export(invoice, client, retries=3):
+diff --git a/worker/test_export.py b/worker/test_export.py
+index 686ad03..f912a70 100644
+--- a/worker/test_export.py
++++ b/worker/test_export.py
+@@ -1,3 +1,4 @@
++# SPDX-License-Identifier: MIT
+ from worker.export import export
+ 
+ def test_export_retries(fake_client):
+
+--- git status --short ---
+
+--- origin refs ---
+refs/heads/main 7533dd464f047b1a11467cde61755fc30b755b0a

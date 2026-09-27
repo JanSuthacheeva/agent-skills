@@ -1,0 +1,42 @@
+New commits: 1
+
+commit 66463220c6758ec01a232b38b7a0ab75890616bb
+Author: Eval User <eval@example.com>
+Date:   Sun Sep 27 18:02:50 2026 +0700
+
+    api: paginate invoice list endpoint
+
+diff --git a/api/invoices.py b/api/invoices.py
+index 9103f89..4cbd230 100644
+--- a/api/invoices.py
++++ b/api/invoices.py
+@@ -1,5 +1,12 @@
+ from billing.totals import invoice_total
+ 
++PAGE_SIZE = 50
++
+ def get_invoice(request, invoice):
+     currency = request.args.get("currency", "EUR")
+     return {"id": invoice.id, "amount": invoice_total(invoice.lines), "currency": currency}
++
++def list_invoices(request, invoices):
++    page = int(request.args.get("page", 1))
++    start = (page - 1) * PAGE_SIZE
++    return {"page": page, "items": [i.id for i in invoices[start:start + PAGE_SIZE]]}
+diff --git a/api/test_invoices.py b/api/test_invoices.py
+new file mode 100644
+index 0000000..5ee3a44
+--- /dev/null
++++ b/api/test_invoices.py
+@@ -0,0 +1,5 @@
++from api.invoices import list_invoices, PAGE_SIZE
++
++def test_second_page_starts_after_first(fake_request, invoices):
++    body = list_invoices(fake_request(page=2), invoices)
++    assert body["items"][0] == invoices[PAGE_SIZE].id
+
+--- git status --short ---
+ M worker/export.py
+
+--- origin refs ---
+refs/heads/main 68d99c21ebe9e28e00ef34bc0d06ae4af06be117

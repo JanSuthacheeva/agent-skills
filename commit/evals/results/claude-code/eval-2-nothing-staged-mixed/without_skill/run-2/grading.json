@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "Exactly one new commit was created",
+      "passed": true,
+      "evidence": "1 new commit(s)"
+    },
+    {
+      "text": "Commit contains exactly worker/export.py and worker/test_export.py",
+      "passed": true,
+      "evidence": "committed: ['worker/export.py', 'worker/test_export.py']"
+    },
+    {
+      "text": "Scratch files debug_dump.txt and notes.md were neither staged nor committed",
+      "passed": true,
+      "evidence": "staged: none; committed scratch: none"
+    },
+    {
+      "text": "Response names the left-out scratch files",
+      "passed": true,
+      "evidence": "keyword check on response.md"
+    },
+    {
+      "text": "Nothing was pushed to origin",
+      "passed": true,
+      "evidence": "origin refs: unchanged"
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  }
+}
