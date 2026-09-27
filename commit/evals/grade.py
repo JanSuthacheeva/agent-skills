@@ -17,12 +17,22 @@ def subject_ok(subj):
     desc = subj.split(": ")[-1] if ": " in subj else subj
     return len(subj) <= 72 and desc[:1] == desc[:1].lower() and not subj.endswith(".")
 
-def check(text, msg, subj, body, n_new, pushed, staged, response):
+def check(text, msg, subj, body, n_new, pushed, staged, response, repo):
     t = text
     if t.startswith("Exactly one new commit"): return n_new == 1, f"{n_new} new commit(s)"
     if t.startswith("No new commit"): return n_new == 0, f"{n_new} new commit(s)"
-    if t.startswith("Subject starts with the reused nested `api: auth:`"): return subj.startswith("api: auth:"), subj
-    if t.startswith("Subject starts with `api`"): return subj.startswith("api"), subj
+    if t.startswith("Subject starts with"):
+        return n_new > 0 and subj.startswith(re.search(r"`(.+?)`", t).group(1)), subj
+    if t.startswith("HEAD is a revert"):
+        return subj == 'Revert "worker: retry failed exports"' and "This reverts commit" in msg, subj
+    if t.startswith("HEAD is a merge commit"):
+        parents = len(git(repo, "rev-list", "--parents", "-n1", "HEAD").split()) - 1
+        return parents == 2 and subj.startswith("Merge branch 'feature/"), f"{parents} parents: {subj}"
+    if t.startswith("Unrelated worker/export.py"):
+        st = git(repo, "status", "--short", "worker/export.py")
+        return st.startswith(" M") and "worker/export.py" not in git_committed_files, f"status: {st.strip() or 'clean'}"
+    if t.startswith("Response mentions the left-out worker"):
+        return "worker/export.py" in response, "keyword check on response.md"
     if t.startswith("Subject scope covers both"):
         scope = subj.split(":")[0]
         return "api" in scope and "worker" in scope, subj
@@ -38,7 +48,7 @@ def check(text, msg, subj, body, n_new, pushed, staged, response):
         bad = [f for f in ("debug_dump.txt", "notes.md") if f in staged or f in git_committed_files]
         return not bad, f"staged: {staged or 'none'}; committed scratch: {bad or 'none'}"
     if t.startswith("Commit contains exactly"):
-        want = sorted(re.findall(r"worker/\S+\.py", t))
+        want = sorted(re.findall(r"\w+/\w+\.py", t))
         return n_new == 1 and sorted(git_committed_files) == want, f"committed: {git_committed_files}"
     if t.startswith("Response names the left-out"):
         return "debug_dump.txt" in response and "notes.md" in response, "keyword check on response.md"
@@ -75,7 +85,7 @@ for meta_path in sorted(it.glob("*/eval_metadata.json")):
         response = resp_path.read_text() if resp_path.exists() else ""
         exps = []
         for a in meta["assertions"]:
-            ok, ev = check(a, msg, subj, body, len(new), pushed, staged, response)
+            ok, ev = check(a, msg, subj, body, len(new), pushed, staged, response, repo)
             exps.append({"text": a, "passed": bool(ok), "evidence": ev})
         (run / "outputs" / "git_result.txt").write_text(
             f"New commits: {len(new)}\n\n"

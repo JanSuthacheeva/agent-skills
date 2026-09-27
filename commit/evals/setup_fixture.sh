@@ -11,7 +11,9 @@ git config user.name "Eval User"; git config user.email "eval@example.com"
 git config commit.gpgsign false
 git remote add origin "$dest/origin.git"
 
-c() { git add -A; git commit -q -m "$1"; }
+# c <scoped message> [conventional message]: the conventional-history eval
+# builds the same tree with a Conventional Commits log instead.
+c() { git add -A; if [ "$name" = conventional-history ] && [ -n "${2:-}" ]; then git commit -q -m "$2"; else git commit -q -m "$1"; fi; }
 mkdir -p billing api worker
 cat > billing/totals.py <<'P'
 from decimal import Decimal, ROUND_HALF_UP
@@ -20,7 +22,7 @@ def invoice_total(lines):
     raw = sum(Decimal(l["qty"]) * Decimal(l["price"]) for l in lines)
     return raw.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 P
-c "billing: add invoice totals"
+c "billing: add invoice totals" "feat(billing): add invoice totals"
 cat > api/invoices.py <<'P'
 from billing.totals import invoice_total
 
@@ -28,7 +30,7 @@ def get_invoice(request, invoice):
     currency = request.args.get("currency", "EUR")
     return {"id": invoice.id, "amount": invoice_total(invoice.lines), "currency": currency}
 P
-c "api: expose invoice endpoint"
+c "api: expose invoice endpoint" "feat(api): expose invoice endpoint"
 cat > worker/export.py <<'P'
 import time
 
@@ -47,7 +49,7 @@ def test_export_retries(fake_client):
     fake_client.fail_times(2)
     assert export(fake_invoice(), fake_client)
 P
-c "worker: retry failed exports"
+c "worker: retry failed exports" "fix(worker): retry failed exports"
 cat > api/auth.py <<'P'
 import time
 
@@ -55,9 +57,9 @@ def token_valid(token, now=None):
     now = now or time.time()
     return token["exp"] > now
 P
-c "api: auth: validate token expiry"
-echo "# shop" > README.md; c "docs: add readme"
-echo "python 3.12" > .tool-versions; c "treewide: bump python to 3.12"
+c "api: auth: validate token expiry" "feat(auth): validate token expiry"
+echo "# shop" > README.md; c "docs: add readme" "docs: add readme"
+echo "python 3.12" > .tool-versions; c "treewide: bump python to 3.12" "chore: bump python to 3.12"
 git push -q origin main
 git rev-parse HEAD > "$dest/base_sha"
 
@@ -121,5 +123,56 @@ The `currency` query parameter was removed; clients that sent it must drop it
 and read `currency` from the response instead.
 P
   git add api/invoices.py README.md ;;
+revert-default-message) ;;
+merge-default-message)
+  git checkout -q -b feature/invoice-currency
+  sed -i '' 's/request.args.get("currency", "EUR")/invoice.account.currency/' api/invoices.py
+  git commit -qam "api: take invoice currency from the account"
+  git checkout -q main
+  sed -i '' 's/request.args.get("currency", "EUR")/request.args.get("currency", "USD")/' api/invoices.py
+  git commit -qam "api: default invoice currency to usd"
+  git merge -q feature/invoice-currency >/dev/null 2>&1 || true
+  cat > api/invoices.py <<'P'
+from billing.totals import invoice_total
+
+def get_invoice(request, invoice):
+    currency = invoice.account.currency
+    return {"id": invoice.id, "amount": invoice_total(invoice.lines), "currency": currency}
+P
+  git add api/invoices.py ;;
+mixed-unrelated)
+  git checkout -q -b feature/invoice-pagination
+  cat > api/invoices.py <<'P'
+from billing.totals import invoice_total
+
+PAGE_SIZE = 50
+
+def get_invoice(request, invoice):
+    currency = request.args.get("currency", "EUR")
+    return {"id": invoice.id, "amount": invoice_total(invoice.lines), "currency": currency}
+
+def list_invoices(request, invoices):
+    page = int(request.args.get("page", 1))
+    start = (page - 1) * PAGE_SIZE
+    return {"page": page, "items": [i.id for i in invoices[start:start + PAGE_SIZE]]}
+P
+  cat > api/test_invoices.py <<'P'
+from api.invoices import list_invoices, PAGE_SIZE
+
+def test_second_page_starts_after_first(fake_request, invoices):
+    body = list_invoices(fake_request(page=2), invoices)
+    assert body["items"][0] == invoices[PAGE_SIZE].id
+P
+  sed -i '' 's/            time.sleep(1)/            # WIP: try jitter here, not done yet\n            time.sleep(1)/' worker/export.py ;;
+conventional-history)
+  sed -i '' 's/            time.sleep(1)/            time.sleep(1 + random.random())/; s/^import time$/import random\nimport time/' worker/export.py
+  git add worker/export.py ;;
+treewide)
+  for f in billing/totals.py api/invoices.py api/auth.py worker/export.py worker/test_export.py; do
+    printf '# SPDX-License-Identifier: MIT\n%s\n' "$(cat "$f")" > "$f"
+  done
+  printf '\n## License\n\nMIT\n' >> README.md
+  printf 'MIT License\n' > LICENSE
+  git add -A ;;
 *) echo "unknown eval $name" >&2; exit 1 ;;
 esac
