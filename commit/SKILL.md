@@ -8,7 +8,7 @@ description: >-
 compatibility: Requires git
 metadata:
     author: Jan Suthacheeva
-    version: "2.4"
+    version: "2.5"
 allowed-tools: >-
   Bash(git status:*) Bash(git branch:*) Bash(git log:*) Bash(git diff:*)
   Bash(git add:*) Bash(git commit:*) Read
@@ -20,8 +20,10 @@ Commit the staged changes with one Scoped Commits message.
 
 1. One call: `git status --short; git branch --show-current;
    git log --format=%s -n 20; git diff --staged --stat`
-2. Nothing staged: propose the files of the finished work, wait for
-   confirmation, then `git add <paths>`. Never `git add .`.
+2. Nothing staged: `git add <paths>` for the files of the finished
+   work yourself. Leave out unrelated changes and scratch files, and
+   name them in your reply. Never `git add .` or `-A`. Ask only if you
+   can't tell which changes belong to the work.
 3. Read `git diff --staged` unless you made exactly these changes in
    this session.
 4. Commit right away with one `-m` per paragraph, then show the
