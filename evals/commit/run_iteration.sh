@@ -6,6 +6,7 @@ set -euo pipefail
 it=$1; fixtures=$2; trials=${3:-5}; par=${4:-8}
 here=$(cd "$(dirname "$0")" && pwd)
 mkdir -p "$it"
+claude --version | head -1 > "$it/harness.txt"
 
 jobs() {  # jobs <config> -> NUL-separated args for run_trials.sh
   python3 - "$here/evals.json" "$it" "$1" "$trials" "$fixtures" <<'P'

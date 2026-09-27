@@ -17,7 +17,8 @@
         "Message contains the trailer `Refs: HGAI-3187`",
         "Message has no Co-Authored-By trailer",
         "Nothing was pushed to origin"
-      ]
+      ],
+      "tests": "Staged change on a ticket branch; reuse of a nested scope from the log and a `Refs:` trailer."
     },
     {
       "id": 2,
@@ -33,7 +34,8 @@
         "Scratch files debug_dump.txt and notes.md were neither staged nor committed",
         "Response names the left-out scratch files",
         "Nothing was pushed to origin"
-      ]
+      ],
+      "tests": "Nothing staged, scratch files present; autonomous staging of the finished work only."
     },
     {
       "id": 3,
@@ -49,7 +51,8 @@
         "Subject has no conventional type prefix (feat/fix/chore...)",
         "Subject is <=72 chars, lowercase after the scope, no trailing period",
         "Message has no Refs trailer (branch has no ticket id)"
-      ]
+      ],
+      "tests": "One logical change across two areas, push requested; a single commit with a combined scope."
     },
     {
       "id": 4,
@@ -69,7 +72,8 @@
         "Body lines wrapped at <=72 chars",
         "Message contains the trailer `Refs: ECOM-88`",
         "Nothing was pushed to origin"
-      ]
+      ],
+      "tests": "Breaking API change on a ticket branch; body documents the migration, `Refs:` trailer present."
     },
     {
       "id": 5,
@@ -83,7 +87,8 @@
         "Exactly one new commit was created",
         "HEAD is a revert with git's default message",
         "Nothing was pushed to origin"
-      ]
+      ],
+      "tests": "Revert request; git's default revert message is kept."
     },
     {
       "id": 6,
@@ -96,7 +101,8 @@
       "expectations": [
         "HEAD is a merge commit with git's default message",
         "Nothing was pushed to origin"
-      ]
+      ],
+      "tests": "Conclusion of a conflicted merge; git's default merge message is kept."
     },
     {
       "id": 7,
@@ -115,7 +121,8 @@
         "Subject has no conventional type prefix (feat/fix/chore...)",
         "Subject is <=72 chars, lowercase after the scope, no trailing period",
         "Nothing was pushed to origin"
-      ]
+      ],
+      "tests": "Finished work beside an unrelated work-in-progress edit; only the finished files are committed."
     },
     {
       "id": 8,
@@ -131,7 +138,8 @@
         "Subject has no conventional type prefix (feat/fix/chore...)",
         "Subject is <=72 chars, lowercase after the scope, no trailing period",
         "Nothing was pushed to origin"
-      ]
+      ],
+      "tests": "Log in Conventional Commits style; scoped subject without a type prefix."
     },
     {
       "id": 9,
@@ -148,7 +156,8 @@
         "Subject is <=72 chars, lowercase after the scope, no trailing period",
         "Subject keeps the acronym MIT uppercase if it mentions it",
         "Nothing was pushed to origin"
-      ]
+      ],
+      "tests": "Change across the whole tree; `treewide` scope with acronym case preserved."
     },
     {
       "id": 10,
@@ -165,7 +174,8 @@
         "Subject is <=72 chars, lowercase after the scope, no trailing period",
         "Message has no Refs trailer (branch has no ticket id)",
         "Nothing was pushed to origin"
-      ]
+      ],
+      "tests": "Log without scopes; scoped subject derived from the directory structure."
     },
     {
       "id": 11,
@@ -180,7 +190,8 @@
         "Each commit touches only one of billing/, worker/ or README.md",
         "All new commit subjects are scoped with no type prefix, <=72 chars, lowercase, no period",
         "Nothing was pushed to origin"
-      ]
+      ],
+      "tests": "Three independent finished changes; one commit per logical change."
     }
   ]
 }
