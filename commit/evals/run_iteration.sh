@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Run every eval in evals.json for both configs, N trials each.
 # Usage: run_iteration.sh <iteration-dir> <fixture-root> [trials=5] [parallel=8]
-# CONFIGS="with_skill ..." limits which configs run (default: all three).
+# CONFIGS="with_skill ..." limits which configs run (default: both).
 set -euo pipefail
 it=$1; fixtures=$2; trials=${3:-5}; par=${4:-8}
 here=$(cd "$(dirname "$0")" && pwd)
@@ -21,4 +21,4 @@ for e in json.load(open(evals))["evals"]:
 P
 }
 
-for cfg in ${CONFIGS:-with_skill skill_lite without_skill}; do jobs "$cfg"; done | xargs -0 -n5 -P"$par" "$here/run_trials.sh"
+for cfg in ${CONFIGS:-with_skill without_skill}; do jobs "$cfg"; done | xargs -0 -n5 -P"$par" "$here/run_trials.sh"

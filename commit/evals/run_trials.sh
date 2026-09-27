@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 # Run one commit-skill eval trial headlessly with `claude -p`.
 # Usage: run_trials.sh <eval-name> <prompt> <config> <run-dir> <fixture-root>
-#   config: with_skill | skill_lite | without_skill. All run in the user's
-#   normal environment. skill_lite and without_skill hide the installed
-#   commit skill via skillOverrides; skill_lite loads variants/lite.md as a
-#   plugin skill (lite:commit) instead.
+#   config: with_skill | without_skill. Both run in the user's normal
+#   environment; without_skill hides only the commit skill via
+#   skillOverrides, so its presence is the only difference.
 set -euo pipefail
 name=$1; prompt=$2; cfg=$3; run=$4; fixtures=$5
 here=$(cd "$(dirname "$0")" && pwd)
@@ -14,13 +13,7 @@ mkdir -p "$run/outputs"
 ln -sfn "$fx/repo" "$run/repo"; ln -sfn "$fx/origin.git" "$run/origin.git"; cp "$fx/base_sha" "$run/base_sha"
 args=(-p "$prompt" --output-format json --model "${MODEL:-claude-opus-5-5}"
       --allowedTools Skill "Bash(git *)" "Bash(git:*)" Read Glob Grep)
-if [ "$cfg" = skill_lite ]; then
-  plugin="$fixtures/lite-plugin"
-  mkdir -p "$plugin/.claude-plugin" "$plugin/skills/commit"
-  echo '{"name":"lite","version":"0.0.1","description":"commit skill eval variant"}' > "$plugin/.claude-plugin/plugin.json"
-  cp "$here/variants/lite.md" "$plugin/skills/commit/SKILL.md"
-  args+=(--settings '{"skillOverrides":{"commit":"off"}}' --plugin-dir "$plugin")
-elif [ "$cfg" = without_skill ]; then
+if [ "$cfg" = without_skill ]; then
   args+=(--settings '{"skillOverrides":{"commit":"off"}}' --append-system-prompt \
     "Write commit messages in Scoped Commits format: \`<scope>: <description>\`.")
 fi
