@@ -6,8 +6,8 @@ description: >-
   message, or when a finished unit of work is ready to commit. Never pushes,
   pulls, merges or rebases.
 compatibility: >-
-  Requires git. Tested in Claude Code with Claude Opus 5.5 (see
-  evals/results/claude-code).
+  Requires git. Tested in Claude Code with Claude Opus 5.5, see
+  https://github.com/JanSuthacheeva/agent-skills/tree/main/evals/commit/results/claude-code
 metadata:
     author: Jan Suthacheeva
     version: "2.8"

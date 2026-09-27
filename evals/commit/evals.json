@@ -7,7 +7,7 @@
       "prompt": "commit this",
       "expected_output": "One commit reusing the nested `api: auth:` scope about clock-skew leeway, Refs: HGAI-3187 trailer, not pushed.",
       "files": [
-        "evals/setup_fixture.sh"
+        "setup_fixture.sh"
       ],
       "expectations": [
         "Exactly one new commit was created",
@@ -25,7 +25,7 @@
       "prompt": "ok the exponential backoff for the export worker is done, commit it",
       "expected_output": "Stages worker/export.py and worker/test_export.py itself, commits once, leaves the scratch files out and names them.",
       "files": [
-        "evals/setup_fixture.sh"
+        "setup_fixture.sh"
       ],
       "expectations": [
         "Exactly one new commit was created",
@@ -41,7 +41,7 @@
       "prompt": "commit and push this",
       "expected_output": "One commit with multi-area scope (api, worker), no Refs trailer. Pushing afterwards is allowed.",
       "files": [
-        "evals/setup_fixture.sh"
+        "setup_fixture.sh"
       ],
       "expectations": [
         "Exactly one new commit was created",
@@ -57,7 +57,7 @@
       "prompt": "commit",
       "expected_output": "Commit `api: ...` whose body states the removed currency param and the client migration, Refs: ECOM-88.",
       "files": [
-        "evals/setup_fixture.sh"
+        "setup_fixture.sh"
       ],
       "expectations": [
         "Exactly one new commit was created",
@@ -77,7 +77,7 @@
       "prompt": "revert the export retry commit, it's causing duplicate exports",
       "expected_output": "git revert of the worker commit with git's default Revert message, not pushed.",
       "files": [
-        "evals/setup_fixture.sh"
+        "setup_fixture.sh"
       ],
       "expectations": [
         "Exactly one new commit was created",
@@ -91,7 +91,7 @@
       "prompt": "I resolved the conflicts, finish the merge",
       "expected_output": "Merge commit concluded with git's default Merge branch message.",
       "files": [
-        "evals/setup_fixture.sh"
+        "setup_fixture.sh"
       ],
       "expectations": [
         "HEAD is a merge commit with git's default message",
@@ -104,7 +104,7 @@
       "prompt": "pagination for the invoice list endpoint is done, commit it",
       "expected_output": "Commits only api/invoices.py and api/test_invoices.py, leaves the WIP worker change alone and mentions it.",
       "files": [
-        "evals/setup_fixture.sh"
+        "setup_fixture.sh"
       ],
       "expectations": [
         "Exactly one new commit was created",
@@ -123,7 +123,7 @@
       "prompt": "commit",
       "expected_output": "Scoped commit `worker: ...` even though the log uses Conventional Commits.",
       "files": [
-        "evals/setup_fixture.sh"
+        "setup_fixture.sh"
       ],
       "expectations": [
         "Exactly one new commit was created",
@@ -139,7 +139,7 @@
       "prompt": "commit",
       "expected_output": "`treewide: ...` for a license header added across the whole tree.",
       "files": [
-        "evals/setup_fixture.sh"
+        "setup_fixture.sh"
       ],
       "expectations": [
         "Exactly one new commit was created",
@@ -156,7 +156,7 @@
       "prompt": "commit",
       "expected_output": "Scoped subject naming the touched area (api / api: auth) even though the log has no scopes.",
       "files": [
-        "evals/setup_fixture.sh"
+        "setup_fixture.sh"
       ],
       "expectations": [
         "Exactly one new commit was created",
@@ -173,7 +173,7 @@
       "prompt": "all of these changes are done, commit them",
       "expected_output": "Three commits, one per independent change (billing, worker, README), each in scoped format.",
       "files": [
-        "evals/setup_fixture.sh"
+        "setup_fixture.sh"
       ],
       "expectations": [
         "Three new commits were created, one per change",
