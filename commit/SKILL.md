@@ -8,13 +8,14 @@ description: >-
 compatibility: Requires git
 metadata:
     author: Jan Suthacheeva
-    version: "2.7"
+    version: "2.8"
 allowed-tools: >-
   Bash(git status:*) Bash(git branch:*) Bash(git log:*) Bash(git diff:*)
   Bash(git add:*) Bash(git commit:*) Read
 ---
 
-Commit the staged changes with one Scoped Commits message.
+Commit the staged changes with one Scoped Commits message per logical
+change.
 
 ## Workflow
 
