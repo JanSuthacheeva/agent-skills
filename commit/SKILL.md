@@ -3,12 +3,24 @@ name: commit
 description: >-
   Write and create a git commit in Scoped Commits format (`<scope>:
   <description>`). Use when the user says "commit" or asks for a commit
-  message, or when a finished unit of work is ready to commit. Never pushes.
+  message, or when a finished unit of work is ready to commit. Never pushes,
+  pulls, merges or rebases.
 compatibility: Requires git
 metadata:
     author: Jan Suthacheeva
-    version: "2.2"
-allowed-tools: Bash(git:*) Read
+    version: "2.3"
+allowed-tools: >-
+  Bash(git status:*) Bash(git branch:*) Bash(git log:*) Bash(git diff:*)
+  Bash(git add:*) Bash(git commit:*) Read
+hooks:
+  PreToolUse:
+    - matcher: Bash
+      hooks:
+        - type: command
+          command: >-
+            grep -Eq '(^|[^[:alnum:]_-])git([[:space:]]+(-C[[:space:]]+[^[:space:]]+|-[^[:space:]]+))*[[:space:]]+(push|pull|merge|rebase)([^[:alnum:]_-]|$)'
+            && { echo "commit skill: git push, pull, merge and rebase are not allowed" >&2; exit 2; };
+            exit 0
 ---
 
 Commit the staged changes with one Scoped Commits message.
@@ -22,7 +34,8 @@ Commit the staged changes with one Scoped Commits message.
 3. Read `git diff --staged` unless you made exactly these changes in
    this session.
 4. Commit right away with one `-m` per paragraph, then show the
-   message. Never push, `--no-verify` or `--no-gpg-sign`.
+   message. Never push, pull, merge, rebase, `--no-verify` or
+   `--no-gpg-sign`.
 
 ## Rules
 
