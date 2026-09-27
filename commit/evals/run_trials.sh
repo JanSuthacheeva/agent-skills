@@ -2,8 +2,8 @@
 # Run one commit-skill eval trial headlessly with `claude -p`.
 # Usage: run_trials.sh <eval-name> <prompt> <config> <run-dir> <fixture-root>
 #   config: with_skill | without_skill. Both run in the user's normal
-#   environment; for without_skill, hide the commit skill beforehand
-#   (see run_iteration.sh) so only its presence differs.
+#   environment; without_skill hides only the commit skill via
+#   skillOverrides, so its presence is the only difference.
 set -euo pipefail
 name=$1; prompt=$2; cfg=$3; run=$4; fixtures=$5
 here=$(cd "$(dirname "$0")" && pwd)
@@ -14,7 +14,7 @@ ln -sfn "$fx/repo" "$run/repo"; ln -sfn "$fx/origin.git" "$run/origin.git"; cp "
 args=(-p "$prompt" --output-format json --model "${MODEL:-claude-opus-5-5}"
       --allowedTools Skill "Bash(git *)" "Bash(git:*)" Read Glob Grep)
 if [ "$cfg" = without_skill ]; then
-  args+=(--append-system-prompt \
+  args+=(--settings '{"skillOverrides":{"commit":"off"}}' --append-system-prompt \
     "Write commit messages in Scoped Commits format: \`<scope>: <description>\`.")
 fi
 (cd "$fx/repo" && claude "${args[@]}" < /dev/null) > "$run/outputs/raw.json" 2> "$run/outputs/stderr.txt" || true

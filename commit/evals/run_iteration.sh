@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 # Run every eval in evals.json for both configs, N trials each.
 # Usage: run_iteration.sh <iteration-dir> <fixture-root> [trials=5] [parallel=8]
-# without_skill runs with ~/.claude/skills/commit temporarily removed so the
-# environment differs only by this skill; the link is restored on exit.
 set -euo pipefail
 it=$1; fixtures=$2; trials=${3:-5}; par=${4:-8}
 here=$(cd "$(dirname "$0")" && pwd)
-link="$HOME/.claude/skills/commit"
 mkdir -p "$it"
 
 jobs() {  # jobs <config> -> NUL-separated args for run_trials.sh
@@ -23,9 +20,4 @@ for e in json.load(open(evals))["evals"]:
 P
 }
 
-jobs with_skill | xargs -0 -n5 -P"$par" "$here/run_trials.sh"
-
-target=$(readlink "$link")
-trap 'ln -sfn "$target" "$link"' EXIT
-rm "$link"
-jobs without_skill | xargs -0 -n5 -P"$par" "$here/run_trials.sh"
+{ jobs with_skill; jobs without_skill; } | xargs -0 -n5 -P"$par" "$here/run_trials.sh"
