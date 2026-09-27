@@ -8,7 +8,7 @@ description: >-
 compatibility: Requires git
 metadata:
     author: Jan Suthacheeva
-    version: "2.5"
+    version: "2.6"
 allowed-tools: >-
   Bash(git status:*) Bash(git branch:*) Bash(git log:*) Bash(git diff:*)
   Bash(git add:*) Bash(git commit:*) Read
@@ -43,7 +43,6 @@ Commit the staged changes with one Scoped Commits message.
 - Branch matches `[A-Z]+-\d+` (first match): add `Refs: <ID>` trailer.
   Never invent one.
 - Reverts and merges keep git's default message.
-- No `Co-Authored-By:` trailers.
 
 ## Example
 
