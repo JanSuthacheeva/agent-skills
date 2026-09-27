@@ -77,6 +77,11 @@ lines = [
     f"{len(evals)} scenarios, {trials} trials each, run on {date.today().isoformat()} "
     f"with `{model}` in headless Claude Code (`claude -p`).",
     "",
+    "The eval method is based on the evaluation workflow of Anthropic's "
+    "[skill-creator](https://github.com/anthropics/skills/tree/main/skills/skill-creator) "
+    "skill (with-skill vs. baseline runs, graded assertions, benchmark), adapted "
+    "for repeated headless trials against git fixtures.",
+    "",
     "- **with skill**: the installed `commit` skill, loaded the normal way.",
     "- **without skill**: same environment with the skill hidden via "
     "`skillOverrides`, plus one system line asking for Scoped Commits "
