@@ -1,0 +1,71 @@
+{
+  "skill_name": "code-design",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I want to add weekly practice goals per topic. Users set a target in minutes per week on a topic, the dashboard shows this week's progress, and when they hit the goal they get a notification. Plan the implementation before we write anything.",
+      "expected_output": "Approaches artifact, design artifact and Markdown plan for takumi",
+      "files": [
+        "fixtures/takumi"
+      ],
+      "assertions": [
+        "approaches-artifact: an HTML artifact presents at least 2 structurally different approaches with a stated recommendation",
+        "decision-control: the approaches artifact has a radio form with a submit that calls window.lavish.queuePrompt once",
+        "design-artifact: a separate HTML design artifact exists for the chosen approach",
+        "typed-signatures: public methods are listed with typed parameters and return types in the codebase's language",
+        "no-bodies: the design contains no method implementations (only signatures / placeholders)",
+        "file-placement: every unit card names a file path and marks it new or modified",
+        "data-structures: new or changed data structures are listed with fields and types",
+        "call-chains: each trigger has a sequence diagram plus a numbered Caller -> Callee::method(args): Return step list",
+        "error-paths: call chains include failure paths naming what fails, which layer handles it, and what the user sees",
+        "citations-valid: file:line references cited in the artifacts exist in the repo",
+        "markdown-plan: a Markdown plan with signatures and call chains is written",
+        "conventions-takumi: follows the repo's Controller -> Service -> Repository layering with *DTO data objects as described in .claude/rules/"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "plan how we'd add a `clickup tasks status <id> <status>` command that changes a task's status. It should validate against the statuses of the task's list and show the valid ones if it's wrong.",
+      "expected_output": "Approaches artifact, design artifact and Markdown plan for clickup-cli",
+      "files": [
+        "fixtures/clickup-cli"
+      ],
+      "assertions": [
+        "approaches-artifact: an HTML artifact presents at least 2 structurally different approaches with a stated recommendation",
+        "decision-control: the approaches artifact has a radio form with a submit that calls window.lavish.queuePrompt once",
+        "design-artifact: a separate HTML design artifact exists for the chosen approach",
+        "typed-signatures: public methods are listed with typed parameters and return types in the codebase's language",
+        "no-bodies: the design contains no method implementations (only signatures / placeholders)",
+        "file-placement: every unit card names a file path and marks it new or modified",
+        "data-structures: new or changed data structures are listed with fields and types",
+        "call-chains: each trigger has a sequence diagram plus a numbered Caller -> Callee::method(args): Return step list",
+        "error-paths: call chains include failure paths naming what fails, which layer handles it, and what the user sees",
+        "citations-valid: file:line references cited in the artifacts exist in the repo",
+        "markdown-plan: a Markdown plan with signatures and call chains is written",
+        "plan-location: the Markdown plan is placed in the existing docs/plans/ directory"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "i want bookmarks in mdterm - `m` + letter sets a mark at the current position, `'` + letter jumps back, and marks persist per file between sessions. how should we structure this?",
+      "expected_output": "Approaches artifact, design artifact and Markdown plan for mdterm",
+      "files": [
+        "fixtures/mdterm"
+      ],
+      "assertions": [
+        "approaches-artifact: an HTML artifact presents at least 2 structurally different approaches with a stated recommendation",
+        "decision-control: the approaches artifact has a radio form with a submit that calls window.lavish.queuePrompt once",
+        "design-artifact: a separate HTML design artifact exists for the chosen approach",
+        "typed-signatures: public methods are listed with typed parameters and return types in the codebase's language",
+        "no-bodies: the design contains no method implementations (only signatures / placeholders)",
+        "file-placement: every unit card names a file path and marks it new or modified",
+        "data-structures: new or changed data structures are listed with fields and types",
+        "call-chains: each trigger has a sequence diagram plus a numbered Caller -> Callee::method(args): Return step list",
+        "error-paths: call chains include failure paths naming what fails, which layer handles it, and what the user sees",
+        "citations-valid: file:line references cited in the artifacts exist in the repo",
+        "markdown-plan: a Markdown plan with signatures and call chains is written",
+        "rust-pending-key: signatures are Rust and the design models the two-key pending state in the viewer's key handling"
+      ]
+    }
+  ]
+}
