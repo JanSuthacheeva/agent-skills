@@ -5,6 +5,7 @@
       "id": 1,
       "name": "takumi-weekly-goals",
       "fixture": {
+        "name": "takumi",
         "source": "~/projects/takumi",
         "sha": "d2f392fd4dfc62bfbc09720e0805a180121ad4dd"
       },
@@ -28,13 +29,16 @@
         "consistency: unit, method and type names and signatures agree everywhere they appear across the plan",
         "api-fit: new interfaces fit the code they plug into (existing types, call sites, layering), so the plan could be implemented without redesign",
         "key-fact: reuses or mirrors the existing before/after promotion detection in PracticeSessionService"
-      ]
+      ],
+      "private": true
     },
     {
       "id": 2,
       "name": "clickup-status-command",
       "fixture": {
-        "source": "~/projects/clickup-cli",
+        "name": "clickup-cli",
+        "source": "https://github.com/iamcommee/clickup-cli.git",
+        "bundle": "fixtures/clickup-cli.bundle",
         "sha": "74115570288be8b2e66e0c877a5aa20edc425d0a"
       },
       "prompt": "plan how we'd add a `clickup tasks status <id> <status>` command that changes a task's status. It should validate against the statuses of the task's list and show the valid ones if it's wrong.",
@@ -57,13 +61,15 @@
         "consistency: unit, method and type names and signatures agree everywhere they appear across the plan",
         "api-fit: new interfaces fit the code they plug into (existing types, call sites, layering), so the plan could be implemented without redesign",
         "key-fact: notices that the repo does not build today (DetailFormatter.FormatComments declared twice in internal/output/table.go)"
-      ]
+      ],
+      "private": false
     },
     {
       "id": 3,
       "name": "mdterm-bookmarks",
       "fixture": {
-        "source": "~/projects/mdterm",
+        "name": "mdterm",
+        "source": "https://github.com/bahdotsh/mdterm.git",
         "sha": "7247638587708e4283c31cc176d8b9b9422992a9"
       },
       "prompt": "i want bookmarks in mdterm - `m` + letter sets a mark at the current position, `'` + letter jumps back, and marks persist per file between sessions. how should we structure this?",
@@ -86,7 +92,8 @@
         "consistency: unit, method and type names and signatures agree everywhere they appear across the plan",
         "api-fit: new interfaces fit the code they plug into (existing types, call sites, layering), so the plan could be implemented without redesign",
         "key-fact: notices that m is already bound to the mouse-capture toggle in src/viewer.rs"
-      ]
+      ],
+      "private": false
     }
   ]
 }

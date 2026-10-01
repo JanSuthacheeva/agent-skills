@@ -171,6 +171,8 @@ def skills_invoked(session: str | None) -> list[str] | None:
 def clone_fixture(fixture: dict, repo: Path):
     source = os.path.expanduser(fixture["source"])
     subprocess.run(["git", "clone", "-q", source, str(repo)], check=True)
+    if "bundle" in fixture:
+        subprocess.run(["git", "fetch", "-q", str(HERE / fixture["bundle"]), "eval-fixture"], cwd=repo, check=True)
     subprocess.run(["git", "checkout", "-q", fixture["sha"]], cwd=repo, check=True)
     subprocess.run(["git", "remote", "remove", "origin"], cwd=repo, check=True)
 
