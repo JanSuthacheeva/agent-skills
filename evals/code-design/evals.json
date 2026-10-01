@@ -3,68 +3,89 @@
   "evals": [
     {
       "id": 1,
+      "name": "takumi-weekly-goals",
+      "fixture": {
+        "source": "~/projects/takumi",
+        "sha": "d2f392fd4dfc62bfbc09720e0805a180121ad4dd"
+      },
       "prompt": "I want to add weekly practice goals per topic. Users set a target in minutes per week on a topic, the dashboard shows this week's progress, and when they hit the goal they get a notification. Plan the implementation before we write anything.",
-      "expected_output": "Approaches artifact, design artifact and Markdown plan for takumi",
-      "files": [
-        "fixtures/takumi"
+      "preferences": [
+        "Notification means an in-app toast or flash in the app, no email and no queue.",
+        "The week is Monday to Sunday in UTC, same as the existing 'this week' number.",
+        "The goal is set on the topic page only, not in the create-topic flow.",
+        "It is fine if the toast can fire again after a correction drops the week below the goal."
+      ],
+      "key_facts": [
+        "reuses or mirrors the existing before/after promotion detection in PracticeSessionService"
       ],
       "assertions": [
-        "approaches-artifact: an HTML artifact presents at least 2 structurally different approaches with a stated recommendation",
-        "decision-control: the approaches artifact has a radio form with a submit that calls window.lavish.queuePrompt once",
-        "design-artifact: a separate HTML design artifact exists for the chosen approach",
-        "typed-signatures: public methods are listed with typed parameters and return types in the codebase's language",
-        "no-bodies: the design contains no method implementations (only signatures / placeholders)",
-        "file-placement: every unit card names a file path and marks it new or modified",
-        "data-structures: new or changed data structures are listed with fields and types",
-        "call-chains: each trigger has a sequence diagram plus a numbered Caller -> Callee::method(args): Return step list",
-        "error-paths: call chains include failure paths naming what fails, which layer handles it, and what the user sees",
-        "citations-valid: file:line references cited in the artifacts exist in the repo",
-        "markdown-plan: a Markdown plan with signatures and call chains is written",
-        "conventions-takumi: follows the repo's Controller -> Service -> Repository layering with *DTO data objects as described in .claude/rules/"
+        "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
+        "conventions: the design follows the repo's existing conventions (layering, naming, error handling, dependency wiring) and names any deviation with a reason",
+        "alternatives: at least one structurally different alternative is considered, with a concrete reason for rejecting it",
+        "preferences-honoured: the final plan agrees with every user answer given in the conversation and contradicts none",
+        "elicitation: each hidden preference that the plan's design depends on was either asked about or stated as an explicit assumption, never silently decided",
+        "coverage: every trigger the feature implies is designed end to end, including how failures are handled and what the user sees",
+        "consistency: unit, method and type names and signatures agree everywhere they appear across the plan",
+        "api-fit: new interfaces fit the code they plug into (existing types, call sites, layering), so the plan could be implemented without redesign",
+        "key-fact: reuses or mirrors the existing before/after promotion detection in PracticeSessionService"
       ]
     },
     {
       "id": 2,
+      "name": "clickup-status-command",
+      "fixture": {
+        "source": "~/projects/clickup-cli",
+        "sha": "74115570288be8b2e66e0c877a5aa20edc425d0a"
+      },
       "prompt": "plan how we'd add a `clickup tasks status <id> <status>` command that changes a task's status. It should validate against the statuses of the task's list and show the valid ones if it's wrong.",
-      "expected_output": "Approaches artifact, design artifact and Markdown plan for clickup-cli",
-      "files": [
-        "fixtures/clickup-cli"
+      "preferences": [
+        "Status matching is case-insensitive but otherwise exact, no prefix or fuzzy matching.",
+        "If the task already has that status, print a notice, change nothing and exit 0.",
+        "List valid statuses in the list's board order.",
+        "No confirmation prompt before changing."
+      ],
+      "key_facts": [
+        "notices that the repo does not build today (DetailFormatter.FormatComments declared twice in internal/output/table.go)"
       ],
       "assertions": [
-        "approaches-artifact: an HTML artifact presents at least 2 structurally different approaches with a stated recommendation",
-        "decision-control: the approaches artifact has a radio form with a submit that calls window.lavish.queuePrompt once",
-        "design-artifact: a separate HTML design artifact exists for the chosen approach",
-        "typed-signatures: public methods are listed with typed parameters and return types in the codebase's language",
-        "no-bodies: the design contains no method implementations (only signatures / placeholders)",
-        "file-placement: every unit card names a file path and marks it new or modified",
-        "data-structures: new or changed data structures are listed with fields and types",
-        "call-chains: each trigger has a sequence diagram plus a numbered Caller -> Callee::method(args): Return step list",
-        "error-paths: call chains include failure paths naming what fails, which layer handles it, and what the user sees",
-        "citations-valid: file:line references cited in the artifacts exist in the repo",
-        "markdown-plan: a Markdown plan with signatures and call chains is written",
-        "plan-location: the Markdown plan is placed in the existing docs/plans/ directory"
+        "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
+        "conventions: the design follows the repo's existing conventions (layering, naming, error handling, dependency wiring) and names any deviation with a reason",
+        "alternatives: at least one structurally different alternative is considered, with a concrete reason for rejecting it",
+        "preferences-honoured: the final plan agrees with every user answer given in the conversation and contradicts none",
+        "elicitation: each hidden preference that the plan's design depends on was either asked about or stated as an explicit assumption, never silently decided",
+        "coverage: every trigger the feature implies is designed end to end, including how failures are handled and what the user sees",
+        "consistency: unit, method and type names and signatures agree everywhere they appear across the plan",
+        "api-fit: new interfaces fit the code they plug into (existing types, call sites, layering), so the plan could be implemented without redesign",
+        "key-fact: notices that the repo does not build today (DetailFormatter.FormatComments declared twice in internal/output/table.go)"
       ]
     },
     {
       "id": 3,
+      "name": "mdterm-bookmarks",
+      "fixture": {
+        "source": "~/projects/mdterm",
+        "sha": "7247638587708e4283c31cc176d8b9b9422992a9"
+      },
       "prompt": "i want bookmarks in mdterm - `m` + letter sets a mark at the current position, `'` + letter jumps back, and marks persist per file between sessions. how should we structure this?",
-      "expected_output": "Approaches artifact, design artifact and Markdown plan for mdterm",
-      "files": [
-        "fixtures/mdterm"
+      "preferences": [
+        "Move the existing mouse-capture toggle from m to M.",
+        "Marks a-z only, per file. No global A-Z marks for now.",
+        "Persist marks in the platform state directory, not in config.toml.",
+        "Marks should survive resizes and small edits to the file."
+      ],
+      "key_facts": [
+        "notices that m is already bound to the mouse-capture toggle in src/viewer.rs"
       ],
       "assertions": [
-        "approaches-artifact: an HTML artifact presents at least 2 structurally different approaches with a stated recommendation",
-        "decision-control: the approaches artifact has a radio form with a submit that calls window.lavish.queuePrompt once",
-        "design-artifact: a separate HTML design artifact exists for the chosen approach",
-        "typed-signatures: public methods are listed with typed parameters and return types in the codebase's language",
-        "no-bodies: the design contains no method implementations (only signatures / placeholders)",
-        "file-placement: every unit card names a file path and marks it new or modified",
-        "data-structures: new or changed data structures are listed with fields and types",
-        "call-chains: each trigger has a sequence diagram plus a numbered Caller -> Callee::method(args): Return step list",
-        "error-paths: call chains include failure paths naming what fails, which layer handles it, and what the user sees",
-        "citations-valid: file:line references cited in the artifacts exist in the repo",
-        "markdown-plan: a Markdown plan with signatures and call chains is written",
-        "rust-pending-key: signatures are Rust and the design models the two-key pending state in the viewer's key handling"
+        "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
+        "conventions: the design follows the repo's existing conventions (layering, naming, error handling, dependency wiring) and names any deviation with a reason",
+        "alternatives: at least one structurally different alternative is considered, with a concrete reason for rejecting it",
+        "preferences-honoured: the final plan agrees with every user answer given in the conversation and contradicts none",
+        "elicitation: each hidden preference that the plan's design depends on was either asked about or stated as an explicit assumption, never silently decided",
+        "coverage: every trigger the feature implies is designed end to end, including how failures are handled and what the user sees",
+        "consistency: unit, method and type names and signatures agree everywhere they appear across the plan",
+        "api-fit: new interfaces fit the code they plug into (existing types, call sites, layering), so the plan could be implemented without redesign",
+        "key-fact: notices that m is already bound to the mouse-capture toggle in src/viewer.rs"
       ]
     }
   ]

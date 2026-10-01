@@ -1,0 +1,43 @@
+{
+  "code-design": {
+    "invoke": "/code-design {task}",
+    "plugins_off": [
+      "feature-dev@claude-plugins-official",
+      "superpowers@claude-plugins-official"
+    ],
+    "deny": [
+      "Skill(buzzwoo-standard:new-cycle)"
+    ]
+  },
+  "superpowers": {
+    "invoke": "/superpowers:brainstorming {task}",
+    "plugins_off": [
+      "feature-dev@claude-plugins-official"
+    ],
+    "deny": [
+      "Skill(code-design)",
+      "Skill(buzzwoo-standard:new-cycle)"
+    ]
+  },
+  "new-cycle": {
+    "invoke": "/buzzwoo-standard:new-cycle {task}",
+    "plugins_off": [
+      "feature-dev@claude-plugins-official",
+      "superpowers@claude-plugins-official"
+    ],
+    "deny": [
+      "Skill(code-design)"
+    ]
+  },
+  "plain": {
+    "invoke": "{task}",
+    "plugins_off": [
+      "feature-dev@claude-plugins-official",
+      "superpowers@claude-plugins-official"
+    ],
+    "deny": [
+      "Skill(code-design)",
+      "Skill(buzzwoo-standard:new-cycle)"
+    ]
+  }
+}
