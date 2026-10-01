@@ -14,7 +14,7 @@ compatibility: >-
   Requires the lavish skill (npx lavish-axi) for the review artifacts.
 metadata:
     author: Jan Suthacheeva
-    version: "0.3"
+    version: "0.4"
 ---
 
 Produce a code design the user can discuss and correct before any code
@@ -50,7 +50,9 @@ is clean in isolation, so earn the right to propose one first.
 
 If a requirement is ambiguous in a way that changes the design (not a
 detail you can decide and flag), ask before phase 2. Keep it to the
-questions that matter.
+questions that matter. Every behaviour you decide on the user's behalf
+instead - an edge case, a default, where something lives - goes on the
+assumptions list in phase 3, so no decision is made silently.
 
 ## 2. Approaches - the user decides
 
@@ -125,7 +127,11 @@ detail on one page, with these sections:
    design deviates from a convention and why.
 7. **Test seams** - briefly, which units get tested at which level and
    what gets faked. One line per unit is enough.
-8. **Open questions** - design choices you could not settle alone, each
+8. **Assumptions** - every user-visible behaviour the design decides
+   without the user having said so (edge cases, defaults, scope, where a
+   setting lives, what happens on repeat or failure), one line each, so
+   the user can confirm or overturn them at a glance.
+9. **Open questions** - design choices you could not settle alone, each
    with your recommended answer and an input control so the user can
    answer in place.
 
@@ -161,9 +167,9 @@ implementation session needs, so do not copy the page into it. Link the
 implementation page at the top, then: the decision in a few lines, units
 with their paths and signatures in fenced code blocks, data structures,
 call chains as numbered `Caller -> Callee::method(args): Return` steps
-including error paths, test seams, and any decisions made during
-review. Leave out the diagrams, the rationale prose and the convention
-citations.
+including error paths, test seams, the assumptions, and any decisions
+made during review. Leave out the diagrams, the rationale prose and the
+convention citations.
 
 End the lavish session with `npx -y lavish-axi end <file>` and tell the
 user where both files are. Do not start implementing unless asked.
