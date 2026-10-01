@@ -30,9 +30,10 @@ DENIED_COMMANDS = ["Bash(git push:*)", "Bash(git remote:*)"]
 OUTPUT_RULES = (
     "Deliver the final plan as a lavish HTML page under .lavish/ and as a "
     "Markdown file at .lavish/<slug>.md (this location overrides any other "
-    "plan location). Do not open a browser and do not run lavish-axi "
-    "open, poll or end. When you need a decision or input from the user, ask "
-    "in your reply and end your turn. Do not implement any code."
+    "plan location; when to write it is up to your method). Do not open a "
+    "browser and do not run lavish-axi open, poll or end. When you need a "
+    "decision or input from the user, ask in your reply and end your turn. "
+    "Do not implement any code."
 )
 
 

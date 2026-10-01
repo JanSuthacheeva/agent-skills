@@ -139,17 +139,19 @@ appears in the overview, every DTO used in a signature is defined in Data
 or already exists. Mismatches here are what makes a design review go in
 circles.
 
-Open it, poll, and iterate on the user's annotations. Change the page with
-targeted edits, never by regenerating it - a rewrite costs the whole page
-again and risks silently changing parts the user already reviewed. Rename
-consistently everywhere, remove resolved open questions and fold the
-answer into the design. Continue until the user approves.
+Open it, poll, and iterate on the user's annotations. Apply all changes
+from one round of feedback in a single message, as parallel edits: every
+separate tool call re-reads the whole conversation, so many sequential
+small edits cost more than the page itself. Rewrite the page only when
+the changes touch most of it. Rename consistently everywhere, remove
+resolved open questions and fold the answer into the design. Continue
+until the user approves.
 
 ## 4. Persist
 
-Once approved, write the design as a Markdown plan so a later
-implementation session can follow it without the browser. Use the
-project's existing plan location if it has one (`docs/plans/`,
+Once approved - not before - write the design as a Markdown plan, in one
+go, so a later implementation session can follow it without the browser.
+Use the project's existing plan location if it has one (`docs/plans/`,
 `.claude-bw/plans/`, or wherever earlier plans live), otherwise
 `docs/plans/<YYYY-MM-DD>-<slug>.md`. If a hook or project rule rejects
 that path, use the location it asks for and mention it.
