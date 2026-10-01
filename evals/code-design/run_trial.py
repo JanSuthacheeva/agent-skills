@@ -20,7 +20,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 EXECUTOR_MODEL = os.environ.get("MODEL", "claude-opus-5-5")
 USER_MODEL = os.environ.get("USER_MODEL", "claude-sonnet-5-5")
-MAX_TURNS = 6
+MAX_TURNS = int(os.environ.get("MAX_TURNS", "14"))
 TURN_TIMEOUT = 45 * 60
 ARTIFACT_CHARS = 60_000
 PLAN_SUFFIXES = {".html", ".md"}
