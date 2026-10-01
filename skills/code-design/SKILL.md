@@ -11,10 +11,10 @@ description: >-
   even if they just say "plan this" or "how would we build X". Not for
   product specs, task checklists, or trivial one-file changes.
 compatibility: >-
-  Requires the lavish skill (npx lavish-axi) for the review artifacts.
+  Requires python3 and npx (lavish-axi) for the review pages.
 metadata:
     author: Jan Suthacheeva
-    version: "0.1"
+    version: "0.2"
 ---
 
 Produce a code design the user can discuss and correct before any code
@@ -46,7 +46,7 @@ is clean in isolation, so earn the right to propose one first.
   to change.
 - For wide sweeps, dispatch Explore subagents in parallel and read the key
   files yourself. Keep `file:line` references for every claim you will
-  make; the artifacts cite them.
+  make; the pages cite them.
 
 If a requirement is ambiguous in a way that changes the design (not a
 detail you can decide and flag), ask before phase 2. Keep it to the
@@ -60,26 +60,23 @@ abstraction vs extending an existing one, which layer is responsible. If
 only one approach is sensible, say so and show the alternatives you
 rejected and why, rather than inventing strawmen.
 
-Build a lavish artifact (open the `comparison`, `diagram` and `input`
-playbooks first). For each approach show:
+Write `.lavish/<slug>-approaches.md` and render it (see "Pages" below).
+Keep it lean - this page only has to support one decision, so about a
+screen per approach:
 
-- The idea in two or three sentences.
-- A small component diagram: which units exist and how they connect,
-  marking new, modified and existing units distinctly.
-- What it touches (files/modules), and how well it fits the conventions
-  found in phase 1, with citations.
-- Costs as visibly as benefits: complexity, coupling, migration,
-  testability, performance, what it makes harder later.
+- `## What exists today` first, a few bullets with citations, so the user
+  can check your understanding of the codebase.
+- `## Approach A - <name>` per approach: the idea in two or three
+  sentences, a small Mermaid `flowchart` of the units involved, then short
+  bullet lists for what it touches, how it fits the conventions found in
+  phase 1, and its costs (complexity, coupling, migration, testability,
+  what it makes harder later). Make the costs as visible as the benefits.
+- `## Recommendation` with your pick and why, followed by a `decision`
+  block with one option per approach.
 
-Put a short "What exists today" section first so the user can check your
-understanding of the codebase. End with your recommendation and why, and a
-native radio form (one option per approach plus a rationale/notes
-textarea) that queues exactly one prompt on submit, as the `input` playbook
-describes.
-
-Open it with `npx -y lavish-axi <file>`, poll for the decision, and answer
-follow-up annotations until the user has chosen. The chosen approach may
-be a mix - take what they say literally.
+Open the page, poll for the decision, and answer follow-up annotations
+until the user has chosen. The chosen approach may be a mix - take what
+they say literally.
 
 ## 3. Code design - the user reviews
 
@@ -89,76 +86,98 @@ bodies (`;`, `{ ... }`, `todo!()` or the language's equivalent). Every name
 is a proposal the user will judge, so choose names that say what the thing
 does in the codebase's vocabulary.
 
-Build a new lavish artifact (open the `plan`, `diagram`, `code` and
-`input` playbooks first) with these sections:
+Write `.lavish/<slug>-design.md` and render it. This Markdown file is the
+design and, once approved, the plan - write it once and edit it in place
+afterwards. Start it with a `# <feature> - code design` title, then these
+`##` sections:
 
 1. **Decision recap** - the chosen approach in two sentences, and what was
    explicitly decided in phase 2.
-2. **Structure overview** - one diagram of every unit involved, grouped by
-   layer or module, new / modified / existing marked distinctly, arrows for
-   dependencies.
-3. **Units** - one card per class, module, struct or file:
-   - file path, layer, new or modified
+2. **Structure overview** - one Mermaid `flowchart` of every unit
+   involved, grouped by layer or module with `subgraph`, new / modified /
+   existing marked distinctly, arrows for dependencies.
+3. **Units** - one `###` per class, module, struct or file, headed by its
+   path and a `[new]` or `[modified]` tag:
+   - layer
    - responsibility in one sentence (if it needs "and", question the split)
    - injected dependencies / collaborators
-   - public methods with full typed signatures, each with a one-line
-     description of what it does and what it returns or throws
+   - public methods with full typed signatures in one fenced code block,
+     each with a one-line comment on what it does and returns or throws
    - for modified units, only the added or changed members, and what
      changes about existing ones
 4. **Data** - new or changed DTOs, value objects, enums, models, schema or
    migrations, with fields and types. Show which boundary each one crosses.
 5. **Call chains** - the heart of the design. For each trigger (a user
-   action, request, command, event, job, key press) a sequence diagram of
-   the calls in order, from the entry point down to persistence or output
-   and back. Under each diagram, a numbered list of the same steps as
+   action, request, command, event, job, key press) a Mermaid
+   `sequenceDiagram` of the calls in order, from the entry point down to
+   persistence or output and back. Under each diagram, a numbered list of the same steps as
    `Caller -> Callee::method(args): Return`. Include the error paths: what
    fails where, what is thrown or returned, which layer handles it, and
-   what the user ends up seeing. Draw error paths in the diagram too, but
-   visually secondary to the happy path.
+   what the user ends up seeing - a table works well. Show error paths in
+   the diagram too (`alt` / `opt` blocks), secondary to the happy path.
 6. **Conventions followed** - the patterns the design copies, each with the
    `file:line` of the existing code it mirrors. Call out any place the
    design deviates from a convention and why.
 7. **Test seams** - briefly, which units get tested at which level and
    what gets faked. One line per unit is enough.
 8. **Open questions** - design choices you could not settle alone, each
-   with your recommended answer and an input control so the user can
-   answer in place.
+   as a `decision` block with your recommended option marked.
 
 Keep the diagrams one concept each: the overview shows topology, each call
 chain shows one trigger. A dense everything-diagram is harder to review
 than several small ones.
 
-Before serving, check the design against itself: every method in a call
-chain exists on a unit card with the same signature, every unit on a card
-appears in the overview, every DTO used in a signature is defined in Data
+Before opening it, check the design against itself: every method in a call
+chain exists on a unit with the same signature, every unit appears in the overview, every DTO used in a signature is defined in Data
 or already exists. Mismatches here are what makes a design review go in
 circles.
 
-Open it, poll, and iterate on the user's annotations. Update the artifact
-in place - rename consistently everywhere, remove resolved open questions
-and fold the answer into the design. Continue until the user approves.
+Open it, poll, and iterate on the user's annotations. Change the Markdown
+with targeted edits rather than rewriting it, and re-render - rename
+consistently everywhere, remove resolved open questions and fold the
+answer into the design. Continue until the user approves.
 
 ## 4. Persist
 
-Once approved, write the design as a Markdown plan so a later
-implementation session can follow it without the browser. Use the
-project's existing plan location if it has one (`docs/plans/`,
-`.claude-bw/plans/`, or wherever earlier plans live), otherwise
-`docs/plans/<YYYY-MM-DD>-<slug>.md`. If a hook or project rule rejects
-that path, use the location it asks for and mention it.
+The approved design Markdown already is the plan, so do not write it
+again. Copy it with `cp` to the project's plan location if it has one
+(`docs/plans/`, `.claude-bw/plans/`, or wherever earlier plans live),
+otherwise `docs/plans/<YYYY-MM-DD>-<slug>.md`. If a hook or project rule
+rejects that path, use the location it asks for and mention it; if you
+were told where plans go, use that.
 
-The Markdown carries the same content as the artifact: decision recap,
-units with signatures in fenced code blocks, data structures, call chains
-as numbered steps (Mermaid `sequenceDiagram` blocks are fine here),
-conventions followed, test seams, and any decisions made during review.
-Link the HTML artifact path at the top.
+End the lavish session with `npx -y lavish-axi end <page>` and tell the
+user where the plan and the review page are. Do not start implementing
+unless asked.
 
-End the lavish session with `npx -y lavish-axi end <file>` and tell the
-user where both files are. Do not start implementing unless asked.
+## Pages
 
-## Artifacts
+You write Markdown; a bundled script turns it into the lavish review page,
+so you never hand-write HTML. That keeps the plan in one file and saves
+the tokens a hand-built page costs. The script owns the page design, so
+the lavish playbooks and design guidance are not needed here.
 
-Save the artifacts under `.lavish/` in the project unless told otherwise:
-`.lavish/<slug>-approaches.html` and `.lavish/<slug>-design.html`. Follow
-the lavish skill for design system choice, layout and render
-verification.
+- Render: `python3 <this skill's directory>/scripts/render.py <file>.md`
+  writes `<file>.html` next to it. Re-run it after every edit.
+- Mermaid ` ```mermaid ` blocks render as diagrams. In flowcharts, tag
+  nodes with `:::new`, `:::modified` or `:::existing` for consistent
+  colouring. Quote labels that contain punctuation (`A["Get(id)"]`).
+- `[new]`, `[modified]`, `[existing]`, `[removed]`, `[recommended]` and
+  `[rejected]` in headings, lists and tables render as badges.
+- A choice the user should make in the browser is a fenced `decision`
+  block; it renders as a form that sends the answer back through lavish:
+
+  ````
+  ```decision
+  id: approach
+  question: Which approach should the design use?
+  - A: Check first, in the command (recommended)
+  - B: Send first, explain on failure
+  ```
+  ````
+
+- Review loop: open with `npx -y lavish-axi <file>.html`, then run
+  `npx -y lavish-axi poll <file>.html` (in the foreground, or as a tracked
+  background task) and wait for feedback. After changing the page, poll
+  again with `--agent-reply "<short reply>"`. If the user ends the session
+  in the browser, stop polling and continue in the conversation.
