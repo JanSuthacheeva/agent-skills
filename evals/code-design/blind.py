@@ -22,7 +22,7 @@ def main():
     run = sys.argv[2] if len(sys.argv) > 2 else "1"
     rng = random.Random(int(sys.argv[3]) if len(sys.argv) > 3 else 0)
     for scenario in sorted(iteration.glob("eval-*")):
-        configs = sorted(p.parent.name for p in scenario.glob(f"*/run-{run}/outputs"))
+        configs = sorted(p.parent.parent.name for p in scenario.glob(f"*/run-{run}/outputs"))
         rng.shuffle(configs)
         target = iteration / "blind" / scenario.name
         shutil.rmtree(target, ignore_errors=True)
