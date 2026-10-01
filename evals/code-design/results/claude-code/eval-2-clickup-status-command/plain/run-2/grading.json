@@ -1,0 +1,64 @@
+{
+  "expectations": [
+    {
+      "text": "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
+      "passed": true,
+      "evidence": "Checked: tasks.go:24 tasksCmd, MaximumNArgs(1), client.go:42 nil body/only Get, models.Status with Orderindex int, getAPIClient/getConfig/GetDisplayID exist, no internal/api tests. citations.json 4/4 valid."
+    },
+    {
+      "text": "conventions: the design follows the repo's existing conventions (layering, naming, error handling, dependency wiring) and names any deviation with a reason",
+      "passed": true,
+      "evidence": "Subcommand with own init() in tasks_status.go, error wrapping style, getAPIClient/getConfig, models/api layering; plain fmt.Printf output matches existing style."
+    },
+    {
+      "text": "alternatives: at least one structurally different alternative is considered, with a concrete reason for rejecting it",
+      "passed": true,
+      "evidence": "Relying on the API's own validation is considered and rejected because its error does not list valid statuses; fallback to space statuses noted. Weak but concrete."
+    },
+    {
+      "text": "preferences-honoured: the final plan agrees with every user answer given in the conversation and contradicts none",
+      "passed": false,
+      "evidence": "Plan adds a skills/SKILL.md rule to 'always confirm the task and target status before running it', which contradicts the hidden preference of no confirmation before changing."
+    },
+    {
+      "text": "elicitation: each hidden preference that the plan's design depends on was either asked about or stated as an explicit assumption, never silently decided",
+      "passed": false,
+      "evidence": "Only multi-word args and the test task were asked. Already-has-status, matching, board order and confirmation were decided silently; the confirmation rule was never raised as an assumption."
+    },
+    {
+      "text": "coverage: every trigger the feature implies is designed end to end, including how failures are handled and what the user sees",
+      "passed": true,
+      "evidence": "Invalid, already-set and success paths are designed with outputs; API errors wrapped; E2E list covers them."
+    },
+    {
+      "text": "consistency: unit, method and type names and signatures agree everywhere they appear across the plan",
+      "passed": true,
+      "evidence": "UpdateTask(taskID, models.TaskUpdate), GetList, FindStatus, TaskUpdate placement consistent throughout."
+    },
+    {
+      "text": "api-fit: new interfaces fit the code they plug into (existing types, call sites, layering), so the plan could be implemented without redesign",
+      "passed": true,
+      "evidence": "Compatible with existing types and call sites; slices needs Go 1.21+ and go.mod is 1.25.4; GetTask native ID reused for PUT."
+    },
+    {
+      "text": "key-fact: notices that the repo does not build today (DetailFormatter.FormatComments declared twice in internal/output/table.go)",
+      "passed": false,
+      "evidence": "Never mentions that the repo does not build; the duplicate FormatComments is absent from transcript and plan."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 3,
+    "total": 9,
+    "pass_rate": 0.67
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "alternatives",
+        "reason": "Passes on a thin alternative; require a named structurally different design with a rejection reason."
+      }
+    ],
+    "overall": "Plain run sees no build failure and silently decides preferences; assertions catch both."
+  }
+}

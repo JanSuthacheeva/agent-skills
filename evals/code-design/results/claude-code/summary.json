@@ -1,0 +1,348 @@
+{
+  "skill_version": "0.4",
+  "model": "claude-opus-5-5",
+  "harness": "Claude Code 2.1.286",
+  "date": "2026-10-01",
+  "n_scenarios": 3,
+  "runs_per_cell": 3,
+  "n_blocks": 9,
+  "configs": {
+    "code-design": {
+      "runs": 9,
+      "judge_mean": 34.666666666666664,
+      "judge_sd": 2.0615528128088303,
+      "rank_mean": 2.111111111111111,
+      "first_places": 3,
+      "checks_passed": 77,
+      "checks_total": 81,
+      "cost_mean": 3.1752555555555553,
+      "cost_sd": 1.0357151673012122,
+      "tokens_mean": 226574.33333333334,
+      "output_tokens_mean": 72668.77777777778,
+      "turns_mean": 3.7777777777777777,
+      "duration_mean": 719.0222222222222,
+      "approved": 9,
+      "touched_code": 0,
+      "criteria": {
+        "correctness": 8.444444444444445,
+        "completeness": 8,
+        "clarity": 9,
+        "reviewability": 9.222222222222221
+      },
+      "failed_checks": {
+        "elicitation": 2,
+        "preferences-honoured": 2
+      }
+    },
+    "feature-dev": {
+      "runs": 9,
+      "judge_mean": 34,
+      "judge_sd": 1.6583123951777,
+      "rank_mean": 1.6666666666666667,
+      "first_places": 4,
+      "checks_passed": 76,
+      "checks_total": 81,
+      "cost_mean": 2.7897555555555558,
+      "cost_sd": 1.6107405611326044,
+      "tokens_mean": 114650.55555555556,
+      "output_tokens_mean": 35863,
+      "turns_mean": 3.5555555555555554,
+      "duration_mean": 552.6777777777778,
+      "approved": 9,
+      "touched_code": 0,
+      "criteria": {
+        "correctness": 8.555555555555555,
+        "completeness": 8.777777777777779,
+        "clarity": 8.11111111111111,
+        "reviewability": 8.555555555555555
+      },
+      "failed_checks": {
+        "alternatives": 2,
+        "grounded": 1,
+        "elicitation": 1,
+        "preferences-honoured": 1
+      }
+    },
+    "superpowers": {
+      "runs": 9,
+      "judge_mean": 31.22222222222222,
+      "judge_sd": 3.4560735588879536,
+      "rank_mean": 2.5555555555555554,
+      "first_places": 2,
+      "checks_passed": 73,
+      "checks_total": 81,
+      "cost_mean": 2.261922222222222,
+      "cost_sd": 1.1742041642936054,
+      "tokens_mean": 154748.22222222222,
+      "output_tokens_mean": 47671,
+      "turns_mean": 7,
+      "duration_mean": 583.2666666666667,
+      "approved": 9,
+      "touched_code": 0,
+      "criteria": {
+        "correctness": 7.777777777777778,
+        "completeness": 8,
+        "clarity": 7.777777777777778,
+        "reviewability": 7.666666666666667
+      },
+      "failed_checks": {
+        "alternatives": 3,
+        "key-fact": 3,
+        "elicitation": 1,
+        "grounded": 1
+      }
+    },
+    "plain": {
+      "runs": 9,
+      "judge_mean": 26.88888888888889,
+      "judge_sd": 1.536590742882148,
+      "rank_mean": 3.6666666666666665,
+      "first_places": 0,
+      "checks_passed": 68,
+      "checks_total": 81,
+      "cost_mean": 1.4582555555555556,
+      "cost_sd": 0.5678850348246358,
+      "tokens_mean": 111377.11111111111,
+      "output_tokens_mean": 27553.11111111111,
+      "turns_mean": 2.6666666666666665,
+      "duration_mean": 314.9666666666667,
+      "approved": 9,
+      "touched_code": 0,
+      "criteria": {
+        "correctness": 6.666666666666667,
+        "completeness": 6.666666666666667,
+        "clarity": 7.222222222222222,
+        "reviewability": 6.333333333333333
+      },
+      "failed_checks": {
+        "alternatives": 5,
+        "elicitation": 3,
+        "key-fact": 3,
+        "preferences-honoured": 1,
+        "api-fit": 1
+      }
+    }
+  },
+  "per_scenario": {
+    "eval-1-takumi-weekly-goals": {
+      "code-design": {
+        "judge": [
+          36,
+          36,
+          34
+        ],
+        "ranks": [
+          1,
+          1,
+          3
+        ],
+        "checks": [
+          27,
+          27
+        ]
+      },
+      "feature-dev": {
+        "judge": [
+          34,
+          32,
+          36
+        ],
+        "ranks": [
+          2,
+          2,
+          2
+        ],
+        "checks": [
+          25,
+          27
+        ]
+      },
+      "superpowers": {
+        "judge": [
+          28,
+          31,
+          36
+        ],
+        "ranks": [
+          4,
+          3,
+          1
+        ],
+        "checks": [
+          27,
+          27
+        ]
+      },
+      "plain": {
+        "judge": [
+          29,
+          27,
+          27
+        ],
+        "ranks": [
+          3,
+          4,
+          4
+        ],
+        "checks": [
+          26,
+          27
+        ]
+      }
+    },
+    "eval-2-clickup-status-command": {
+      "code-design": {
+        "judge": [
+          35,
+          36,
+          34
+        ],
+        "ranks": [
+          2,
+          2,
+          2
+        ],
+        "checks": [
+          26,
+          27
+        ]
+      },
+      "feature-dev": {
+        "judge": [
+          35,
+          35,
+          35
+        ],
+        "ranks": [
+          1,
+          1,
+          1
+        ],
+        "checks": [
+          25,
+          27
+        ]
+      },
+      "superpowers": {
+        "judge": [
+          29,
+          25,
+          32
+        ],
+        "ranks": [
+          3,
+          4,
+          3
+        ],
+        "checks": [
+          20,
+          27
+        ]
+      },
+      "plain": {
+        "judge": [
+          25,
+          28,
+          26
+        ],
+        "ranks": [
+          4,
+          3,
+          4
+        ],
+        "checks": [
+          18,
+          27
+        ]
+      }
+    },
+    "eval-3-mdterm-bookmarks": {
+      "code-design": {
+        "judge": [
+          37,
+          30,
+          34
+        ],
+        "ranks": [
+          1,
+          4,
+          3
+        ],
+        "checks": [
+          24,
+          27
+        ]
+      },
+      "feature-dev": {
+        "judge": [
+          31,
+          33,
+          35
+        ],
+        "ranks": [
+          3,
+          2,
+          1
+        ],
+        "checks": [
+          26,
+          27
+        ]
+      },
+      "superpowers": {
+        "judge": [
+          33,
+          35,
+          32
+        ],
+        "ranks": [
+          2,
+          1,
+          2
+        ],
+        "checks": [
+          26,
+          27
+        ]
+      },
+      "plain": {
+        "judge": [
+          25,
+          29,
+          26
+        ],
+        "ranks": [
+          4,
+          3,
+          4
+        ],
+        "checks": [
+          24,
+          27
+        ]
+      }
+    }
+  },
+  "friedman": {
+    "chi2": 11.933333333333337,
+    "df": 3,
+    "p": 0.0076150565595218146
+  },
+  "pairwise_vs_target": {
+    "feature-dev": {
+      "wins": 3,
+      "losses": 6,
+      "p": 0.5078125
+    },
+    "superpowers": {
+      "wins": 6,
+      "losses": 3,
+      "p": 0.5078125
+    },
+    "plain": {
+      "wins": 8,
+      "losses": 1,
+      "p": 0.0390625
+    }
+  }
+}

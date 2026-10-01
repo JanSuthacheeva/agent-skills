@@ -1,0 +1,64 @@
+{
+  "expectations": [
+    {
+      "text": "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
+      "passed": true,
+      "evidence": "citations.json 11/11 valid. Verified m at viewer.rs:1647, into_offset_iter at markdown.rs:1585, Line at style.rs:56, config.rs read-only (only dirs::config_dir), nav_history, slide-mode early return in handle_normal (line 1610)."
+    },
+    {
+      "text": "conventions: the design follows the repo's existing conventions (layering, naming, error handling, dependency wiring) and names any deviation with a reason",
+      "passed": true,
+      "evidence": "New marks.rs with no terminal code, viewer as glue, uses existing toml/serde/dirs, tempfile dev-dep, README/CLAUDE.md updated, plan-vs-spec deviations listed."
+    },
+    {
+      "text": "alternatives: at least one structurally different alternative is considered, with a concrete reason for rejecting it",
+      "passed": true,
+      "evidence": "Three anchor approaches compared (line only rejected for drifting on edits; heading+offset rejected as imprecise and breaking on renames); structurally different from chosen text-fingerprint approach."
+    },
+    {
+      "text": "preferences-honoured: the final plan agrees with every user answer given in the conversation and contradicts none",
+      "passed": true,
+      "evidence": "Regrade: M for mouse capture; lowercase a-z per file, no global marks; dirs::data_dir()/mdterm/marks.toml is a per-user data dir outside config.toml, which counts, and the user explicitly accepted the data directory; Mark { line, text } fingerprint resolved at jump time survives resize and edits between sessions. Matches all user answers."
+    },
+    {
+      "text": "elicitation: each hidden preference that the plan's design depends on was either asked about or stated as an explicit assumption, never silently decided",
+      "passed": true,
+      "evidence": "M asked; a-z-only, per-file, storage location outside config and top-of-screen position stated explicitly as assumptions and confirmed by the user."
+    },
+    {
+      "text": "coverage: every trigger the feature implies is designed end to end, including how failures are handled and what the user sees",
+      "passed": true,
+      "evidence": "Covers set/jump/cancel, Ctrl+C and q/Esc while pending, per-file isolation, CRLF, empty doc, stdin/JSON/slide toasts, missing/corrupt/unwritable store, truncated file, reload, e2e in tmux."
+    },
+    {
+      "text": "consistency: unit, method and type names and signatures agree everywhere they appear across the plan",
+      "passed": true,
+      "evidence": "Mark, Resolved, resolve, MarkStore, SaveError, source_line names agree across spec and plan; the one mock/spec toast inconsistency was fixed after user feedback and deviations are listed."
+    },
+    {
+      "text": "api-fit: new interfaces fit the code they plug into (existing types, call sites, layering), so the plan could be implemented without redesign",
+      "passed": true,
+      "evidence": "Field added to Line with literals updated, wrap_lines copies it, viewer glue fits handle_normal/nav_history; unverified pulldown-cmark/toml behaviours are flagged with tests."
+    },
+    {
+      "text": "key-fact: notices that m is already bound to the mouse-capture toggle in src/viewer.rs",
+      "passed": true,
+      "evidence": "Turn 1 states m is already taken, toggling mouse capture at src/viewer.rs:1647."
+    }
+  ],
+  "summary": {
+    "passed": 9,
+    "failed": 0,
+    "total": 9,
+    "pass_rate": 1.0
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "preferences-honoured",
+        "reason": "Data dir vs state dir differ only on Linux and the simulated user accepted 'data directory'; the assertion outcome depends on grader strictness - make the hidden preference's exact path explicit."
+      }
+    ],
+    "overall": "Good plan with one substantive preference miss."
+  }
+}

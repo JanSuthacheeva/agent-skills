@@ -1,0 +1,39 @@
+{
+  "scores": {
+    "code-design": {
+      "correctness": 9,
+      "completeness": 9,
+      "clarity": 9,
+      "reviewability": 10,
+      "note": "Every checked claim holds (help-toggle ordering, Line literal counts, make_state_with_lines, Ten source files) and the numbered call chains with per-step error paths and 18 listed assumptions make each decision pointable."
+    },
+    "superpowers": {
+      "correctness": 8,
+      "completeness": 9,
+      "clarity": 8,
+      "reviewability": 8,
+      "note": "Line references and the help-toggle ordering are verified and the versioned, read-only-aware store is thorough, but the lazy-flush justification cites a comment at markdown.rs:1101 that is about task markers (items actually flush at End(Item)), and the toast_warning/theme work is scope creep."
+    },
+    "plain": {
+      "correctness": 6,
+      "completeness": 6,
+      "clarity": 7,
+      "reviewability": 6,
+      "note": "Places the pending-key check inside handle_normal, so `m` then `h` or `?` is swallowed by is_help_toggle in handle_event first, and viewer-side units and signatures are only sketched in prose."
+    },
+    "feature-dev": {
+      "correctness": 7,
+      "completeness": 8,
+      "clarity": 8,
+      "reviewability": 8,
+      "note": "Correctly puts the pending intercept in handle_event and covers slide mode and the status prompt, but mixes a 1-based stored hint with a 0-based capture/resolve, relies on a stale-prone block_line stamp, and falls back to ~/.local/state on macOS."
+    }
+  },
+  "ranking": [
+    "code-design",
+    "superpowers",
+    "feature-dev",
+    "plain"
+  ],
+  "reason": "W is the only plan whose claims all check out against the code and which gives per-step call chains with explicit error paths and a numbered assumption list, so each decision can be challenged individually. X is nearly as strong but has a wrong justification for its stamping rule and adds unrelated toast/theme changes. Z has a line-indexing inconsistency and a fragile stamping scheme, and Y misses that help toggles are handled before handle_normal."
+}

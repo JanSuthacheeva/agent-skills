@@ -1,0 +1,64 @@
+{
+  "expectations": [
+    {
+      "text": "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
+      "passed": true,
+      "evidence": "citations.json 9/9 valid. Verified: m toggle at viewer.rs:1647, into_offset_iter at markdown.rs:1585, help entry at viewer.rs:3637 region, Line{spans,meta} in style.rs, nav_history Vec<(usize,usize)>, viewer.rs 4356 lines, dirs/serde_json already deps, slide mode returns before handle_normal (line 1610)."
+    },
+    {
+      "text": "conventions: the design follows the repo's existing conventions (layering, naming, error handling, dependency wiring) and names any deviation with a reason",
+      "passed": true,
+      "evidence": "New src/marks.rs pure-logic module, Line gets field stamped in one place, ViewerOptions-based wiring, uses existing dirs/serde_json, updates README/CLAUDE.md module count; deviations (tempfile dev-dep, MarkStore injected via ViewerOptions) are named with reasons."
+    },
+    {
+      "text": "alternatives: at least one structurally different alternative is considered, with a concrete reason for rejecting it",
+      "passed": true,
+      "evidence": "Three structural approaches: provenance on Line (chosen), separate source map vector (rejected: two vectors must stay aligned through wrapping/image rows), anchor on rendered text (rejected: wrapping, gutter, tables break it)."
+    },
+    {
+      "text": "preferences-honoured: the final plan agrees with every user answer given in the conversation and contradicts none",
+      "passed": true,
+      "evidence": "Regrade: M for mouse capture; a-z per file, no uppercase/global marks; dirs::state_dir() falling back to dirs::data_dir(), marks.json, separate from config.toml; text-based Anchor::capture/resolve over the content with re-anchoring, so it survives resize and edits between sessions. Matches all user answers (A, B text anchor, Backspace instead of '')."
+    },
+    {
+      "text": "elicitation: each hidden preference that the plan's design depends on was either asked about or stated as an explicit assumption, never silently decided",
+      "passed": true,
+      "evidence": "M asked; resize/edit survival asked and assumed up front; a-z-only and state dir (not config.toml) stated explicitly in Sections 1 and 3 and approved by user; none silently decided."
+    },
+    {
+      "text": "coverage: every trigger the feature implies is designed end to end, including how failures are handled and what the user sees",
+      "passed": true,
+      "evidence": "Covers set/jump/cancel/Esc, pending-prefix precedence over help, stdin, JSON view, slide mode, multi-file Tab, auto-reload, corrupt/unreadable/unwritable/missing store with toasts, empty document, concurrent instances, e2e tmux check."
+    },
+    {
+      "text": "consistency: unit, method and type names and signatures agree everywhere they appear across the plan",
+      "passed": true,
+      "evidence": "Anchor, Resolved, MarkStore, MarkOp, pending_mark, source_at_row/row_for_source consistent between spec and plan; plan explicitly notes refinements (SaveStatus return, ViewerOptions injection, help-entry placement)."
+    },
+    {
+      "text": "api-fit: new interfaces fit the code they plug into (existing types, call sites, layering), so the plan could be implemented without redesign",
+      "passed": true,
+      "evidence": "Signatures match existing types: Line.src added with all literals updated, handle_event/handle_normal/finalize_layout/nav_history exist as described, ViewerOptions extension, no new runtime deps."
+    },
+    {
+      "text": "key-fact: notices that m is already bound to the mouse-capture toggle in src/viewer.rs",
+      "passed": true,
+      "evidence": "Turn 1 cites m = mouse capture toggle at src/viewer.rs:1647."
+    }
+  ],
+  "summary": {
+    "passed": 9,
+    "failed": 0,
+    "total": 9,
+    "pass_rate": 1.0
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "preferences-honoured",
+        "reason": "The state-dir preference is only discriminating on Linux (dirs::state_dir vs data_dir); consider asserting the specific API/path."
+      }
+    ],
+    "overall": "Strong run; assertions are reasonably discriminating."
+  }
+}

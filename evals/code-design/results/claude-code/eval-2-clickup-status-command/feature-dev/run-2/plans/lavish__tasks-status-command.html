@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en" data-theme="nord">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan - clickup tasks status</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/daisyui.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/themes.css">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.2.4/dist/index.global.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  :where(.grid, .flex) > * { min-width: 0; }
+  :where(p, h1, h2, h3, h4, li, dd, td, th, .badge) { overflow-wrap: anywhere; }
+  :where(img, svg) { max-width: 100%; height: auto; }
+  body { background: var(--color-base-200); color: var(--color-base-content); }
+  code.inline { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .85em; background: var(--color-base-200); padding: .1em .35em; border-radius: .3em; }
+  .term { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .85rem; white-space: pre-wrap; background: #2e3440; color: #d8dee9; border-radius: .75rem; padding: 1rem 1.25rem; line-height: 1.55; }
+  .term .p { color: #88c0d0; } .term .e { color: #bf616a; } .term .ok { color: #a3be8c; } .term .dim { color: #7b88a1; }
+  svg text { font-family: ui-sans-serif, system-ui, sans-serif; }
+</style>
+</head>
+<body>
+<main class="mx-auto max-w-5xl p-5 lg:p-10 space-y-8">
+
+  <header class="space-y-3">
+    <div class="flex flex-wrap gap-2">
+      <span class="badge badge-primary">Implementation plan</span>
+      <span class="badge badge-soft badge-success">All 8 decisions confirmed</span>
+      <span class="badge badge-soft badge-warning">main build is broken - fixed in step 1</span>
+    </div>
+    <h1 class="text-3xl lg:text-4xl font-bold">clickup tasks status &lt;id&gt; &lt;status&gt;</h1>
+    <p class="text-lg opacity-80 max-w-3xl">Change a task's status from the CLI. The status is checked against the task's home list before anything is written. If it does not match, the command lists the valid statuses.</p>
+  </header>
+
+  <!-- Behavior -->
+  <section class="card bg-base-100 shadow-sm" id="behavior">
+    <div class="card-body space-y-4">
+      <h2 class="card-title text-2xl">Target behavior</h2>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div>
+          <h3 class="font-semibold mb-2">Valid status (any casing)</h3>
+<div class="term"><span class="p">$</span> clickup tasks status HGAI-1217 "In Progress"
+<span class="ok">HGAI-1217: to do -&gt; in progress</span></div>
+        </div>
+        <div>
+          <h3 class="font-semibold mb-2">Already in that status - no write, exit 0</h3>
+<div class="term"><span class="p">$</span> clickup tasks status HGAI-1217 "in progress"
+HGAI-1217 is already "in progress"</div>
+        </div>
+        <div class="md:col-span-2">
+          <h3 class="font-semibold mb-2">Invalid status - no write, stderr, exit 1</h3>
+<div class="term"><span class="p">$</span> clickup tasks status HGAI-1217 done
+<span class="e">Error: invalid status "done" for list "Sprint 12". Valid statuses:</span>
+  to do
+  in progress  <span class="dim">(current)</span>
+  review
+  complete</div>
+        </div>
+        <div class="md:col-span-2">
+          <h3 class="font-semibold mb-2">For scripts and the Claude skill</h3>
+<div class="term"><span class="p">$</span> clickup tasks status HGAI-1217 review --output json
+<span class="dim">{ ...updated task returned by the PUT... }</span>
+
+<span class="p">$</span> clickup tasks status HGAI-1217 review --output json   <span class="dim"># already "review"</span>
+<span class="dim">{ ...task from the initial GET /task - no PUT is sent... }</span></div>
+          <p class="text-sm opacity-75 mt-2">Both cases print a <code class="inline">models.Task</code>, so the shape matches. The GET version also fills <code class="inline">subtasks</code> and <code class="inline">markdown_description</code>, because <code class="inline">GetTask</code> requests them.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Decisions -->
+  <section class="card bg-base-100 shadow-sm" id="decisions">
+    <div class="card-body">
+      <h2 class="card-title text-2xl">Confirmed decisions</h2>
+      <div class="overflow-x-auto">
+        <table class="table table-sm">
+          <thead><tr><th>#</th><th>Topic</th><th>Decision</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Matching</td><td>Case-insensitive exact match, whitespace trimmed, no prefix matching. The list's own spelling is sent to the API.</td></tr>
+            <tr><td>2</td><td>Multi-word</td><td><code class="inline">cobra.ExactArgs(2)</code>, so multi-word statuses must be quoted.</td></tr>
+            <tr><td>3</td><td>Invalid status</td><td>Valid statuses listed in <code class="inline">orderindex</code> order with <code class="inline">(current)</code> marked. No color, no type.</td></tr>
+            <tr><td>4</td><td>Success</td><td>One line <code class="inline">ID: old -&gt; new</code>. <code class="inline">--output json</code> prints the updated task.</td></tr>
+            <tr><td>5</td><td>Same status</td><td>No PUT. "already" message, exit 0. With <code class="inline">--output json</code> it prints the task from the initial <code class="inline">GET /task</code>.</td></tr>
+            <tr><td>6</td><td>Completion</td><td>Out of scope, follow-up.</td></tr>
+            <tr><td>7</td><td>Scope</td><td>Includes the build fix, debug output to stderr, the custom-ID query helper, and README, skill and help updates.</td></tr>
+            <tr><td>8</td><td>Tests</td><td>Model unit tests, <code class="inline">httptest</code> API tests, command tests against a fake server.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Current state -->
+  <section class="card bg-base-100 shadow-sm" id="current">
+    <div class="card-body space-y-3">
+      <h2 class="card-title text-2xl">Current state</h2>
+      <div role="alert" class="alert alert-error alert-soft">
+        <span><strong>The build is broken on main.</strong> Merge commit <code class="inline">7411557</code> left two copies of <code class="inline">DetailFormatter.FormatComments</code> in <code class="inline">internal/output/table.go</code> (lines 191 and 238). <code class="inline">go build ./...</code>, <code class="inline">make check</code> and the output tests fail.</span>
+      </div>
+      <ul class="list-disc pl-6 space-y-1">
+        <li><code class="inline">tasksCmd</code> is <code class="inline">tasks [task_id]</code> with only local flags. A <code class="inline">status</code> subcommand gets the arguments when the first arg is <code class="inline">status</code>, and <code class="inline">tasks HGAI-1217</code> keeps working. The only collision is a task whose ID is literally "status".</li>
+        <li><code class="inline">api.Client.doRequest</code> only sends GET requests with no body. <code class="inline">[DEBUG]</code> output goes to stdout and corrupts <code class="inline">--output json</code>.</li>
+        <li>The <code class="inline">custom_task_ids</code>/<code class="inline">team_id</code> query is duplicated in <code class="inline">GetTask</code> and <code class="inline">GetTaskComments</code>.</li>
+        <li><code class="inline">models.Task.List.ID</code> already exists. <code class="inline">models.Status</code> has the same shape as the list's <code class="inline">statuses[]</code> entries. There is no <code class="inline">List</code> model yet.</li>
+        <li>There are no HTTP-level tests. <code class="inline">baseURL</code> exists but is unexported.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Flow -->
+  <section class="card bg-base-100 shadow-sm" id="flow">
+    <div class="card-body space-y-3">
+      <h2 class="card-title text-2xl">Request flow</h2>
+      <p class="opacity-80">Three calls on the success path. Both failure checks run before the PUT, so nothing is written when validation fails.</p>
+      <svg viewBox="0 0 760 330" width="100%" role="img" aria-label="Sequence of calls">
+        <title>tasks status request flow</title>
+        <g id="lane-cli"><title>CLI</title>
+          <rect x="40" y="10" width="140" height="36" rx="8" fill="var(--color-primary)"/>
+          <text x="110" y="33" text-anchor="middle" fill="var(--color-primary-content)" font-size="14" font-weight="600">clickup CLI</text>
+          <line x1="110" y1="46" x2="110" y2="320" stroke="currentColor" stroke-opacity=".3" stroke-dasharray="4 4"/>
+        </g>
+        <g id="lane-api"><title>ClickUp API</title>
+          <rect x="560" y="10" width="160" height="36" rx="8" fill="var(--color-secondary)"/>
+          <text x="640" y="33" text-anchor="middle" fill="var(--color-secondary-content)" font-size="14" font-weight="600">ClickUp API v2</text>
+          <line x1="640" y1="46" x2="640" y2="320" stroke="currentColor" stroke-opacity=".3" stroke-dasharray="4 4"/>
+        </g>
+        <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+        <g id="call-get-task"><title>GET task</title>
+          <line x1="112" y1="75" x2="636" y2="75" stroke="currentColor" marker-end="url(#ar)"/>
+          <text x="374" y="68" text-anchor="middle" font-size="13">1. GET /task/{id} (+ custom ID query)</text>
+          <line x1="636" y1="98" x2="112" y2="98" stroke="currentColor" stroke-dasharray="5 3" marker-end="url(#ar)"/>
+          <text x="374" y="115" text-anchor="middle" font-size="12" fill-opacity=".7" fill="currentColor">list.id, current status</text>
+        </g>
+        <g id="call-get-list"><title>GET list</title>
+          <line x1="112" y1="145" x2="636" y2="145" stroke="currentColor" marker-end="url(#ar)"/>
+          <text x="374" y="138" text-anchor="middle" font-size="13">2. GET /list/{list_id}</text>
+          <line x1="636" y1="168" x2="112" y2="168" stroke="currentColor" stroke-dasharray="5 3" marker-end="url(#ar)"/>
+          <text x="374" y="185" text-anchor="middle" font-size="12" fill-opacity=".7" fill="currentColor">list.name, statuses[]</text>
+        </g>
+        <g id="check"><title>Local validation</title>
+          <rect x="120" y="200" width="420" height="46" rx="8" fill="var(--color-warning)" fill-opacity=".25" stroke="var(--color-warning)"/>
+          <text x="330" y="219" text-anchor="middle" font-size="13" font-weight="600">3. list.FindStatus(input)</text>
+          <text x="330" y="237" text-anchor="middle" font-size="12">not found: error + valid list, exit 1 | same: "already", exit 0</text>
+        </g>
+        <g id="call-put"><title>PUT task</title>
+          <line x1="112" y1="275" x2="636" y2="275" stroke="var(--color-success)" stroke-width="2" marker-end="url(#ar)"/>
+          <text x="374" y="268" text-anchor="middle" font-size="13">4. PUT /task/{id}  {"status": canonical}</text>
+          <line x1="636" y1="298" x2="112" y2="298" stroke="currentColor" stroke-dasharray="5 3" marker-end="url(#ar)"/>
+          <text x="374" y="315" text-anchor="middle" font-size="12" fill-opacity=".7" fill="currentColor">updated task, printed as a line or JSON</text>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <!-- Approach -->
+  <section class="card bg-base-100 shadow-sm" id="approach">
+    <div class="card-body space-y-4">
+      <h2 class="card-title text-2xl">Approach</h2>
+      <div class="grid md:grid-cols-3 gap-4">
+        <div class="card card-border bg-base-100" id="opt-a"><div class="card-body p-4">
+          <h3 class="font-semibold">A - Inline in tasks.go</h3>
+          <p class="text-sm">An ad-hoc <code class="inline">map[string]any</code> body and a raw list fetch inside the command.</p>
+          <p class="text-sm text-success">+ smallest diff</p>
+          <p class="text-sm text-error">- the command does API and domain work, the request is an untyped bag, and nothing can be tested without the network</p>
+        </div></div>
+        <div class="card card-border border-primary border-2 bg-base-100" id="opt-b"><div class="card-body p-4">
+          <h3 class="font-semibold flex items-center gap-2">B - Layered <span class="badge badge-primary badge-sm">Chosen</span></h3>
+          <p class="text-sm">The API layer gets typed methods, the model owns status lookup, and the command orchestrates and renders.</p>
+          <p class="text-sm text-success">+ follows the existing api / models / commands split, and tests run through the real HTTP path via httptest</p>
+          <p class="text-sm text-error">- about 8 files touched</p>
+        </div></div>
+        <div class="card card-border bg-base-100" id="opt-c"><div class="card-body p-4">
+          <h3 class="font-semibold">C - Interface + mocks</h3>
+          <p class="text-sm">A <code class="inline">TaskService</code> interface in commands with a mock in tests.</p>
+          <p class="text-sm text-success">+ fast unit tests</p>
+          <p class="text-sm text-error">- an abstraction with one implementation, and the tests skip the real request encoding</p>
+        </div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Files -->
+  <section class="card bg-base-100 shadow-sm" id="files">
+    <div class="card-body space-y-5">
+      <h2 class="card-title text-2xl">Changes by file</h2>
+      <div class="overflow-x-auto">
+        <table class="table table-sm">
+          <thead><tr><th>File</th><th>Change</th></tr></thead>
+          <tbody>
+            <tr><td><code class="inline">internal/output/table.go</code></td><td><span class="badge badge-error badge-sm">fix</span> Delete the second, identical <code class="inline">FormatComments</code> (line 237 on).</td></tr>
+            <tr><td><code class="inline">internal/api/client.go</code></td><td><code class="inline">doRequest(..., payload any)</code> JSON-encodes the body; adds <code class="inline">Put</code> and <code class="inline">SetBaseURL</code>; debug output goes to stderr.</td></tr>
+            <tr><td><code class="inline">internal/api/tasks.go</code></td><td>Adds <code class="inline">UpdateTaskRequest</code>, <code class="inline">UpdateTask</code> and the <code class="inline">taskIDQuery</code> helper (also used by <code class="inline">GetTask</code> and <code class="inline">comments.go</code>).</td></tr>
+            <tr><td><code class="inline">internal/api/lists.go</code></td><td><span class="badge badge-success badge-sm">new</span> <code class="inline">GetList(listID)</code></td></tr>
+            <tr><td><code class="inline">pkg/models/list.go</code></td><td><span class="badge badge-success badge-sm">new</span> <code class="inline">List</code> plus <code class="inline">FindStatus</code></td></tr>
+            <tr><td><code class="inline">internal/commands/tasks_status.go</code></td><td><span class="badge badge-success badge-sm">new</span> Subcommand, flow, rendering, <code class="inline">invalidStatusError</code></td></tr>
+            <tr><td><code class="inline">root.go</code>, <code class="inline">tasks.go</code> help</td><td>Adds the command to the root "Get started" block and to the tasks examples.</td></tr>
+            <tr><td><code class="inline">README.md</code>, <code class="inline">skills/SKILL.md</code></td><td>Documents the command. The skill gets new trigger phrases and an "on rejection, show valid statuses and ask" guideline.</td></tr>
+            <tr><td><code class="inline">bin/*</code></td><td><code class="inline">make build-all</code> so the fallback binaries include the command.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div>
+        <h3 class="font-semibold">internal/commands/tasks_status.go <span class="badge badge-ghost badge-sm">sketch</span></h3>
+        <p class="text-sm opacity-75 mb-2">Writes to <code class="inline">cmd.OutOrStdout()</code> so tests can capture the output. Errors are wrapped like in <code class="inline">tasks.go</code>.</p>
+        <div id="code-cmd"></div>
+      </div>
+      <div class="grid lg:grid-cols-2 gap-4">
+        <div>
+          <h3 class="font-semibold mb-2">pkg/models/list.go</h3>
+          <div id="code-model"></div>
+        </div>
+        <div>
+          <h3 class="font-semibold mb-2">internal/api/tasks.go (additions)</h3>
+          <div id="code-api"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tests -->
+  <section class="card bg-base-100 shadow-sm" id="tests">
+    <div class="card-body">
+      <h2 class="card-title text-2xl">Tests</h2>
+      <div class="overflow-x-auto">
+        <table class="table table-sm">
+          <thead><tr><th>File</th><th>Cases</th></tr></thead>
+          <tbody>
+            <tr><td><code class="inline">pkg/models/list_test.go</code></td><td>exact; case-insensitive; surrounding whitespace; not found; empty list</td></tr>
+            <tr><td><code class="inline">internal/api/tasks_test.go</code></td><td>PUT method, body <code class="inline">{"status":"in progress"}</code>, auth and content-type headers; custom ID query vs none for native IDs; parses the task; 400 returns <code class="inline">*APIError</code></td></tr>
+            <tr><td><code class="inline">internal/api/lists_test.go</code></td><td>path <code class="inline">/list/{id}</code>, parses name and statuses</td></tr>
+            <tr><td><code class="inline">internal/commands/tasks_status_test.go</code></td><td>Fake server. Cases: success line; <code class="inline">--output json</code>; mixed case sends the canonical name; invalid lists all statuses in order with (current) and sends <strong>no PUT</strong>; same status sends <strong>no PUT</strong>; same status with <code class="inline">--output json</code> sends <strong>no PUT</strong> and prints the task from the initial GET; bad <code class="inline">--output</code> is rejected. Globals are reset in <code class="inline">t.Cleanup</code>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Commits + verification -->
+  <section class="grid lg:grid-cols-2 gap-6">
+    <div class="card bg-base-100 shadow-sm" id="commits"><div class="card-body">
+      <h2 class="card-title text-2xl">Commit sequence</h2>
+      <ul class="steps steps-vertical">
+        <li class="step step-error text-left">fix(output): remove duplicate FormatComments</li>
+        <li class="step step-primary text-left">fix(api): write debug output to stderr</li>
+        <li class="step step-primary text-left">refactor(api): extract custom task ID query helper</li>
+        <li class="step step-primary text-left">feat(api): add PUT support, UpdateTask and GetList</li>
+        <li class="step step-primary text-left">feat(commands): add tasks status subcommand</li>
+        <li class="step step-primary text-left">docs: document tasks status</li>
+        <li class="step step-primary text-left">chore: rebuild prebuilt binaries</li>
+      </ul>
+      <p class="text-sm opacity-75"><code class="inline">make check</code> is green at every commit.</p>
+    </div></div>
+    <div class="card bg-base-100 shadow-sm" id="verify"><div class="card-body space-y-2">
+      <h2 class="card-title text-2xl">E2E verification</h2>
+      <ol class="list-decimal pl-6 space-y-1 text-sm">
+        <li><code class="inline">make check</code> is green.</li>
+        <li><code class="inline">tasks status &lt;id&gt; bogus --debug</code>: the valid statuses and their order match the ClickUp UI.</li>
+        <li>Repeat on a list that <strong>inherits</strong> statuses (<code class="inline">override_statuses: false</code>).</li>
+        <li>Set a valid status with different casing, check it in the UI, then set it back.</li>
+        <li>Run once with a custom ID and once with a native ID.</li>
+      </ol>
+      <div role="alert" class="alert alert-warning alert-soft text-sm"><span>Steps 4-5 change real ClickUp data. I will ask you for a throwaway task ID first.</span></div>
+    </div></div>
+  </section>
+
+  <!-- Risks -->
+  <section class="card bg-base-100 shadow-sm" id="risks">
+    <div class="card-body">
+      <h2 class="card-title text-2xl">Risks</h2>
+      <div class="grid md:grid-cols-2 gap-3">
+        <div class="alert alert-warning alert-soft items-start"><span><strong>Inherited statuses.</strong> The docs list <code class="inline">statuses</code> and <code class="inline">override_statuses</code> on Get List. I expect the effective set for inheriting lists, but this is not confirmed until verification step 3. If it is wrong, the fallback is the folder's statuses, then the space's.</span></div>
+        <div class="alert alert-soft items-start"><span><strong><code class="inline">orderindex</code> type.</strong> The model assumes a number, which works for tasks today. Verify that list responses use a number too.</span></div>
+        <div class="alert alert-soft items-start"><span><strong>Custom ID detection</strong> still uses the existing hyphen check, with the same limits as <code class="inline">tasks &lt;id&gt;</code>.</span></div>
+        <div class="alert alert-soft items-start"><span><strong>Statuses change between GET and PUT:</strong> the API rejects the PUT and the wrapped error is shown.</span></div>
+        <div class="alert alert-soft items-start"><span><strong>Tasks in multiple lists:</strong> the status comes from the home list, which is what <code class="inline">task.list</code> returns.</span></div>
+        <div class="alert alert-soft items-start"><span><strong>Three requests</strong> per change. Fine for an interactive command.</span></div>
+      </div>
+      <p class="text-sm opacity-75 mt-3">Out of scope: status tab-completion, and moving the existing commands to <code class="inline">cmd.OutOrStdout()</code>.</p>
+    </div>
+  </section>
+</main>
+
+<script type="text/plain" id="src-cmd">package commands
+
+var statusOutput string
+
+var tasksStatusCmd = &cobra.Command{
+	Use:   "status <task_id> <status>",
+	Short: "Change a task's status",
+	Long: `Change a task's status. The status must exist in the task's list.
+
+Examples:
+  clickup tasks status HGAI-1217 "in progress"
+  clickup tasks status HGAI-1217 complete --output json`,
+	Args: cobra.ExactArgs(2),
+	RunE: runTasksStatus,
+}
+
+func init() {
+	tasksCmd.AddCommand(tasksStatusCmd)
+
+	tasksStatusCmd.Flags().StringVarP(&statusOutput, "output", "o", "", "output format (json)")
+}
+
+func runTasksStatus(cmd *cobra.Command, args []string) error {
+	taskID, input := args[0], args[1]
+
+	if statusOutput != "" && output.Format(statusOutput) != output.FormatJSON {
+		return fmt.Errorf("unsupported output format %q (supported: json)", statusOutput)
+	}
+
+	client, err := getAPIClient()
+	if err != nil {
+		return err
+	}
+
+	cfg, err := getConfig()
+	if err != nil {
+		return err
+	}
+
+	task, err := client.GetTask(taskID, cfg.WorkspaceID)
+	if err != nil {
+		return fmt.Errorf("failed to get task: %w", err)
+	}
+	if task.List.ID == "" {
+		return fmt.Errorf("task %s has no list", task.GetDisplayID())
+	}
+
+	list, err := client.GetList(task.List.ID)
+	if err != nil {
+		return fmt.Errorf("failed to get list: %w", err)
+	}
+
+	target, ok := list.FindStatus(input)
+	if !ok {
+		return invalidStatusError(input, list, task.Status.Status)
+	}
+
+	w := cmd.OutOrStdout()
+	if strings.EqualFold(task.Status.Status, target.Status) {
+		return printStatusResult(w, task, fmt.Sprintf("%s is already %q", task.GetDisplayID(), target.Status))
+	}
+
+	updated, err := client.UpdateTask(taskID, cfg.WorkspaceID, api.UpdateTaskRequest{Status: target.Status})
+	if err != nil {
+		return fmt.Errorf("failed to update task: %w", err)
+	}
+
+	msg := fmt.Sprintf("%s: %s -> %s", updated.GetDisplayID(), task.Status.Status, updated.Status.Status)
+	return printStatusResult(w, updated, msg)
+}
+
+func printStatusResult(w io.Writer, task *models.Task, msg string) error {
+	if output.Format(statusOutput) == output.FormatJSON {
+		return output.GetFormatter(output.FormatJSON).FormatTask(w, task)
+	}
+	_, err := fmt.Fprintln(w, msg)
+	return err
+}
+
+func invalidStatusError(input string, list *models.List, current string) error {
+	statuses := slices.Clone(list.Statuses)
+	slices.SortStableFunc(statuses, func(a, b models.Status) int {
+		return cmp.Compare(a.Orderindex, b.Orderindex)
+	})
+
+	var b strings.Builder
+	fmt.Fprintf(&b, "invalid status %q for list %q. Valid statuses:", input, list.Name)
+	for _, s := range statuses {
+		fmt.Fprintf(&b, "\n  %s", s.Status)
+		if strings.EqualFold(s.Status, current) {
+			b.WriteString("  (current)")
+		}
+	}
+	return errors.New(b.String())
+}
+</script>
+
+<script type="text/plain" id="src-model">package models
+
+import "strings"
+
+// List represents a ClickUp list
+type List struct {
+	ID       string   `json:"id"`
+	Name     string   `json:"name"`
+	Statuses []Status `json:"statuses"`
+}
+
+// FindStatus returns the status matching name,
+// ignoring case and surrounding whitespace
+func (l *List) FindStatus(name string) (Status, bool) {
+	name = strings.TrimSpace(name)
+	for _, s := range l.Statuses {
+		if strings.EqualFold(s.Status, name) {
+			return s, true
+		}
+	}
+	return Status{}, false
+}
+</script>
+
+<script type="text/plain" id="src-api">// UpdateTaskRequest contains the fields to change on a task
+type UpdateTaskRequest struct {
+	Status string `json:"status,omitempty"`
+}
+
+// UpdateTask updates a task and returns the updated task
+// teamID is required when using custom task IDs (e.g., HGAI-1217)
+func (c *Client) UpdateTask(taskID, teamID string, req UpdateTaskRequest) (*models.Task, error) {
+	path := fmt.Sprintf("/task/%s", taskID)
+
+	body, err := c.Put(path, taskIDQuery(taskID, teamID), req)
+	if err != nil {
+		return nil, err
+	}
+
+	var task models.Task
+	if err := json.Unmarshal(body, &task); err != nil {
+		return nil, err
+	}
+
+	return &task, nil
+}
+
+// taskIDQuery returns the query needed to address a task by custom ID
+func taskIDQuery(taskID, teamID string) url.Values {
+	query := url.Values{}
+	if isCustomTaskID(taskID) && teamID != "" {
+		query.Set("custom_task_ids", "true")
+		query.Set("team_id", teamID)
+	}
+	return query
+}
+</script>
+
+<script type="module">
+  import { File } from "https://esm.sh/@pierre/diffs@1.2.10?bundle";
+
+  const options = { theme: { light: "github-light", dark: "nord" }, themeType: "light", overflow: "wrap" };
+  const files = [
+    ["code-cmd", "internal/commands/tasks_status.go", "src-cmd"],
+    ["code-model", "pkg/models/list.go", "src-model"],
+    ["code-api", "internal/api/tasks.go", "src-api"],
+  ];
+  for (const [target, name, src] of files) {
+    new File(options).render({
+      containerWrapper: document.getElementById(target),
+      file: { name, contents: document.getElementById(src).textContent },
+    });
+  }
+</script>
+</body>
+</html>

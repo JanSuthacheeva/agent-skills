@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mdterm bookmarks - implementation plan</title>
+<style>
+  /* Palette taken from Theme::dark() in src/theme.rs */
+  :root {
+    --bg: #1e1e2e; --fg: #cdd6f4; --border: #44475a; --title: #9399b2;
+    --muted: #6c7086; --track: #313244; --code-bg: #1e202a; --inline-bg: #282a36;
+    --inline-fg: #f2cd93; --h2: #89b4fa; --h3: #cba6f7; --green: #a6e3a1;
+    --yellow: #f9e2af; --red: #f38ba8; --peach: #fab387; --overlay: #24273a;
+    --overlay-border: #5b6078; --overlay-text: #bac2de;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.6 -apple-system, "Inter", system-ui, sans-serif; }
+  main { max-width: 1040px; margin: 0 auto; padding: 48px 24px 96px; }
+  h1, h2, h3 { line-height: 1.25; margin: 0; }
+  h1 { font-size: 30px; }
+  h2 { font-size: 21px; color: var(--h2); margin: 56px 0 6px; }
+  h2 + .sep { height: 1px; background: var(--track); margin-bottom: 20px; }
+  h3 { font-size: 16px; color: var(--h3); margin: 0 0 8px; }
+  p { margin: 0 0 12px; }
+  code { font-family: var(--mono); font-size: 0.88em; color: var(--inline-fg); background: var(--inline-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+  pre { margin: 0; background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; overflow-x: auto; font: 12.5px/1.55 var(--mono); color: var(--fg); }
+  pre code { background: none; padding: 0; color: inherit; font-size: inherit; }
+  .kicker { font: 12px var(--mono); color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+  .lede { color: var(--overlay-text); font-size: 17px; max-width: 760px; margin-top: 12px; }
+  .pill { display: inline-block; font: 12px var(--mono); padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--yellow); margin: 14px 8px 0 0; }
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+  .grid > * { min-width: 0; }
+  .card { background: var(--overlay); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; min-width: 0; }
+  .card p:last-child, .card ul:last-child { margin-bottom: 0; }
+  ul { padding-left: 20px; margin: 0 0 12px; }
+  li { margin: 3px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .tablewrap { border: 1px solid var(--border); border-radius: 10px; overflow-x: auto; }
+  th { text-align: left; color: var(--h2); font-weight: 600; background: var(--overlay); }
+  th, td { padding: 9px 14px; border-bottom: 1px solid var(--track); vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  kbd { font: 13px var(--mono); background: var(--track); border: 1px solid var(--overlay-border); border-bottom-width: 2px; border-radius: 5px; padding: 0 6px; color: var(--fg); }
+  .muted { color: var(--muted); }
+  svg text { font-family: var(--mono); }
+  figcaption { color: var(--muted); font-size: 13px; margin-top: 8px; }
+  .focus { counter-reset: f; list-style: none; padding: 0; margin: 0; }
+  .focus li { counter-increment: f; position: relative; padding: 10px 14px 10px 46px; background: var(--overlay); border: 1px solid var(--border); border-radius: 8px; margin: 8px 0; box-shadow: inset 3px 0 0 var(--peach); }
+  .focus li::before { content: counter(f); position: absolute; left: 14px; top: 10px; width: 22px; height: 22px; border-radius: 50%; background: var(--track); color: var(--peach); font: 12px/22px var(--mono); text-align: center; }
+  .owner { font: 12px var(--mono); color: var(--green); margin-left: 6px; white-space: nowrap; }
+  .task { background: var(--overlay); border: 1px solid var(--border); border-radius: 12px; padding: 22px 24px; margin: 18px 0; min-width: 0; }
+  .task header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 14px; margin-bottom: 12px; }
+  .task .num { font: 13px var(--mono); color: var(--bg); background: var(--h2); border-radius: 6px; padding: 1px 8px; }
+  .task h3 { margin: 0; font-size: 18px; }
+  .task .commit { font: 12px var(--mono); color: var(--muted); margin-left: auto; overflow-wrap: anywhere; }
+  .cols { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); }
+  .cols > * { min-width: 0; }
+  .label { font: 11px var(--mono); text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: 4px; }
+  .tests li { font-family: var(--mono); font-size: 12.5px; color: var(--overlay-text); }
+  .tests li.rf { color: var(--peach); }
+  .files li { font-family: var(--mono); font-size: 12.5px; color: var(--yellow); overflow-wrap: anywhere; }
+  details { margin-top: 12px; }
+  summary { cursor: pointer; color: var(--h2); font-size: 14px; }
+  details pre { margin-top: 10px; }
+  .exec { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+  .exec .card.rec { border-color: var(--green); box-shadow: inset 3px 0 0 var(--green); }
+  .badge { font: 11px var(--mono); color: var(--green); border: 1px solid var(--green); border-radius: 4px; padding: 0 6px; margin-left: 6px; }
+  .constraints li { color: var(--overlay-text); }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <div class="kicker">mdterm / implementation plan / 2026-10-01</div>
+  <h1>Bookmarks: six tasks from <code>source_line</code> to <kbd>'</kbd><kbd>a</kbd></h1>
+  <p class="lede">Every rendered line learns which source line it came from. A pure <code>marks.rs</code> module stores and resolves marks, and <code>viewer.rs</code> adds a one-key prefix. Every task is TDD with exact code in <code>.lavish/mdterm-bookmarks-plan.md</code>, and the approved spec is <code>.lavish/mdterm-bookmarks.md</code>.</p>
+  <span class="pill">spec: approved</span><span class="pill">plan: awaiting your review</span><span class="pill">6 tasks / 6 commits</span>
+</header>
+
+<section id="order">
+  <h2>Task order</h2><div class="sep"></div>
+  <figure id="fig-tasks">
+    <svg viewBox="0 0 960 210" width="100%" role="img" aria-label="Task dependency order">
+      <title>Task dependency order</title>
+      <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#7f849c"/></marker></defs>
+      <g id="t1"><title>Task 1: source_line on Line</title><rect x="10" y="20" width="200" height="60" rx="8" fill="#24273a" stroke="#89b4fa"/><text x="110" y="45" text-anchor="middle" fill="#89b4fa" font-size="13">1 style.rs</text><text x="110" y="66" text-anchor="middle" fill="#bac2de" font-size="11">Line.source_line</text></g>
+      <g id="t2"><title>Task 2: markdown stamping</title><rect x="250" y="20" width="200" height="60" rx="8" fill="#24273a" stroke="#89b4fa"/><text x="350" y="45" text-anchor="middle" fill="#89b4fa" font-size="13">2 markdown.rs</text><text x="350" y="66" text-anchor="middle" fill="#bac2de" font-size="11">stamp lines</text></g>
+      <g id="t3"><title>Task 3: resolve</title><rect x="10" y="130" width="200" height="60" rx="8" fill="#24273a" stroke="#a6e3a1"/><text x="110" y="155" text-anchor="middle" fill="#a6e3a1" font-size="13">3 marks.rs</text><text x="110" y="176" text-anchor="middle" fill="#bac2de" font-size="11">resolve</text></g>
+      <g id="t4"><title>Task 4: MarkStore</title><rect x="250" y="130" width="200" height="60" rx="8" fill="#24273a" stroke="#a6e3a1"/><text x="350" y="155" text-anchor="middle" fill="#a6e3a1" font-size="13">4 marks.rs</text><text x="350" y="176" text-anchor="middle" fill="#bac2de" font-size="11">MarkStore</text></g>
+      <g id="t5"><title>Task 5: viewer keys</title><rect x="510" y="75" width="200" height="60" rx="8" fill="#24273a" stroke="#cba6f7"/><text x="610" y="100" text-anchor="middle" fill="#cba6f7" font-size="13">5 viewer.rs</text><text x="610" y="121" text-anchor="middle" fill="#bac2de" font-size="11">m / ' / M</text></g>
+      <g id="t6"><title>Task 6: docs and E2E</title><rect x="750" y="75" width="200" height="60" rx="8" fill="#1e202a" stroke="#f9e2af" stroke-dasharray="5 4"/><text x="850" y="100" text-anchor="middle" fill="#f9e2af" font-size="13">6 docs + E2E</text><text x="850" y="121" text-anchor="middle" fill="#bac2de" font-size="11">tmux, real binary</text></g>
+      <line x1="210" y1="50" x2="246" y2="50" stroke="#7f849c" marker-end="url(#a)"/>
+      <line x1="210" y1="160" x2="246" y2="160" stroke="#7f849c" marker-end="url(#a)"/>
+      <line x1="450" y1="50" x2="506" y2="95" stroke="#7f849c" marker-end="url(#a)"/>
+      <line x1="450" y1="160" x2="506" y2="115" stroke="#7f849c" marker-end="url(#a)"/>
+      <line x1="710" y1="105" x2="746" y2="105" stroke="#7f849c" marker-end="url(#a)"/>
+    </svg>
+    <figcaption>Tasks 1-2 and 3-4 don't depend on each other. Task 5 needs both pairs. The plan runs them in order 1 through 6 so every commit builds.</figcaption>
+  </figure>
+</section>
+
+<section id="focus">
+  <h2>Review focus</h2><div class="sep"></div>
+  <p class="muted">These five inputs follow from the spec but the spec's own tests don't cover them. Each one now has a test in the task that owns the code.</p>
+  <ol class="focus">
+    <li id="rf1"><kbd>Ctrl+c</kbd> while a prefix is pending still quits.<span class="owner">Task 5</span></li>
+    <li id="rf2"><kbd>q</kbd> or <kbd>Esc</kbd> while a prefix is pending only cancels it, and the viewer stays open.<span class="owner">Task 5</span></li>
+    <li id="rf3">With two files open, a mark set in file A doesn't exist in file B.<span class="owner">Task 5</span></li>
+    <li id="rf4">In a CRLF file, the text still matches even though lines end in <code>\r\n</code>.<span class="owner">Task 3</span></li>
+    <li id="rf5">Empty document: <kbd>m</kbd><kbd>a</kbd> shows <code>Nothing to mark here</code> instead of panicking. This toast is new in the plan.<span class="owner">Task 5</span></li>
+  </ol>
+</section>
+
+<section id="tasks">
+  <h2>Tasks</h2><div class="sep"></div>
+
+  <article class="task" id="task-1">
+    <header><span class="num">1</span><h3><code>source_line</code> on <code>Line</code>, kept through wrapping</h3><span class="commit">feat(style): track source line on rendered lines</span></header>
+    <div class="cols">
+      <div><div class="label">Files</div><ul class="files"><li>src/style.rs (struct, Line::empty, wrap_lines)</li><li>~47 Line literals in markdown.rs, json.rs, viewer.rs, style.rs</li><li>src/viewer.rs:639 image row expansion</li></ul></div>
+      <div><div class="label">Produces</div><p><code>pub source_line: Option&lt;usize&gt;</code> (1-based). <code>wrap_lines</code> copies it to <b>every</b> piece, unlike <code>meta</code>.</p></div>
+      <div><div class="label">Tests</div><ul class="tests"><li>wrap_copies_source_line_to_every_piece</li><li>wrap_copies_source_line_in_blockquotes</li><li>short_line_keeps_source_line</li></ul></div>
+    </div>
+  </article>
+
+  <article class="task" id="task-2">
+    <header><span class="num">2</span><h3>Markdown renderer fills in <code>source_line</code></h3><span class="commit">feat(markdown): stamp source lines on rendered output</span></header>
+    <div class="cols">
+      <div><div class="label">Files</div><ul class="files"><li>src/markdown.rs (Renderer, flush_line_with_meta, emit_code_block, emit_table, process, render_with)</li></ul></div>
+      <div><div class="label">Approach</div><ul>
+        <li><b>Line-start table:</b> built once per render. <code>line_of</code> uses <code>partition_point</code>, clamped to the line count.</li>
+        <li><b>Default stamp:</b> any new line still at <code>None</code> after each event gets that event's start line.</li>
+        <li><b>Buffered spans:</b> <code>current_src</code> remembers where the pending spans started, so a paragraph flushed by a later event, such as a nested list starting, keeps its own line.</li>
+        <li><b>Code blocks:</b> <code>first_line + i</code>. <b>Tables:</b> one line per row, recorded at <code>Start(TableHead/TableRow)</code>.</li>
+      </ul></div>
+      <div><div class="label">Tests</div><ul class="tests"><li>source_line_headings_and_paragraphs</li><li>source_line_list_items</li><li>source_line_code_block_per_line</li><li>source_line_indented_code_block</li><li>source_line_table_rows</li><li>every_line_has_a_source_line</li></ul></div>
+    </div>
+<details><summary>Core stamping code</summary>
+<pre><code>for (event, range) in parser.into_offset_iter() {
+    let from = renderer.lines.len();
+    let line = renderer.line_of(range.start);
+    renderer.process(event, range);
+    renderer.stamp_new_lines(from, line);
+}
+
+fn stamp_new_lines(&amp;mut self, from: usize, line: usize) {
+    for l in &amp;mut self.lines[from..] {
+        l.source_line.get_or_insert(line);
+    }
+    if self.current_src.is_none() &amp;&amp; !self.current_spans.is_empty() {
+        self.current_src = Some(line);
+    }
+}</code></pre></details>
+  </article>
+
+  <article class="task" id="task-3">
+    <header><span class="num">3</span><h3><code>marks::resolve</code></h3><span class="commit">feat(marks): resolve marks against edited source</span></header>
+    <div class="cols">
+      <div><div class="label">Files</div><ul class="files"><li>src/marks.rs (new)</li><li>src/main.rs (mod marks;)</li></ul></div>
+      <div><div class="label">Produces</div><p><code>Mark { line, text }</code>, <code>Resolved { line, exact }</code>, <code>resolve(&amp;Mark, &amp;str) -&gt; Resolved</code>. Uses the nearest match; on a tie <code>min_by_key</code> keeps the earlier line.</p></div>
+      <div><div class="label">Tests (11)</div><ul class="tests"><li>exact_line_and_text</li><li>text_moved_down / text_moved_up</li><li>matches_on_trimmed_text</li><li>duplicate_text_picks_nearest</li><li>tie_prefers_earlier_line</li><li>missing_text_falls_back_to_line</li><li>missing_text_past_end_is_clamped</li><li>blank_text_uses_line_only</li><li>empty_document</li><li class="rf">crlf_lines_match (focus 4)</li></ul></div>
+    </div>
+  </article>
+
+  <article class="task" id="task-4">
+    <header><span class="num">4</span><h3><code>MarkStore</code> persistence</h3><span class="commit">feat(marks): persist marks per file in the data directory</span></header>
+    <div class="cols">
+      <div><div class="label">Files</div><ul class="files"><li>src/marks.rs</li><li>Cargo.toml ([dev-dependencies] tempfile = "3")</li></ul></div>
+      <div><div class="label">Produces</div><ul>
+        <li><code>load()</code>, <code>load_from(PathBuf)</code>, <code>get(&amp;Path, char)</code>, <code>set(&amp;Path, char, Mark) -&gt; Result&lt;(), SaveError&gt;</code></li>
+        <li><code>SaveError { NoDataDir, Unreadable, Io }</code></li>
+        <li><code>set</code> re-reads the file, updates one entry, writes <code>.tmp</code> and renames it. If the file can't be parsed it's left untouched (<code>writable = false</code>).</li>
+      </ul></div>
+      <div><div class="label">Tests (7)</div><ul class="tests"><li>set_then_reload</li><li>creates_missing_directories</li><li>overwriting_a_letter_replaces_it</li><li>two_stores_merge_instead_of_clobbering</li><li>paths_are_canonicalized</li><li>corrupt_file_is_never_overwritten</li><li>file_corrupted_after_load_is_not_overwritten</li></ul></div>
+    </div>
+  </article>
+
+  <article class="task" id="task-5">
+    <header><span class="num">5</span><h3>Viewer keys: <kbd>m</kbd> / <kbd>'</kbd> prefix, set, jump, <kbd>M</kbd> for mouse</h3><span class="commit">feat(viewer): add m/' bookmarks and move mouse toggle to M</span></header>
+    <div class="cols">
+      <div><div class="label">Files</div><ul class="files"><li>src/viewer.rs (MarkOp, ViewerState, handle_event, handle_normal, help_sections, tests)</li></ul></div>
+      <div><div class="label">Where it hooks in</div><ul>
+        <li>The pending prefix is checked in <code>handle_event</code> <b>after</b> <kbd>Ctrl+c</kbd> and before the help toggle. The next key is always consumed.</li>
+        <li><kbd>m</kbd> / <kbd>'</kbd> are matched in <code>handle_normal</code> <b>before</b> the slide-mode return, so slide mode can show its toast.</li>
+        <li>New functions: <code>begin_mark</code>, <code>marks_unavailable</code>, <code>set_mark</code>, <code>jump_to_mark</code>.</li>
+        <li>The mouse arm moves to <code>Char('M')</code>. Help gets <code>m a-z</code> and <code>' a-z</code>.</li>
+      </ul></div>
+      <div><div class="label">Tests (13)</div><ul class="tests"><li>set_and_jump_back</li><li>jump_survives_edit_above_mark</li><li>jump_reports_moved_when_text_is_gone</li><li>jump_to_unset_mark</li><li>non_letter_cancels_prefix</li><li class="rf">esc_and_q_during_prefix_do_not_quit (focus 2)</li><li class="rf">ctrl_c_during_prefix_quits (focus 1)</li><li class="rf">marks_are_per_file (focus 3)</li><li class="rf">empty_document_has_nothing_to_mark (focus 5)</li><li>marks_unavailable_for_stdin / in_json_view / in_slide_mode</li><li>help_lists_mark_and_mouse_keys</li></ul></div>
+    </div>
+<details><summary>jump_to_mark</summary>
+<pre><code>fn jump_to_mark(state: &amp;mut ViewerState, letter: char) {
+    let path = current_file_path(state);
+    let Some(mark) = state.marks.get(&amp;path, letter).cloned() else {
+        state.set_toast(format!("Mark '{letter}' not set"));
+        return;
+    };
+    let target = resolve(&amp;mark, &amp;state.content);
+    let max = state.max_offset();
+    let idx = state
+        .wrapped
+        .iter()
+        .position(|l| l.source_line.is_some_and(|s| s &gt;= target.line))
+        .unwrap_or(max);
+    state.nav_history.push((state.current_file_idx, state.offset));
+    state.offset = idx.min(max);
+    state.set_toast(if target.exact {
+        format!("Jumped to '{letter}'")
+    } else {
+        format!("Mark '{letter}' moved - nearest position")
+    });
+}</code></pre></details>
+  </article>
+
+  <article class="task" id="task-6">
+    <header><span class="num">6</span><h3>Docs and end-to-end check</h3><span class="commit">docs: document bookmarks and the M mouse toggle</span></header>
+    <div class="cols">
+      <div><div class="label">Files</div><ul class="files"><li>README.md (Navigation + Features tables)</li><li>CLAUDE.md (eleven source files, marks.rs entry)</li></ul></div>
+      <div><div class="label">E2E (tmux, <code>HOME</code> set to a temp dir)</div><ul>
+        <li>Open the doc, jump with <kbd>]</kbd> three times, <kbd>m</kbd><kbd>a</kbd>, <kbd>q</kbd>. Check that <code>marks.toml</code> was written.</li>
+        <li>Insert lines at the top, reopen at 70 columns, <kbd>'</kbd><kbd>a</kbd>. The same heading is at the top.</li>
+        <li><kbd>Backspace</kbd> returns. <kbd>M</kbd> shows the mouse toast.</li>
+      </ul></div>
+      <div><div class="label">Gate</div><pre><code>cargo fmt --check
+cargo clippy -- -D warnings
+cargo test</code></pre></div>
+    </div>
+  </article>
+</section>
+
+<section id="constraints">
+  <h2>Global constraints</h2><div class="sep"></div>
+  <div class="grid">
+    <div class="card"><h3>Behavior</h3><ul class="constraints">
+      <li>Letters <code>a-z</code> only, no Ctrl/Alt</li>
+      <li>Source lines are 1-based everywhere</li>
+      <li>Marks file in <code>dirs::data_dir()/mdterm/</code></li>
+      <li>A file that can't be parsed is never overwritten</li>
+      <li>A jump pushes onto <code>nav_history</code></li>
+    </ul></div>
+    <div class="card"><h3>Toast strings (verbatim)</h3><ul class="constraints">
+      <li><code>Mark 'a' set</code> / <code>Jumped to 'a'</code></li>
+      <li><code>Mark 'a' moved - nearest position</code></li>
+      <li><code>Mark 'a' not set</code> / <code>Nothing to mark here</code></li>
+      <li><code>Marks unavailable for stdin</code> / <code>in JSON view</code> / <code>in slide mode</code></li>
+      <li><code>marks.toml unreadable - marks not saved</code></li>
+      <li><code>Could not save mark: &lt;reason&gt;</code></li>
+    </ul></div>
+    <div class="card"><h3>Hygiene</h3><ul class="constraints">
+      <li>fmt, clippy and tests clean after every task</li>
+      <li>Exception: <code>dead_code</code> warnings in <code>marks.rs</code> during Tasks 3-4, which Task 5 clears</li>
+      <li>One commit per task</li>
+    </ul></div>
+  </div>
+</section>
+
+<section id="notes">
+  <h2>Differences from the spec</h2><div class="sep"></div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Item</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr id="n-toast"><td><code>Nothing to mark here</code></td><td>New toast for an empty document (focus 5). It follows the spec's rule that failures show a toast and don't crash.</td></tr>
+      <tr id="n-toml"><td>On-disk layout</td><td>The data is the spec's <code>path -&gt; letter -&gt; {line, text}</code>, but <code>toml::to_string</code> may write it as <code>["path".a]</code> table headers rather than the spec's inline tables. Tests only check that marks survive a save and reload.</td></tr>
+      <tr id="n-merge"><td>Merge after save</td><td>After a successful save, marks other mdterm windows wrote to disk are also loaded into memory.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="execution">
+  <h2>Execution</h2><div class="sep"></div>
+  <div class="exec">
+    <div class="card rec" id="exec-subagent"><h3>Subagent-driven <span class="badge">recommended</span></h3><p>A fresh implementer and a fresh reviewer for each task, then a review of the whole branch.</p><p class="muted">Recommended because Task 5 depends on the interfaces from Tasks 1-4, and Task 1 touches ~47 places, so checking each task before the next one starts catches interface drift early.</p></div>
+    <div class="card" id="exec-native"><h3>Native</h3><p>I implement all six tasks in this session, then one fresh reviewer checks the whole branch.</p><p class="muted">Cheaper and faster, but nothing is reviewed independently until the end.</p></div>
+  </div>
+</section>
+
+</main>
+</body>
+</html>

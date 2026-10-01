@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en" data-theme="nord">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>clickup tasks status - implementation design</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/daisyui.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/themes.css">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.2.4/dist/index.global.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  :where(.grid, .flex) > * { min-width: 0; }
+  :where(p, li, td, th, .badge) { overflow-wrap: anywhere; }
+  :where(svg) { max-width: 100%; height: auto; }
+  body { background: var(--color-base-200); color: var(--color-base-content); }
+  :not(pre) > code { font-size: .85em; background: var(--color-base-200); padding: 0 .3em; border-radius: 4px; }
+  .cite { font-family: ui-monospace, monospace; font-size: .75rem; opacity: .65; }
+  svg.fig text { fill: currentColor; font-family: ui-sans-serif, system-ui, sans-serif; }
+  svg.fig .t1 { font-size: 12.5px; font-weight: 600; }
+  svg.fig .t2 { font-size: 10px; opacity: .7; font-family: ui-monospace, monospace; }
+  svg.fig .grp { font-size: 11px; font-weight: 700; letter-spacing: .06em; opacity: .55; }
+  svg.fig .edge { stroke: currentColor; stroke-width: 1.3; fill: none; opacity: .55; }
+  svg.fig .ret { stroke: currentColor; stroke-width: 1; fill: none; opacity: .4; stroke-dasharray: 4 3; }
+  svg.fig .err { stroke: var(--color-error); stroke-width: 1.1; fill: none; stroke-dasharray: 3 3; opacity: .75; }
+  svg.fig .errt { fill: var(--color-error) !important; font-size: 10px; }
+  svg.fig .msg { font-size: 11px; font-family: ui-monospace, monospace; }
+  svg.fig .note { font-size: 10px; opacity: .65; }
+  svg.fig .life { stroke: currentColor; stroke-width: 1; opacity: .25; stroke-dasharray: 2 4; }
+  svg.fig rect.box { fill: var(--color-base-100); stroke: color-mix(in oklab, currentColor 35%, transparent); }
+  svg.fig rect.region { fill: color-mix(in oklab, currentColor 4%, transparent); stroke: color-mix(in oklab, currentColor 15%, transparent); }
+  svg.fig rect.new { fill: color-mix(in oklab, var(--color-success) 18%, var(--color-base-100)); stroke: var(--color-success); stroke-width: 1.8; }
+  svg.fig rect.mod { fill: color-mix(in oklab, var(--color-warning) 18%, var(--color-base-100)); stroke: var(--color-warning); stroke-width: 1.8; stroke-dasharray: 6 3; }
+  svg.fig rect.exist { fill: var(--color-base-100); stroke: color-mix(in oklab, currentColor 35%, transparent); stroke-width: 1.2; }
+  .sw { display:inline-block; width: 14px; height: 10px; border-radius: 3px; vertical-align: middle; margin-right: 4px; }
+  .sw.new { background: color-mix(in oklab, var(--color-success) 25%, transparent); border: 2px solid var(--color-success); }
+  .sw.mod { background: color-mix(in oklab, var(--color-warning) 25%, transparent); border: 2px dashed var(--color-warning); }
+  .sw.exist { background: var(--color-base-200); border: 1px solid #8888; }
+  ol.steps-list { counter-reset: s; list-style: none; padding-left: 0; }
+  ol.steps-list > li { counter-increment: s; position: relative; padding-left: 2.2rem; margin: .3rem 0; font-family: ui-monospace, monospace; font-size: .8rem; }
+  ol.steps-list > li::before { content: counter(s); position: absolute; left: 0; width: 1.6rem; text-align: right; opacity: .5; }
+  ol.steps-list > li.e { counter-increment: none; }
+  ol.steps-list > li.e::before { content: "E"; color: var(--color-error); opacity: 1; }
+  ol.steps-list > li.e { color: color-mix(in oklab, var(--color-error) 80%, currentColor); }
+  .code-slot { border-radius: .5rem; overflow: hidden; border: 1px solid color-mix(in oklab, currentColor 12%, transparent); }
+</style>
+</head>
+<body>
+<main class="mx-auto max-w-5xl p-5 lg:p-10 space-y-8">
+
+<header class="space-y-2">
+  <p class="text-sm opacity-60">Code design - phase 3 of 4 - review the implementation</p>
+  <h1 class="text-3xl font-bold"><code>clickup tasks status &lt;id&gt; &lt;status&gt;</code></h1>
+  <p class="text-sm"><span class="sw new"></span>new <span class="sw mod ml-3"></span>modified <span class="sw exist ml-3"></span>existing</p>
+</header>
+
+<!-- 1 -->
+<section id="recap" class="card bg-base-100 shadow-sm">
+  <div class="card-body space-y-2">
+    <h2 class="card-title">1. Decision recap</h2>
+    <p>Approach A: a new <code>tasks status</code> subcommand handles the whole flow itself, the same way <code>getTask</code> does (get task, get its list, match, update, print). The one real rule - is this a status of the task's list - is a pure method on a new <code>models.List</code>.</p>
+    <ul class="list-disc pl-5 text-sm">
+      <li>Decided in phase 2: no service layer, because no more write commands are planned; the command must stay in the same shape as <code>getTask</code>.</li>
+      <li>Prerequisite, separate commit: delete the duplicate <code>DetailFormatter.FormatComments</code> (<span class="cite">internal/output/table.go:237-281</span>) so <code>main</code> builds again. Keep the word-wrapping copy at <span class="cite">:191</span>.</li>
+    </ul>
+    <div class="mockup-code text-xs mt-2" aria-label="What the user sees">
+      <pre data-prefix="$"><code>clickup tasks status HGAI-1217 "In Progress"</code></pre>
+      <pre data-prefix=""><code>HGAI-1217: to do -&gt; in progress</code></pre>
+      <pre data-prefix="$"><code>clickup tasks status HGAI-1217 done</code></pre>
+      <pre data-prefix="" class="text-error"><code>Error: "done" is not a status of list "Sprint 12". Valid statuses:</code></pre>
+      <pre data-prefix="" class="text-error"><code>  to do</code></pre>
+      <pre data-prefix="" class="text-error"><code>  in progress</code></pre>
+      <pre data-prefix="" class="text-error"><code>  review</code></pre>
+      <pre data-prefix="" class="text-error"><code>  complete</code></pre>
+      <pre data-prefix="$"><code>clickup tasks status HGAI-1217 "in progress"</code></pre>
+      <pre data-prefix=""><code>HGAI-1217 is already "in progress"</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- 2 -->
+<section id="overview" class="card bg-base-100 shadow-sm">
+  <div class="card-body space-y-2">
+    <h2 class="card-title">2. Structure overview</h2>
+    <p class="text-sm opacity-75">Which files and units take part, grouped by package. Arrows mean "calls / depends on".</p>
+    <svg class="fig" viewBox="0 0 860 400" role="img" aria-label="Structure overview">
+      <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="currentColor" opacity=".55"/></marker></defs>
+      <!-- regions -->
+      <rect class="region" x="10" y="10" width="250" height="300" rx="10"/><text class="grp" x="24" y="32">internal/commands</text>
+      <rect class="region" x="300" y="10" width="270" height="300" rx="10"/><text class="grp" x="314" y="32">internal/api</text>
+      <rect class="region" x="610" y="10" width="240" height="200" rx="10"/><text class="grp" x="624" y="32">pkg/models</text>
+      <rect class="region" x="610" y="230" width="240" height="80" rx="10"/><text class="grp" x="624" y="252">internal/output</text>
+      <rect class="region" x="10" y="330" width="840" height="60" rx="10"/><text class="grp" x="24" y="352">docs</text>
+
+      <g id="ov-status"><title>tasks_status.go - tasksStatusCmd, runTasksStatus, changeTaskStatus, invalidStatusError</title><rect class="new" x="25" y="140" width="220" height="62" rx="8"/><text class="t1" x="37" y="162">tasks_status.go</text><text class="t2" x="37" y="178">tasksStatusCmd</text><text class="t2" x="37" y="192">changeTaskStatus()</text></g>
+      <g id="ov-tasks"><title>tasks.go - tasksCmd gains help example</title><rect class="mod" x="25" y="50" width="220" height="50" rx="8"/><text class="t1" x="37" y="71">tasks.go</text><text class="t2" x="37" y="88">tasksCmd (help text)</text></g>
+      <g id="ov-root"><title>root.go - getAPIClient, getConfig, help text</title><rect class="mod" x="25" y="235" width="220" height="56" rx="8"/><text class="t1" x="37" y="256">root.go</text><text class="t2" x="37" y="272">getAPIClient getConfig</text><text class="t2" x="37" y="285">(help text)</text></g>
+
+      <g id="ov-apitasks"><title>api/tasks.go - UpdateTaskStatus, GetTask, setCustomTaskIDParams</title><rect class="mod" x="315" y="50" width="240" height="62" rx="8"/><text class="t1" x="327" y="71">tasks.go</text><text class="t2" x="327" y="87">+UpdateTaskStatus</text><text class="t2" x="327" y="101">GetTask +setCustomTaskIDParams</text></g>
+      <g id="ov-lists"><title>api/lists.go - GetList</title><rect class="new" x="315" y="130" width="240" height="46" rx="8"/><text class="t1" x="327" y="151">lists.go</text><text class="t2" x="327" y="167">GetList</text></g>
+      <g id="ov-comments"><title>api/comments.go - uses setCustomTaskIDParams</title><rect class="mod" x="315" y="190" width="115" height="46" rx="8"/><text class="t1" x="325" y="211">comments.go</text><text class="t2" x="325" y="227">helper reuse</text></g>
+      <g id="ov-client"><title>api/client.go - doRequest payload, Put</title><rect class="mod" x="315" y="250" width="240" height="46" rx="8"/><text class="t1" x="327" y="271">client.go</text><text class="t2" x="327" y="287">doRequest(payload) +Put</text></g>
+      <g id="ov-errors"><title>api/errors.go - APIError</title><rect class="exist" x="440" y="190" width="115" height="46" rx="8"/><text class="t1" x="450" y="211">errors.go</text><text class="t2" x="450" y="227">*APIError</text></g>
+
+      <g id="ov-list"><title>models/list.go - List, FindStatus</title><rect class="new" x="625" y="50" width="210" height="50" rx="8"/><text class="t1" x="637" y="71">list.go</text><text class="t2" x="637" y="88">List.FindStatus</text></g>
+      <g id="ov-task"><title>models/task.go - Task, Status (reused)</title><rect class="exist" x="625" y="140" width="210" height="50" rx="8"/><text class="t1" x="637" y="161">task.go</text><text class="t2" x="637" y="178">Task, Status</text></g>
+      <g id="ov-table"><title>output/table.go - remove duplicate FormatComments</title><rect class="mod" x="625" y="262" width="210" height="40" rx="8"/><text class="t1" x="637" y="280">table.go</text><text class="t2" x="637" y="295">drop duplicate method</text></g>
+
+      <g id="ov-docs"><title>README.md and skills/SKILL.md</title><rect class="mod" x="120" y="342" width="300" height="38" rx="8"/><text class="t1" x="132" y="366">README.md  skills/SKILL.md</text></g>
+
+      <path class="edge" d="M135,140 V102" marker-end="url(#arr)"/><text class="note" x="140" y="124">AddCommand on tasksCmd</text>
+      <path class="edge" d="M135,202 V233" marker-end="url(#arr)"/>
+      <path class="edge" d="M245,160 C280,140 285,90 313,82" marker-end="url(#arr)"/>
+      <path class="edge" d="M245,170 H313" marker-end="url(#arr)"/>
+      <path class="edge" d="M245,150 C420,20 560,30 623,70" marker-end="url(#arr)"/>
+      <path class="edge" d="M555,145 C590,120 600,90 623,80" marker-end="url(#arr)"/>
+      <path class="edge" d="M730,100 V138" marker-end="url(#arr)"/><text class="note" x="736" y="124">[]Status</text>
+      <path class="edge" d="M555,100 C590,130 600,150 623,160" marker-end="url(#arr)"/>
+      <path class="edge" d="M540,112 V248" marker-end="url(#arr)"/>
+      <path class="edge" d="M330,176 V248" marker-end="url(#arr)"/>
+      <path class="edge" d="M372,236 V248" marker-end="url(#arr)"/>
+    </svg>
+  </div>
+</section>
+
+<!-- 3 -->
+<section id="units" class="card bg-base-100 shadow-sm">
+  <div class="card-body space-y-6">
+    <h2 class="card-title">3. Units</h2>
+
+    <article id="u-status" class="space-y-2">
+      <div class="flex flex-wrap gap-2 items-center"><h3 class="font-bold text-lg">internal/commands/tasks_status.go</h3><span class="badge badge-success badge-soft">new</span><span class="badge badge-ghost">command layer</span></div>
+      <p class="text-sm"><b>Responsibility:</b> the <code>tasks status</code> subcommand; runs the change-status flow and turns its outcomes into CLI output.</p>
+      <p class="text-sm"><b>Collaborators:</b> <code>getAPIClient()</code>, <code>getConfig()</code> (root.go), <code>*api.Client</code>, <code>*models.List</code>. Registers itself on <code>tasksCmd</code> in <code>init()</code>.</p>
+      <ul class="text-sm list-disc pl-5">
+        <li><code>runTasksStatus</code> - Cobra <code>RunE</code>; joins <code>args[1:]</code> into the status name, so quotes are optional and calls <code>changeTaskStatus</code>.</li>
+        <li><code>changeTaskStatus</code> - get task, get list, <code>FindStatus</code>, skip if unchanged, <code>UpdateTaskStatus</code>, print <code>ID: old -&gt; new</code>. Returns a wrapped error on any failure.</li>
+        <li><code>invalidStatusError</code> - builds the multi-line error naming the list and its valid statuses, in list order.</li>
+      </ul>
+      <div class="code-slot" data-code="internal/commands/tasks_status.go"></div>
+<script type="text/x-go" data-for="internal/commands/tasks_status.go">package commands
+
+var tasksStatusCmd = &cobra.Command{
+	Use:   "status <task_id> <status>",
+	Short: "Change a task's status",
+	Long: `Change the status of a task. The status must exist on the task's list.
+
+Examples:
+  clickup tasks status HGAI-1217 "in progress"
+  clickup tasks status HGAI-1217 in progress
+  clickup tasks status 86a3xyzw complete`,
+	Args: cobra.MinimumNArgs(2),
+	RunE: runTasksStatus,
+}
+
+func init() {
+	tasksCmd.AddCommand(tasksStatusCmd)
+}
+
+func runTasksStatus(cmd *cobra.Command, args []string) error { ... }
+
+func changeTaskStatus(taskID string, statusName string) error { ... }
+
+func invalidStatusError(statusName string, list *models.List) error { ... }
+</script>
+    </article>
+
+    <article id="u-tasks" class="space-y-2">
+      <div class="flex flex-wrap gap-2 items-center"><h3 class="font-bold text-lg">internal/commands/tasks.go, root.go</h3><span class="badge badge-warning badge-soft">modified</span><span class="badge badge-ghost">command layer</span></div>
+      <p class="text-sm"><b>Change:</b> help text only. <code>tasksCmd.Long</code> gets <code>clickup tasks status HGAI-1217 "in progress"   Change task status</code>; <code>rootCmd.Long</code> "Get started" gets <code>clickup tasks status &lt;ID&gt; &lt;status&gt;</code>. <code>tasksCmd</code> keeps <code>MaximumNArgs(1)</code>; Cobra matches <code>status</code> as a subcommand before it treats the word as a task ID.</p>
+    </article>
+
+    <article id="u-client" class="space-y-2">
+      <div class="flex flex-wrap gap-2 items-center"><h3 class="font-bold text-lg">internal/api/client.go</h3><span class="badge badge-warning badge-soft">modified</span><span class="badge badge-ghost">api layer</span></div>
+      <p class="text-sm"><b>Responsibility:</b> HTTP transport with auth; now able to send a JSON body.</p>
+      <ul class="text-sm list-disc pl-5">
+        <li><code>doRequest</code> - gains <code>payload</code>; when non-nil it is JSON-marshalled into the request body (and printed under <code>--debug</code>). Error handling and <code>*APIError</code> mapping unchanged.</li>
+        <li><code>Get</code> - signature unchanged; passes <code>nil</code> payload.</li>
+        <li><code>Put</code> - new; returns the response body or <code>*APIError</code>.</li>
+      </ul>
+      <div class="code-slot" data-code="internal/api/client.go"></div>
+<script type="text/x-go" data-for="internal/api/client.go">func (c *Client) doRequest(method, path string, query url.Values, payload interface{}) ([]byte, error) { ... }
+
+func (c *Client) Get(path string, query url.Values) ([]byte, error) { ... }
+
+func (c *Client) Put(path string, query url.Values, payload interface{}) ([]byte, error) { ... }
+</script>
+    </article>
+
+    <article id="u-apitasks" class="space-y-2">
+      <div class="flex flex-wrap gap-2 items-center"><h3 class="font-bold text-lg">internal/api/tasks.go</h3><span class="badge badge-warning badge-soft">modified</span><span class="badge badge-ghost">api layer</span></div>
+      <p class="text-sm"><b>Responsibility:</b> task endpoints.</p>
+      <ul class="text-sm list-disc pl-5">
+        <li><code>UpdateTaskStatus</code> - new; <code>PUT /task/{id}</code> with <code>{"status": status}</code>, custom-ID params when needed; returns the updated task or <code>*APIError</code>.</li>
+        <li><code>setCustomTaskIDParams</code> - new; pulls the <code>custom_task_ids</code>/<code>team_id</code> block out of <code>GetTask</code> (<span class="cite">api/tasks.go:66-70</span>) and <code>GetTaskComments</code> (<span class="cite">api/comments.go:17-20</span>) instead of copying it a third time.</li>
+      </ul>
+      <div class="code-slot" data-code="internal/api/tasks.go"></div>
+<script type="text/x-go" data-for="internal/api/tasks.go">type updateTaskStatusRequest struct {
+	Status string `json:"status"`
+}
+
+// UpdateTaskStatus sets the status of a task
+// teamID is required when using custom task IDs (e.g., HGAI-1217)
+func (c *Client) UpdateTaskStatus(taskID string, teamID string, status string) (*models.Task, error) { ... }
+
+func setCustomTaskIDParams(query url.Values, taskID string, teamID string) { ... }
+</script>
+    </article>
+
+    <article id="u-lists" class="space-y-2">
+      <div class="flex flex-wrap gap-2 items-center"><h3 class="font-bold text-lg">internal/api/lists.go</h3><span class="badge badge-success badge-soft">new</span><span class="badge badge-ghost">api layer</span></div>
+      <p class="text-sm"><b>Responsibility:</b> list endpoints. <code>GetList</code> calls <code>GET /list/{id}</code> and returns the list with its statuses, or <code>*APIError</code>.</p>
+      <div class="code-slot" data-code="internal/api/lists.go"></div>
+<script type="text/x-go" data-for="internal/api/lists.go">package api
+
+// GetList gets a list including its statuses
+func (c *Client) GetList(listID string) (*models.List, error) { ... }
+</script>
+    </article>
+
+    <article id="u-list" class="space-y-2">
+      <div class="flex flex-wrap gap-2 items-center"><h3 class="font-bold text-lg">pkg/models/list.go</h3><span class="badge badge-success badge-soft">new</span><span class="badge badge-ghost">models</span></div>
+      <p class="text-sm"><b>Responsibility:</b> a ClickUp list and lookup of its statuses. <code>FindStatus</code> matches by name, ignoring case and surrounding whitespace, and returns the list's own spelling, with <code>false</code> if there is no match.</p>
+      <div class="code-slot" data-code="pkg/models/list.go"></div>
+<script type="text/x-go" data-for="pkg/models/list.go">package models
+
+// List represents a ClickUp list
+type List struct {
+	ID       string   `json:"id"`
+	Name     string   `json:"name"`
+	Statuses []Status `json:"statuses"`
+}
+
+// FindStatus returns the list status matching name, ignoring case
+func (l *List) FindStatus(name string) (Status, bool) { ... }
+</script>
+    </article>
+
+    <article id="u-table" class="space-y-2">
+      <div class="flex flex-wrap gap-2 items-center"><h3 class="font-bold text-lg">internal/output/table.go</h3><span class="badge badge-warning badge-soft">modified</span><span class="badge badge-ghost">output</span></div>
+      <p class="text-sm"><b>Change:</b> delete the second <code>DetailFormatter.FormatComments</code> (lines 237-281, the one without word wrap). No new output code; this command prints a plain line like <code>--open</code> does.</p>
+    </article>
+
+    <article id="u-docs" class="space-y-2">
+      <div class="flex flex-wrap gap-2 items-center"><h3 class="font-bold text-lg">README.md, skills/SKILL.md</h3><span class="badge badge-warning badge-soft">modified</span><span class="badge badge-ghost">docs</span></div>
+      <p class="text-sm"><b>Change:</b> add the command to README "Tasks" and to SKILL.md as a new "Change Task Status" block. Also extend the SKILL.md <code>description</code> triggers with "set task status", "move task to". The skill is told to show the valid statuses to the user when the CLI rejects a status.</p>
+    </article>
+  </div>
+</section>
+
+<!-- 4 -->
+<section id="data" class="card bg-base-100 shadow-sm">
+  <div class="card-body space-y-2">
+    <h2 class="card-title">4. Data</h2>
+    <div class="overflow-x-auto"><table class="table table-sm">
+      <thead><tr><th>Type</th><th>Status</th><th>Fields</th><th>Crosses</th></tr></thead>
+      <tbody>
+        <tr><td><code>models.List</code></td><td><span class="badge badge-success badge-soft badge-sm">new</span></td><td><code>ID string</code>, <code>Name string</code>, <code>Statuses []Status</code></td><td>ClickUp JSON -&gt; <code>api.GetList</code> -&gt; command</td></tr>
+        <tr><td><code>models.Status</code></td><td><span class="badge badge-ghost badge-sm">reused</span></td><td><code>ID</code>, <code>Status</code>, <code>Color</code>, <code>Type</code>, <code>Orderindex int</code> <span class="cite">task.go:55-61</span></td><td>inside <code>List</code> and <code>Task</code>; <code>FindStatus</code> -&gt; command</td></tr>
+        <tr><td><code>api.updateTaskStatusRequest</code></td><td><span class="badge badge-success badge-soft badge-sm">new, unexported</span></td><td><code>Status string `json:"status"`</code></td><td><code>api.UpdateTaskStatus</code> -&gt; HTTP body</td></tr>
+        <tr><td><code>models.Task</code></td><td><span class="badge badge-ghost badge-sm">existing</span></td><td>unchanged; <code>List.ID</code> and <code>Status.Status</code> are read</td><td>ClickUp JSON -&gt; <code>GetTask</code> / <code>UpdateTaskStatus</code> -&gt; command</td></tr>
+      </tbody>
+    </table></div>
+    <p class="text-sm opacity-75">No config, schema or migration changes. <code>Task.List</code> stays <code>ListInfo</code>: statuses are only needed by this command, so they are fetched on demand instead of being added to every task.</p>
+  </div>
+</section>
+
+<!-- 5 -->
+<section id="chains" class="card bg-base-100 shadow-sm">
+  <div class="card-body space-y-3">
+    <h2 class="card-title">5. Call chain - <code>clickup tasks status &lt;id&gt; &lt;status&gt;</code></h2>
+    <p class="text-sm opacity-75">One trigger. Solid arrows are calls, grey dashed arrows are returns, red dashed arrows are error exits back to <code>Execute</code>, which prints <code>Error: %v</code> and exits 1 (<span class="cite">root.go:48-53</span>).</p>
+    <svg class="fig" viewBox="0 0 880 620" role="img" aria-label="Sequence diagram">
+      <defs>
+        <marker id="sa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="currentColor" opacity=".55"/></marker>
+        <marker id="se" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--color-error)"/></marker>
+      </defs>
+      <!-- heads -->
+      <g><title>Cobra / Execute</title><rect class="exist" x="20" y="10" width="120" height="40" rx="6"/><text class="t1" x="32" y="35">Cobra/Execute</text></g>
+      <g><title>tasks_status.go</title><rect class="new" x="195" y="10" width="150" height="40" rx="6"/><text class="t1" x="207" y="35">tasks_status.go</text></g>
+      <g><title>api.Client</title><rect class="mod" x="410" y="10" width="120" height="40" rx="6"/><text class="t1" x="430" y="35">api.Client</text></g>
+      <g><title>models.List</title><rect class="new" x="580" y="10" width="120" height="40" rx="6"/><text class="t1" x="597" y="35">models.List</text></g>
+      <g><title>ClickUp API</title><rect class="exist" x="750" y="10" width="115" height="40" rx="6"/><text class="t1" x="765" y="35">ClickUp API</text></g>
+      <line class="life" x1="80" y1="50" x2="80" y2="610"/>
+      <line class="life" x1="270" y1="50" x2="270" y2="610"/>
+      <line class="life" x1="470" y1="50" x2="470" y2="610"/>
+      <line class="life" x1="640" y1="50" x2="640" y2="610"/>
+      <line class="life" x1="807" y1="50" x2="807" y2="610"/>
+
+      <path class="edge" d="M80,78 H268" marker-end="url(#sa)"/><text class="msg" x="90" y="72">1 runTasksStatus(args)</text>
+      <path class="edge" d="M270,90 h26 v14 h-24" marker-end="url(#sa)"/><text class="msg" x="302" y="100">2 changeTaskStatus(id, name)</text>
+
+      <path class="edge" d="M270,130 H468" marker-end="url(#sa)"/><text class="msg" x="280" y="124">3 GetTask(id, teamID)</text>
+      <path class="edge" d="M470,148 H805" marker-end="url(#sa)"/><text class="msg" x="560" y="142">GET /task/{id}</text>
+      <path class="ret" d="M807,164 H472" marker-end="url(#sa)"/>
+      <path class="ret" d="M470,180 H272" marker-end="url(#sa)"/><text class="msg" x="320" y="175">*models.Task</text>
+      <path class="err" d="M270,196 H82" marker-end="url(#se)"/><text class="errt" x="92" y="191">E1 failed to get task</text>
+
+      <path class="edge" d="M270,232 H468" marker-end="url(#sa)"/><text class="msg" x="280" y="226">4 GetList(task.List.ID)</text>
+      <path class="edge" d="M470,250 H805" marker-end="url(#sa)"/><text class="msg" x="560" y="244">GET /list/{id}</text>
+      <path class="ret" d="M807,266 H472" marker-end="url(#sa)"/>
+      <path class="ret" d="M470,282 H272" marker-end="url(#sa)"/><text class="msg" x="320" y="277">*models.List</text>
+      <path class="err" d="M270,298 H82" marker-end="url(#se)"/><text class="errt" x="92" y="293">E2 failed to get list</text>
+
+      <path class="edge" d="M270,334 H638" marker-end="url(#sa)"/><text class="msg" x="280" y="328">5 list.FindStatus(name)</text>
+      <path class="ret" d="M640,352 H272" marker-end="url(#sa)"/><text class="msg" x="320" y="347">Status, ok</text>
+      <path class="err" d="M270,370 H82" marker-end="url(#se)"/><text class="errt" x="92" y="365">E3 invalidStatusError</text>
+
+      <path class="ret" d="M270,402 H82" marker-end="url(#sa)"/><text class="note" x="92" y="396">6 unchanged: print, nil</text>
+
+      <path class="edge" d="M270,438 H468" marker-end="url(#sa)"/><text class="msg" x="280" y="432">7 UpdateTaskStatus(id, teamID, s)</text>
+      <path class="edge" d="M470,456 H805" marker-end="url(#sa)"/><text class="msg" x="560" y="450">PUT /task/{id}</text>
+      <path class="ret" d="M807,472 H472" marker-end="url(#sa)"/>
+      <path class="ret" d="M470,488 H272" marker-end="url(#sa)"/><text class="msg" x="320" y="483">*models.Task</text>
+      <path class="err" d="M270,504 H82" marker-end="url(#se)"/><text class="errt" x="92" y="499">E4 failed to update</text>
+
+      <path class="ret" d="M270,546 H82" marker-end="url(#sa)"/><text class="note" x="92" y="540">8 print "ID: old -&gt; new", nil</text>
+      <text class="note" x="480" y="590">getAPIClient / getConfig errors (not configured) return before step 3, as in getTask</text>
+    </svg>
+    <ol class="steps-list">
+      <li>Cobra -&gt; tasks_status::runTasksStatus(cmd, args): error</li>
+      <li>runTasksStatus -&gt; changeTaskStatus(args[0], strings.Join(args[1:], " ")): error   (after getAPIClient(), getConfig())</li>
+      <li>changeTaskStatus -&gt; api.Client::GetTask(taskID, cfg.WorkspaceID): (*models.Task, error)   -&gt; GET /task/{id}</li>
+      <li class="e">GetTask fails (404, 401, network) -&gt; return fmt.Errorf("failed to get task: %w", err) -&gt; "Error: failed to get task: API error (status 404): ..."</li>
+      <li>changeTaskStatus -&gt; api.Client::GetList(task.List.ID): (*models.List, error)   -&gt; GET /list/{id}</li>
+      <li class="e">GetList fails -&gt; return fmt.Errorf("failed to get statuses of list %q: %w", task.List.Name, err)</li>
+      <li>changeTaskStatus -&gt; models.List::FindStatus(statusName): (models.Status, bool)</li>
+      <li class="e">not found -&gt; return invalidStatusError(statusName, list) -&gt; "Error: \"done\" is not a status of list \"Sprint 12\". Valid statuses:" + one indented name per line; no PUT is sent</li>
+      <li>strings.EqualFold(task.Status.Status, status.Status) -&gt; fmt.Printf("%s is already %q\n", task.GetDisplayID(), status.Status); return nil   (no PUT)</li>
+      <li>changeTaskStatus -&gt; api.Client::UpdateTaskStatus(taskID, cfg.WorkspaceID, status.Status): (*models.Task, error)   -&gt; Client::Put("/task/{id}", query, updateTaskStatusRequest): ([]byte, error)</li>
+      <li class="e">PUT fails (e.g. 403 no permission) -&gt; return fmt.Errorf("failed to update task status: %w", err)</li>
+      <li>changeTaskStatus -&gt; fmt.Printf("%s: %s -&gt; %s\n", updated.GetDisplayID(), task.Status.Status, updated.Status.Status); return nil</li>
+    </ol>
+    <p class="text-sm opacity-75">Wrong argument count is handled by Cobra (<code>MinimumNArgs(2)</code>): "Error: requires at least 2 arg(s), only received 1", before any call.</p>
+  </div>
+</section>
+
+<!-- 6 -->
+<section id="conventions" class="card bg-base-100 shadow-sm">
+  <div class="card-body space-y-2">
+    <h2 class="card-title">6. Conventions followed</h2>
+    <div class="overflow-x-auto"><table class="table table-sm">
+      <thead><tr><th>Pattern</th><th>Mirrors</th></tr></thead>
+      <tbody>
+        <tr><td>Command is a package var, registered in <code>init()</code></td><td class="cite">commands/tasks.go:24-42</td></tr>
+        <tr><td><code>RunE</code> delegates to a verb-named helper (<code>runTasks</code> -&gt; <code>getTask</code>)</td><td class="cite">commands/tasks.go:52-60</td></tr>
+        <tr><td>Helper starts with <code>getAPIClient()</code> + <code>getConfig()</code>, passes <code>cfg.WorkspaceID</code> as teamID</td><td class="cite">commands/tasks.go:100-111</td></tr>
+        <tr><td>Errors wrapped as <code>failed to ...: %w</code>, printed by <code>Execute</code></td><td class="cite">commands/tasks.go:113, root.go:48-53</td></tr>
+        <tr><td>Plain confirmation line on stdout</td><td class="cite">commands/tasks.go:130</td></tr>
+        <tr><td>One API file per domain adding methods to <code>*Client</code>; unmarshal into <code>pkg/models</code></td><td class="cite">api/comments.go:13-33, api/user.go</td></tr>
+        <tr><td>Custom-ID query params on every task endpoint</td><td class="cite">api/tasks.go:66-70</td></tr>
+        <tr><td>Doc comment above each exported func, teamID note for custom IDs</td><td class="cite">api/tasks.go:57-59</td></tr>
+        <tr><td>Small behaviour methods on models (<code>GetDisplayID</code>)</td><td class="cite">models/task.go:35-41</td></tr>
+        <tr><td><code>t.Run</code> subtests with inline JSON fixtures</td><td class="cite">models/task_test.go:8-30</td></tr>
+      </tbody>
+    </table></div>
+    <div class="text-sm space-y-1">
+      <p><b>Deviations:</b></p>
+      <ul class="list-disc pl-5">
+        <li><code>tasks status</code> is the first nested subcommand in the CLI. The requested syntax needs it, and it keeps <code>tasks [task_id]</code> unchanged.</li>
+        <li><code>setCustomTaskIDParams</code> refactors two existing call sites. Without it the same 4 lines would exist in three places.</li>
+        <li>First tests for <code>internal/api</code>. They are in-package <code>httptest</code> tests so they can set the unexported <code>baseURL</code>; nothing about the client changes for testing.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 7 -->
+<section id="tests" class="card bg-base-100 shadow-sm">
+  <div class="card-body space-y-2">
+    <h2 class="card-title">7. Test seams</h2>
+    <ul class="list-disc pl-5 text-sm space-y-1">
+      <li><code>pkg/models/list_test.go</code> - unit: <code>FindStatus</code> table test (exact, different case, padded, missing, empty list); <code>List</code> unmarshals <code>statuses</code>.</li>
+      <li><code>internal/api/tasks_test.go</code> - <code>httptest.Server</code>: <code>UpdateTaskStatus</code> sends PUT, body <code>{"status":"in progress"}</code>, custom-ID params only for <code>HGAI-1217</code>, decodes the task, 400 becomes <code>*APIError</code>. <code>GetTask</code> still sends the same query after the helper refactor.</li>
+      <li><code>internal/api/lists_test.go</code> - <code>httptest.Server</code>: <code>GetList</code> path and decoded statuses in order.</li>
+      <li><code>internal/commands/tasks_status_test.go</code> - unit: <code>invalidStatusError</code> message and order. The flow itself is not unit-tested (concrete client, the A trade-off).</li>
+      <li>E2E against a real workspace with <code>make run ARGS="tasks status ..."</code>: valid, different case, unquoted multi-word, invalid, unchanged, custom and native ID, subtask, and a list that inherits folder statuses. Then <code>make check</code>.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 8 -->
+<section id="assumptions" class="card bg-base-100 shadow-sm">
+  <div class="card-body space-y-2">
+    <h2 class="card-title">8. Assumptions</h2>
+    <ol class="list-decimal pl-5 text-sm space-y-1">
+      <li>Matching ignores case and surrounding whitespace; the list's own spelling is sent to ClickUp and printed.</li>
+      <li>On a wrong status: exit 1, the list name in the message, valid statuses one per line in list order, no update sent.</li>
+      <li>The valid statuses are whatever <code>GET /list/{id}</code> returns, which includes statuses inherited from the folder or space. This is checked in the E2E run.</li>
+      <li>Setting the status the task already has sends no PUT, prints <code>HGAI-1217 is already "in progress"</code>, and exits 0.</li>
+      <li>Closed or done-type statuses (<code>complete</code>, <code>closed</code>) are allowed like any other; no confirmation prompt.</li>
+      <li>No <code>--output json</code> on this subcommand; <code>-o</code> stays a local flag of <code>tasks</code>.</li>
+      <li>Works with custom IDs, native IDs and the aliases <code>task status</code> / <code>t status</code>.</li>
+      <li>A subtask is validated against its own list (<code>task.List</code>), not its parent's.</li>
+      <li>A native task whose ID is literally <code>status</code> can no longer be viewed with <code>clickup tasks status</code>; accepted as practically impossible.</li>
+      <li>Pre-built binaries in <code>bin/</code> are rebuilt with <code>make build-all</code>, as the previous plan did.</li>
+      <li>Duplicate <code>FormatComments</code> is fixed first in its own commit, keeping the word-wrapping version.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- 9 -->
+<section id="decisions" class="card bg-base-100 shadow-sm">
+  <div class="card-body space-y-2">
+    <div class="flex flex-wrap items-center gap-2"><h2 class="card-title">9. Decisions made in review</h2><span class="badge badge-success">Approved</span></div>
+    <ul class="list-disc pl-5 text-sm space-y-1">
+      <li><b>Success output:</b> one line on stdout, <code>HGAI-1217: to do -&gt; in progress</code>.</li>
+      <li><b>Multi-word statuses:</b> no quotes needed. <code>MinimumNArgs(2)</code>, and <code>runTasksStatus</code> joins <code>args[1:]</code> with a single space.</li>
+    </ul>
+  </div>
+</section>
+
+</main>
+<script type="module">
+  import { File } from "https://esm.sh/@pierre/diffs@1.2.10?bundle";
+  const options = { theme: { light: "github-light", dark: "nord" }, themeType: "light", overflow: "wrap" };
+  for (const slot of document.querySelectorAll("[data-code]")) {
+    const name = slot.dataset.code;
+    const src = document.querySelector(`script[data-for="${name}"]`);
+    if (!src) continue;
+    new File(options).render({ containerWrapper: slot, file: { name, contents: src.textContent.replace(/^\n/, "") } });
+  }
+</script>
+</body>
+</html>

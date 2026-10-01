@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en" data-theme="nord">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>clickup tasks status - approaches</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/daisyui.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/themes.css">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.2.4/dist/index.global.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  :where(.grid, .flex) > * { min-width: 0; }
+  :where(p, li, td, th, .badge) { overflow-wrap: anywhere; }
+  :where(svg) { max-width: 100%; height: auto; }
+  body { background: var(--color-base-200); color: var(--color-base-content); }
+  code { font-size: .85em; background: var(--color-base-200); padding: 0 .3em; border-radius: 4px; }
+  .cite { font-family: ui-monospace, monospace; font-size: .75rem; opacity: .65; }
+  svg.comp text { fill: currentColor; font-family: ui-sans-serif, system-ui, sans-serif; }
+  svg.comp .t1 { font-size: 13px; font-weight: 600; }
+  svg.comp .t2 { font-size: 10.5px; opacity: .7; font-family: ui-monospace, monospace; }
+  svg.comp .edge { stroke: currentColor; stroke-width: 1.4; fill: none; opacity: .6; }
+  svg.comp .edge.err { stroke: var(--color-error); stroke-dasharray: 4 3; opacity: .8; }
+  svg.comp .elabel { font-size: 10px; opacity: .6; }
+  svg.comp rect.new { fill: color-mix(in oklab, var(--color-success) 18%, transparent); stroke: var(--color-success); stroke-width: 1.8; }
+  svg.comp rect.mod { fill: color-mix(in oklab, var(--color-warning) 18%, transparent); stroke: var(--color-warning); stroke-width: 1.8; stroke-dasharray: 6 3; }
+  svg.comp rect.exist { fill: var(--color-base-200); stroke: color-mix(in oklab, currentColor 35%, transparent); stroke-width: 1.2; }
+  .sw { display:inline-block; width: 14px; height: 10px; border-radius: 3px; vertical-align: middle; margin-right: 4px; }
+  .sw.new { background: color-mix(in oklab, var(--color-success) 25%, transparent); border: 2px solid var(--color-success); }
+  .sw.mod { background: color-mix(in oklab, var(--color-warning) 25%, transparent); border: 2px dashed var(--color-warning); }
+  .sw.exist { background: var(--color-base-200); border: 1px solid #8888; }
+</style>
+</head>
+<body>
+<main class="mx-auto max-w-5xl p-5 lg:p-10 space-y-8">
+
+<header class="space-y-2">
+  <p class="text-sm opacity-60">Code design - phase 2 of 4 - pick an approach</p>
+  <h1 class="text-3xl font-bold">Where does <code>clickup tasks status &lt;id&gt; &lt;status&gt;</code> live?</h1>
+  <p class="max-w-3xl">The command must fetch the task, fetch its list's statuses, validate the requested status, and only then update the task - printing the valid statuses when the input is wrong. The decision is <b>which layer owns that orchestration and validation</b>.</p>
+  <p class="text-sm"><span class="sw new"></span>new <span class="sw mod ml-3"></span>modified <span class="sw exist ml-3"></span>existing</p>
+</header>
+
+<section id="today" class="card bg-base-100 shadow-sm">
+  <div class="card-body">
+    <h2 class="card-title">What exists today</h2>
+    <ul class="list-disc pl-5 space-y-1.5 text-sm">
+      <li><b>Commands orchestrate.</b> <code>getTask</code> calls the client several times (task, parent, comments), wraps errors as <code>fmt.Errorf("failed to ...: %w")</code>, warns on stderr, and picks a formatter. There is no service layer. <span class="cite">internal/commands/tasks.go:100-159</span></li>
+      <li><b>One command, positional ID.</b> <code>tasks [task_id]</code> with <code>MaximumNArgs(1)</code>, aliases <code>task</code>, <code>t</code>; flags are local, not persistent. <span class="cite">internal/commands/tasks.go:24-50</span> Cobra resolves a subcommand <code>status</code> before falling back to the positional ID, so <code>tasks status ...</code> can coexist with <code>tasks HGAI-1217</code>.</li>
+      <li><b>The API client is read-only.</b> <code>doRequest</code> sends no body and only <code>Get</code> exists; errors become <code>*APIError</code>. <span class="cite">internal/api/client.go:42-96</span> <span class="cite">internal/api/errors.go:8</span></li>
+      <li><b>Custom IDs</b> (<code>HGAI-1217</code>) need <code>custom_task_ids=true&amp;team_id=</code> on every task endpoint. <span class="cite">internal/api/tasks.go:59-95</span></li>
+      <li><b>Models</b>: <code>Task.List</code> only carries <code>ID/Name/Access</code> - no statuses; <code>models.Status</code> already matches the list-status JSON shape and is reusable. <span class="cite">pkg/models/task.go:26, 55-61</span></li>
+      <li><b>Errors reach the user</b> as <code>Error: %v</code> on stderr with exit 1. <span class="cite">internal/commands/root.go:48-53</span></li>
+      <li><b>Tests</b> exist for models and output only; nothing tests commands or the client. <span class="cite">pkg/models/task_test.go</span> <span class="cite">internal/output/table_test.go</span></li>
+    </ul>
+    <div role="alert" class="alert alert-error alert-soft mt-3 text-sm">
+      <span><b>main does not build.</b> <code>DetailFormatter.FormatComments</code> is declared twice (a bad merge in <code>7411557</code>): <span class="cite">internal/output/table.go:191</span> (with word wrap) and <span class="cite">:238</span> (without). Any approach starts by deleting the second copy, as its own commit.</span>
+    </div>
+  </div>
+</section>
+
+<!-- A -->
+<section id="approach-a" class="card bg-base-100 shadow-sm border-2 border-primary">
+  <div class="card-body space-y-3">
+    <div class="flex flex-wrap items-center gap-2">
+      <h2 class="card-title">A - Command orchestrates, validation lives on the model</h2>
+      <span class="badge badge-primary">Recommended</span>
+    </div>
+    <p>A new <code>tasksStatusCmd</code> subcommand in its own file follows the <code>getTask</code> shape: get task, get list, match, update, print. The match itself is a pure method on a new <code>models.List</code> (find a status case-insensitively), so the one piece of real logic is unit-testable without HTTP. The client gains <code>GetList</code>, <code>UpdateTaskStatus</code> and body support.</p>
+    <svg class="comp" viewBox="0 0 660 190" role="img" aria-label="Approach A component diagram">
+      <defs><marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="currentColor" opacity=".6"/></marker></defs>
+      <g id="a-tasks"><title>tasksCmd - registers the subcommand</title><rect class="mod" x="10" y="15" width="170" height="50" rx="8"/><text class="t1" x="22" y="37">tasksCmd</text><text class="t2" x="22" y="54">commands/tasks.go</text></g>
+      <g id="a-status"><title>tasksStatusCmd - orchestrates</title><rect class="new" x="10" y="120" width="170" height="54" rx="8"/><text class="t1" x="22" y="142">tasksStatusCmd</text><text class="t2" x="22" y="160">commands/tasks_status.go</text></g>
+      <g id="a-client"><title>api.Client</title><rect class="mod" x="250" y="120" width="180" height="54" rx="8"/><text class="t1" x="262" y="142">api.Client</text><text class="t2" x="262" y="160">+GetList +UpdateTaskStatus</text></g>
+      <g id="a-model"><title>models.List with FindStatus</title><rect class="new" x="250" y="15" width="180" height="50" rx="8"/><text class="t1" x="262" y="37">models.List</text><text class="t2" x="262" y="54">FindStatus(name)</text></g>
+      <g id="a-cu"><title>ClickUp API v2</title><rect class="exist" x="500" y="120" width="150" height="54" rx="8"/><text class="t1" x="512" y="142">ClickUp API</text><text class="t2" x="512" y="160">/task /list</text></g>
+      <path class="edge" d="M95,65 V118" marker-end="url(#arrA)"/><text class="elabel" x="100" y="96">AddCommand</text>
+      <path class="edge" d="M180,147 H248" marker-end="url(#arrA)"/>
+      <path class="edge" d="M180,135 L248,52" marker-end="url(#arrA)"/>
+      <path class="edge" d="M430,147 H498" marker-end="url(#arrA)"/>
+    </svg>
+    <div class="grid md:grid-cols-3 gap-3 text-sm">
+      <div><h3 class="font-semibold mb-1">Touches</h3><ul class="list-disc pl-4 space-y-0.5"><li><code>commands/tasks_status.go</code> (new)</li><li><code>commands/tasks.go</code> (register, help text)</li><li><code>api/client.go</code> (body, <code>Put</code>)</li><li><code>api/tasks.go</code>, new <code>api/lists.go</code></li><li>new <code>pkg/models/list.go</code></li><li>README, <code>skills/SKILL.md</code></li></ul></div>
+      <div><h3 class="font-semibold mb-1 text-success">Fits / gains</h3><ul class="list-disc pl-4 space-y-0.5"><li>Same shape as <code>getTask</code> <span class="cite">tasks.go:100</span></li><li>Same API file-per-domain pattern <span class="cite">api/comments.go</span></li><li>Model helper like <code>GetDisplayID</code> <span class="cite">task.go:36</span></li><li>Validation testable as a pure function</li></ul></div>
+      <div><h3 class="font-semibold mb-1 text-error">Costs</h3><ul class="list-disc pl-4 space-y-0.5"><li>Orchestration (3 calls, ordering, error mapping) has no test seam - <code>api.Client</code> is concrete and <code>baseURL</code> is unexported</li><li>3 HTTP calls per change (GET task, GET list, PUT)</li><li>Command file holds flow logic; if more write commands come, this repeats</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- B -->
+<section id="approach-b" class="card bg-base-100 shadow-sm">
+  <div class="card-body space-y-3">
+    <h2 class="card-title">B - New service package owns the change</h2>
+    <p>Introduce <code>internal/tasks</code> with a <code>StatusChanger</code> that depends on a small interface (GetTask, GetList, UpdateTaskStatus) satisfied by <code>*api.Client</code>. It runs the whole flow and returns a typed <code>*InvalidStatusError</code> carrying the valid statuses. The command becomes a thin adapter: parse args, call, format.</p>
+    <svg class="comp" viewBox="0 0 660 190" role="img" aria-label="Approach B component diagram">
+      <defs><marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="currentColor" opacity=".6"/></marker></defs>
+      <g id="b-tasks"><title>tasksCmd</title><rect class="mod" x="10" y="15" width="150" height="50" rx="8"/><text class="t1" x="22" y="37">tasksCmd</text><text class="t2" x="22" y="54">commands/tasks.go</text></g>
+      <g id="b-status"><title>tasksStatusCmd - thin</title><rect class="new" x="10" y="120" width="150" height="54" rx="8"/><text class="t1" x="22" y="142">tasksStatusCmd</text><text class="t2" x="22" y="160">thin adapter</text></g>
+      <g id="b-svc"><title>tasks.StatusChanger</title><rect class="new" x="200" y="120" width="160" height="54" rx="8"/><text class="t1" x="212" y="142">StatusChanger</text><text class="t2" x="212" y="160">internal/tasks</text></g>
+      <g id="b-model"><title>models.List</title><rect class="new" x="200" y="15" width="160" height="50" rx="8"/><text class="t1" x="212" y="37">models.List</text><text class="t2" x="212" y="54">statuses</text></g>
+      <g id="b-client"><title>api.Client</title><rect class="mod" x="400" y="120" width="130" height="54" rx="8"/><text class="t1" x="412" y="142">api.Client</text><text class="t2" x="412" y="160">via interface</text></g>
+      <g id="b-cu"><title>ClickUp API</title><rect class="exist" x="560" y="120" width="92" height="54" rx="8"/><text class="t1" x="570" y="142">ClickUp</text><text class="t2" x="570" y="160">API</text></g>
+      <path class="edge" d="M85,65 V118" marker-end="url(#arrB)"/>
+      <path class="edge" d="M160,147 H198" marker-end="url(#arrB)"/>
+      <path class="edge" d="M280,120 V67" marker-end="url(#arrB)"/>
+      <path class="edge" d="M360,147 H398" marker-end="url(#arrB)"/>
+      <path class="edge" d="M530,147 H558" marker-end="url(#arrB)"/>
+    </svg>
+    <div class="grid md:grid-cols-3 gap-3 text-sm">
+      <div><h3 class="font-semibold mb-1">Touches</h3><ul class="list-disc pl-4 space-y-0.5"><li>Everything in A, plus</li><li>new <code>internal/tasks/status.go</code> + test with a fake client</li></ul></div>
+      <div><h3 class="font-semibold mb-1 text-success">Fits / gains</h3><ul class="list-disc pl-4 space-y-0.5"><li>Whole flow unit-testable (wrong status never PUTs, canonical name sent, etc.)</li><li>Clear controller / service split</li><li>Precedent for future write commands (assign, comment)</li></ul></div>
+      <div><h3 class="font-semibold mb-1 text-error">Costs</h3><ul class="list-disc pl-4 space-y-0.5"><li>New layer the codebase has nowhere else; <code>getTask</code> stays command-orchestrated, so two styles coexist</li><li>Interface defined for one consumer</li><li>More files for ~60 lines of logic</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- C -->
+<section id="approach-c" class="card bg-base-100 shadow-sm opacity-90">
+  <div class="card-body space-y-3">
+    <div class="flex flex-wrap items-center gap-2">
+      <h2 class="card-title">C - Update optimistically, explain on rejection</h2>
+      <span class="badge badge-ghost">Not recommended</span>
+    </div>
+    <p>PUT the status straight away and let ClickUp validate. Only when the API rejects it, fetch the task and its list to print the valid statuses. One call on the happy path instead of three.</p>
+    <svg class="comp" viewBox="0 0 660 150" role="img" aria-label="Approach C component diagram">
+      <defs><marker id="arrC" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="currentColor" opacity=".6"/></marker></defs>
+      <g id="c-status"><title>tasksStatusCmd</title><rect class="new" x="10" y="45" width="170" height="54" rx="8"/><text class="t1" x="22" y="67">tasksStatusCmd</text><text class="t2" x="22" y="85">commands/tasks_status.go</text></g>
+      <g id="c-client"><title>api.Client</title><rect class="mod" x="260" y="45" width="170" height="54" rx="8"/><text class="t1" x="272" y="67">api.Client</text><text class="t2" x="272" y="85">UpdateTaskStatus</text></g>
+      <g id="c-cu"><title>ClickUp API</title><rect class="exist" x="500" y="45" width="150" height="54" rx="8"/><text class="t1" x="512" y="67">ClickUp API</text><text class="t2" x="512" y="85">validates</text></g>
+      <path class="edge" d="M180,62 H258" marker-end="url(#arrC)"/><text class="elabel" x="195" y="55">1. PUT</text>
+      <path class="edge err" d="M260,90 C220,130 200,130 182,92" marker-end="url(#arrC)"/><text class="elabel" x="185" y="138">on 400: GET task + list</text>
+      <path class="edge" d="M430,72 H498" marker-end="url(#arrC)"/>
+    </svg>
+    <div class="grid md:grid-cols-3 gap-3 text-sm">
+      <div><h3 class="font-semibold mb-1">Touches</h3><ul class="list-disc pl-4 space-y-0.5"><li>Same files as A</li></ul></div>
+      <div><h3 class="font-semibold mb-1 text-success">Gains</h3><ul class="list-disc pl-4 space-y-0.5"><li>1 HTTP call when the status is right</li><li>ClickUp is the single source of truth</li></ul></div>
+      <div><h3 class="font-semibold mb-1 text-error">Costs</h3><ul class="list-disc pl-4 space-y-0.5"><li>Depends on ClickUp's error code for "unknown status", which I have not verified and which <code>APIError</code> only exposes as a string <span class="cite">errors.go:12</span></li><li>Can't tell a bad status from other 400s reliably</li><li>No canonical-name normalisation (case) before sending</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<section id="recommendation" class="card bg-base-100 shadow-sm">
+  <div class="card-body space-y-3">
+    <h2 class="card-title">Recommendation: A</h2>
+    <p>A is the shape the codebase already uses - commands orchestrate, the client is a thin HTTP mapper, models carry small helpers - and it isolates the one real rule (does this status exist on the list, case-insensitively) in a pure, tested function. B is the better structure <i>if</i> this is the first of several write commands (assign, comment, move); for a single command it adds a layer the rest of the code does not have. C trades robustness for one saved round-trip on an interactive CLI, which is the wrong trade.</p>
+    <p class="text-sm opacity-75">Shared by every option: fix the duplicate <code>FormatComments</code> first; add request bodies to <code>doRequest</code>; the subcommand is <code>tasks status</code> under <code>tasksCmd</code>, so <code>t status</code> works too.</p>
+
+    <form data-lavish-question="approach" class="space-y-3 mt-2" onsubmit="event.preventDefault(); const fd = new FormData(event.currentTarget); const choice = fd.get('approach'); const notes = (fd.get('notes') || '').trim(); if (!choice) { event.currentTarget.querySelector('[data-status]').textContent = 'Pick an approach first.'; return; } window.lavish.queuePrompt('Use approach ' + choice + ' for clickup tasks status.' + (notes ? ' Notes: ' + notes : ''), { tag: 'choice', text: 'Approach: ' + choice, element: event.currentTarget, data: { question: 'approach', answer: choice, notes } }); event.currentTarget.querySelector('[data-status]').textContent = 'Queued: approach ' + choice + '. Press Send to Agent.';">
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">Which approach?</legend>
+        <label class="label cursor-pointer gap-2"><input type="radio" class="radio radio-primary" name="approach" value="A" checked> A - command orchestrates, validation on the model</label>
+        <label class="label cursor-pointer gap-2"><input type="radio" class="radio" name="approach" value="B"> B - new service package</label>
+        <label class="label cursor-pointer gap-2"><input type="radio" class="radio" name="approach" value="C"> C - optimistic update</label>
+      </fieldset>
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">Rationale / notes (optional)</legend>
+        <textarea name="notes" class="textarea w-full" rows="3" placeholder="e.g. A, but put the match in commands instead of models"></textarea>
+      </fieldset>
+      <div class="flex items-center gap-3"><button type="submit" class="btn btn-primary">Queue this answer</button><span data-status role="status" aria-live="polite" class="text-sm opacity-70"></span></div>
+    </form>
+  </div>
+</section>
+
+</main>
+</body>
+</html>

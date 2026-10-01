@@ -1,0 +1,64 @@
+{
+  "expectations": [
+    {
+      "text": "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
+      "passed": true,
+      "evidence": "Verified tasks.go MaximumNArgs(1), doRequest nil body, client.go debug Printf lines 49/72/74, custom-ID duplication in tasks.go and comments.go. 4 citations valid."
+    },
+    {
+      "text": "conventions: the design follows the repo's existing conventions (layering, naming, error handling, dependency wiring) and names any deviation with a reason",
+      "passed": true,
+      "evidence": "Follows getAPIClient/getConfig, 'failed to ...: %w' wrapping, Execute prints Error: on stderr; new files per resource; explicit error table."
+    },
+    {
+      "text": "alternatives: at least one structurally different alternative is considered, with a concrete reason for rejecting it",
+      "passed": false,
+      "evidence": "Only matching-strictness options (exact vs prefix) are compared; no structurally different design alternative is considered and rejected."
+    },
+    {
+      "text": "preferences-honoured: the final plan agrees with every user answer given in the conversation and contradicts none",
+      "passed": true,
+      "evidence": "Exact case-insensitive, already-in-status note exit 0 no write, list order via Orderindex, no confirmation; user chose option A and approved assumptions."
+    },
+    {
+      "text": "elicitation: each hidden preference that the plan's design depends on was either asked about or stated as an explicit assumption, never silently decided",
+      "passed": true,
+      "evidence": "Matching asked (A/B); already-status and list order stated as explicit assumptions and approved; no prompt added."
+    },
+    {
+      "text": "coverage: every trigger the feature implies is designed end to end, including how failures are handled and what the user sees",
+      "passed": true,
+      "evidence": "Error table covers arg count, task 404, list fetch fail, unknown status, already set, PUT failure with user-visible text."
+    },
+    {
+      "text": "consistency: unit, method and type names and signatures agree everywhere they appear across the plan",
+      "passed": true,
+      "evidence": "Signatures consistent across chat, MD and HTML (runTasksStatus, invalidStatusError, FindStatus, StatusNames, UpdateTaskStatus)."
+    },
+    {
+      "text": "api-fit: new interfaces fit the code they plug into (existing types, call sites, layering), so the plan could be implemented without redesign",
+      "passed": true,
+      "evidence": "ExactArgs(2), unexported baseURL test seam in-package, existing types reused; implementable as written."
+    },
+    {
+      "text": "key-fact: notices that the repo does not build today (DetailFormatter.FormatComments declared twice in internal/output/table.go)",
+      "passed": false,
+      "evidence": "No mention of the duplicate DetailFormatter.FormatComments (internal/output/table.go lines 190 and 237, verified in repo); plan never notes the repo does not build."
+    }
+  ],
+  "summary": {
+    "passed": 7,
+    "failed": 2,
+    "total": 9,
+    "pass_rate": 0.78
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "alternatives",
+        "reason": "Matching options are not structural alternatives; assertion should say design-level alternatives."
+      }
+    ],
+    "overall": "Strong elicitation; neither alternatives nor key-fact met."
+  }
+}

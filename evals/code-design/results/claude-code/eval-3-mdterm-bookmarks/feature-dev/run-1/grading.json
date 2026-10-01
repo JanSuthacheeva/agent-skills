@@ -1,0 +1,67 @@
+{
+  "expectations": [
+    {
+      "text": "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
+      "passed": true,
+      "evidence": "Checked: m toggle at viewer.rs:1646-1647, help entry :3637, nav_history :365, Backspace :1765, markdown.rs:1585 into_offset_iter, bracket_offset in style.rs, wrap_lines clones Line, dirs 5, config.rs only reads config.toml, README lacks mouse key. All true; citations.json 16/16 valid."
+    },
+    {
+      "text": "conventions: the design follows the repo's existing conventions (layering, naming, error handling, dependency wiring) and names any deviation with a reason",
+      "passed": true,
+      "evidence": "Uses a module per concern, dirs/toml/serde already in Cargo.toml, status bar in search prompt style, help_sections duplicate-key test, CLAUDE.md update, make_state_with_lines tests. Deviation (marks outside config, macOS state dir fallback differing from config_dir) is named with reason."
+    },
+    {
+      "text": "alternatives: at least one structurally different alternative is considered, with a concrete reason for rejecting it",
+      "passed": true,
+      "evidence": "Compares wrapped offset, bare source line and heading+offset against content+line hint with concrete reasons (heading+offset useless without headings, etc.); also considered save-on-quit."
+    },
+    {
+      "text": "preferences-honoured: the final plan agrees with every user answer given in the conversation and contradicts none",
+      "passed": true,
+      "evidence": "Regrade: M for mouse capture; a-z only per file; dirs::state_dir() with ~/.local/state fallback (user confirmed), marks.toml not config.toml; anchor is line content plus line-number hint, resolved by nearest matching text, so it survives resize and edits between sessions. Matches all user answers."
+    },
+    {
+      "text": "elicitation: each hidden preference that the plan's design depends on was either asked about or stated as an explicit assumption, never silently decided",
+      "passed": true,
+      "evidence": "Asked about m conflict, anchor, storage location, letters, jump history, feedback/list, special cases; macOS state dir fallback asked explicitly. Other assumptions (immediate save, stdin session-only) were stated for approval."
+    },
+    {
+      "text": "coverage: every trigger the feature implies is designed end to end, including how failures are handled and what the user sees",
+      "passed": true,
+      "evidence": "Set, jump, cancel, unset mark, stdin, JSON view, slide mode, EOF clamp, corrupt store, no state dir, concurrent sessions, resize while pending, file switch/reload all designed with user-visible toasts."
+    },
+    {
+      "text": "consistency: unit, method and type names and signatures agree everywhere they appear across the plan",
+      "passed": true,
+      "evidence": "Mark/FileMarks/PendingKey/capture/resolve/for_file/session_only/set/get/source_line/push_line names and signatures are consistent across sections and tests/commits."
+    },
+    {
+      "text": "api-fit: new interfaces fit the code they plug into (existing types, call sites, layering), so the plan could be implemented without redesign",
+      "passed": true,
+      "evidence": "Reuses Line Default derive, wrap_lines meta-carrying, nav_history tuple, slide_boundaries, switch_file, set_toast; key interception before help toggle matches handle_event structure. Minor: ~51 Line literals vs plan's ~40, immaterial."
+    },
+    {
+      "text": "key-fact: notices that m is already bound to the mouse-capture toggle in src/viewer.rs",
+      "passed": true,
+      "evidence": "Plan and transcript state m is already the mouse-capture toggle at src/viewer.rs:1647 with help entry at :3637."
+    }
+  ],
+  "summary": {
+    "passed": 9,
+    "failed": 0,
+    "total": 9,
+    "pass_rate": 1.0
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "alternatives",
+        "reason": "Passes for any plan listing a rejected option; consider requiring the rejection reason to cite a repo-specific fact."
+      },
+      {
+        "reason": "No assertion checks robustness of the chosen design, e.g. weak anchors on repeated low-information lines like '---' or fences, which the plan only partially mitigates."
+      }
+    ],
+    "overall": "Assertions are mostly presence-based; the key-fact assertion is discriminating but the rest are easy for a thorough plan to pass."
+  }
+}

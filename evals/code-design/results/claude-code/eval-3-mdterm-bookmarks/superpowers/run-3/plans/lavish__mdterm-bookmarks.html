@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mdterm bookmarks - design spec</title>
+<style>
+  /* Palette taken from Theme::dark() in src/theme.rs */
+  :root {
+    --bg: #1e1e2e; --fg: #cdd6f4; --border: #44475a; --title: #9399b2;
+    --muted: #6c7086; --track: #313244; --code-bg: #1e202a; --inline-bg: #282a36;
+    --inline-fg: #f2cd93; --h2: #89b4fa; --h3: #cba6f7; --green: #a6e3a1;
+    --yellow: #f9e2af; --red: #f38ba8; --peach: #fab387; --overlay: #24273a;
+    --overlay-border: #5b6078; --overlay-text: #bac2de;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.6 -apple-system, "Inter", system-ui, sans-serif; }
+  main { max-width: 1040px; margin: 0 auto; padding: 48px 24px 96px; }
+  h1, h2, h3 { line-height: 1.25; margin: 0; }
+  h1 { font-size: 30px; }
+  h2 { font-size: 21px; color: var(--h2); margin: 56px 0 6px; }
+  h2 + .sep { height: 1px; background: var(--track); margin-bottom: 20px; }
+  h3 { font-size: 16px; color: var(--h3); margin: 0 0 8px; }
+  p { margin: 0 0 12px; }
+  code { font-family: var(--mono); font-size: 0.88em; color: var(--inline-fg); background: var(--inline-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+  pre { margin: 0; background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; overflow-x: auto; font: 13px/1.55 var(--mono); color: var(--fg); }
+  pre code { background: none; padding: 0; color: inherit; font-size: inherit; }
+  .kicker { font: 12px var(--mono); color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+  .lede { color: var(--overlay-text); font-size: 17px; max-width: 720px; margin-top: 12px; }
+  .pill { display: inline-block; font: 12px var(--mono); padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--yellow); margin-top: 14px; }
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+  .grid > * { min-width: 0; }
+  .card { background: var(--overlay); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; min-width: 0; }
+  .card.accent { border-color: var(--overlay-border); box-shadow: inset 3px 0 0 var(--h2); }
+  .card p:last-child, .card ul:last-child { margin-bottom: 0; }
+  ul { padding-left: 20px; margin: 0 0 12px; }
+  li { margin: 3px 0; }
+  .success { border: 1px solid var(--green); background: rgba(166,227,161,.07); border-radius: 10px; padding: 16px 20px; margin-top: 24px; }
+  .success b { color: var(--green); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .tablewrap { border: 1px solid var(--border); border-radius: 10px; overflow-x: auto; }
+  th { text-align: left; color: var(--h2); font-weight: 600; background: var(--overlay); }
+  th, td { padding: 9px 14px; border-bottom: 1px solid var(--track); vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  td:first-child { color: var(--overlay-text); width: 34%; }
+  .keys { display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 4px; }
+  .key { display: flex; align-items: center; gap: 8px; background: var(--overlay); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; min-width: 0; }
+  kbd { font: 13px var(--mono); background: var(--track); border: 1px solid var(--overlay-border); border-bottom-width: 2px; border-radius: 5px; padding: 1px 7px; color: var(--fg); }
+  .key span { color: var(--overlay-text); font-size: 14px; }
+  .key.moved { border-style: dashed; }
+  .tag { font: 11px var(--mono); padding: 1px 6px; border-radius: 4px; margin-left: 6px; }
+  .tag.new { color: var(--green); border: 1px solid var(--green); }
+  .tag.mv { color: var(--peach); border: 1px solid var(--peach); }
+  figure { margin: 0; }
+  figcaption { color: var(--muted); font-size: 13px; margin-top: 8px; }
+  svg text { font-family: var(--mono); }
+  .steps { counter-reset: s; list-style: none; padding: 0; }
+  .steps li { counter-increment: s; position: relative; padding: 10px 14px 10px 46px; background: var(--overlay); border: 1px solid var(--border); border-radius: 8px; margin: 8px 0; }
+  .steps li::before { content: counter(s); position: absolute; left: 14px; top: 10px; width: 22px; height: 22px; border-radius: 50%; background: var(--track); color: var(--h3); font: 12px/22px var(--mono); text-align: center; }
+  .file { font: 13px var(--mono); color: var(--yellow); }
+  .term { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; font: 13px/1.6 var(--mono); }
+  .term .bar { background: var(--overlay); color: var(--title); padding: 6px 12px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; gap: 8px; }
+  .term .body { padding: 10px 14px; white-space: pre; overflow-x: auto; }
+  .term .h2c { color: var(--h2); font-weight: 700; }
+  .term .dim { color: var(--muted); }
+  .term .toast { display: inline-block; margin: 6px 0 0; background: var(--overlay); border: 1px solid var(--overlay-border); color: var(--fg); padding: 2px 10px; border-radius: 4px; }
+  .risk { box-shadow: inset 3px 0 0 var(--peach); }
+  .muted { color: var(--muted); }
+  .scope li { color: var(--overlay-text); }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <div class="kicker">mdterm / design spec / 2026-10-01</div>
+  <h1>Bookmarks: per-file marks that survive resizes and edits</h1>
+  <p class="lede">Vim-style marks for long Markdown documents you come back to. <kbd>m</kbd> + letter sets a mark at the top of the viewport, <kbd>'</kbd> + letter jumps back, and marks are saved per file between sessions.</p>
+  <span class="pill">status: awaiting your review</span>
+
+  <div class="success" id="success-criterion">
+    <b>Success criterion.</b> Set a mark, quit, change the terminal width or insert text above the mark, reopen, press <kbd>'</kbd><kbd>a</kbd>, and the same passage is at the top of the viewport.
+  </div>
+</header>
+
+<section id="keys">
+  <h2>Keybindings</h2><div class="sep"></div>
+  <div class="keys">
+    <div class="key" id="key-m"><kbd>m</kbd><kbd>a-z</kbd><span>Set mark</span><span class="tag new">new</span></div>
+    <div class="key" id="key-quote"><kbd>'</kbd><kbd>a-z</kbd><span>Jump to mark</span><span class="tag new">new</span></div>
+    <div class="key moved" id="key-M"><kbd>M</kbd><span>Toggle mouse capture</span><span class="tag mv">was m</span></div>
+    <div class="key" id="key-bs"><kbd>Backspace</kbd><span>Return from a jump (existing <code>nav_history</code>)</span></div>
+  </div>
+  <p class="muted" style="margin-top:10px">After the prefix key, the next key is always consumed. <kbd>a-z</kbd> runs the action, and anything else (including <kbd>Esc</kbd>) cancels silently.</p>
+
+  <div class="grid" style="margin-top:16px">
+    <div class="term" id="mock-set">
+      <div class="bar"><span>spec.md</span><span>after <kbd>m</kbd><kbd>a</kbd></span></div>
+      <div class="body"><span class="h2c">## Persistence</span>
+<span class="dim">────────────────────────────</span>
+Marks are written to the data
+directory on every set, never
+to the config file.
+<span class="toast">Mark 'a' set</span></div>
+    </div>
+    <div class="term" id="mock-moved">
+      <div class="bar"><span>spec.md (edited)</span><span>after <kbd>'</kbd><kbd>a</kbd></span></div>
+      <div class="body"><span class="h2c">## Persistence</span>
+<span class="dim">────────────────────────────</span>
+Marks are written to the data
+directory on every set, never
+to the config file.
+<span class="toast">Jumped to 'a'</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="decisions">
+  <h2>Decisions</h2><div class="sep"></div>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Decision</th><th>Choice</th></tr></thead>
+    <tbody>
+      <tr id="d-m"><td><code>m</code> conflict</td><td>Mouse capture moves to <code>M</code>, <code>m</code> becomes the mark prefix.</td></tr>
+      <tr id="d-scope"><td>Mark scope</td><td>Lowercase <code>a-z</code>, per file. No global marks.</td></tr>
+      <tr id="d-anchor"><td>Anchor</td><td>Source line + trimmed text fingerprint, resolved at jump time.</td></tr>
+      <tr id="d-storage"><td>Storage</td><td><code>dirs::data_dir()/mdterm/marks.toml</code>. This is state, not config.</td></tr>
+      <tr id="d-pos"><td>Position marked</td><td>Top of the viewport. mdterm has no cursor.</td></tr>
+      <tr id="d-hist"><td>Jump history</td><td>A jump pushes onto <code>nav_history</code>, so <kbd>Backspace</kbd> returns.</td></tr>
+      <tr id="d-views"><td>Supported views</td><td>Markdown files only. Stdin, JSON view and slide mode show a toast.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="muted" style="margin-top:12px">Out of scope: uppercase/global marks, a marks list overlay, deleting marks, pruning entries for deleted files.</p>
+</section>
+
+<section id="why-anchor">
+  <h2>Why the scroll offset can't be saved</h2><div class="sep"></div>
+  <div class="grid">
+    <div class="card" id="current-offset">
+      <h3>Today</h3>
+      <p><code>state.offset</code> is an index into <code>state.wrapped</code>, the lines after word-wrapping. The same passage ends up at a different index whenever any of these change:</p>
+      <ul><li>terminal width or the <code>width</code> config</li><li>the <kbd>l</kbd> line-numbers toggle</li><li>image row expansion in <code>finalize_layout</code></li><li>any edit above the passage</li></ul>
+    </div>
+    <div class="card accent" id="target-anchor">
+      <h3>Proposed</h3>
+      <p>Each rendered <code>Line</code> carries the <b>source line</b> it came from. A mark stores the source line plus that line's text. Wrapped indices are computed only at jump time, against the current layout.</p>
+      <pre><code>a = { line = 120, text = "## Persistence" }</code></pre>
+    </div>
+  </div>
+</section>
+
+<section id="architecture">
+  <h2>Architecture</h2><div class="sep"></div>
+
+  <figure id="fig-flow">
+    <svg viewBox="0 0 960 300" width="100%" role="img" aria-label="Set and jump data flow">
+      <title>Set and jump data flow</title>
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7f849c"/></marker>
+      </defs>
+      <g id="n-markdown"><title>markdown.rs stamps source_line</title>
+        <rect x="20" y="40" width="190" height="64" rx="8" fill="#24273a" stroke="#5b6078"/>
+        <text x="115" y="66" text-anchor="middle" fill="#cba6f7" font-size="14">markdown.rs</text>
+        <text x="115" y="88" text-anchor="middle" fill="#bac2de" font-size="12">stamps source_line</text>
+      </g>
+      <g id="n-style"><title>style.rs wrap_lines keeps source_line</title>
+        <rect x="260" y="40" width="190" height="64" rx="8" fill="#24273a" stroke="#5b6078"/>
+        <text x="355" y="66" text-anchor="middle" fill="#cba6f7" font-size="14">style.rs</text>
+        <text x="355" y="88" text-anchor="middle" fill="#bac2de" font-size="12">wrap keeps it</text>
+      </g>
+      <g id="n-viewer"><title>viewer.rs pending_mark prefix and glue</title>
+        <rect x="500" y="40" width="190" height="64" rx="8" fill="#24273a" stroke="#89b4fa"/>
+        <text x="595" y="66" text-anchor="middle" fill="#89b4fa" font-size="14">viewer.rs</text>
+        <text x="595" y="88" text-anchor="middle" fill="#bac2de" font-size="12">pending_mark glue</text>
+      </g>
+      <g id="n-marks"><title>marks.rs resolve and MarkStore, new module</title>
+        <rect x="500" y="190" width="190" height="64" rx="8" fill="#24273a" stroke="#a6e3a1"/>
+        <text x="595" y="216" text-anchor="middle" fill="#a6e3a1" font-size="14">marks.rs (new)</text>
+        <text x="595" y="238" text-anchor="middle" fill="#bac2de" font-size="12">resolve + MarkStore</text>
+      </g>
+      <g id="n-disk"><title>marks.toml in the data directory</title>
+        <rect x="750" y="190" width="190" height="64" rx="8" fill="#1e202a" stroke="#f9e2af" stroke-dasharray="5 4"/>
+        <text x="845" y="216" text-anchor="middle" fill="#f9e2af" font-size="14">marks.toml</text>
+        <text x="845" y="238" text-anchor="middle" fill="#bac2de" font-size="12">data_dir/mdterm</text>
+      </g>
+      <g id="e-render"><title>Vec of Line with source_line</title>
+        <line x1="210" y1="72" x2="256" y2="72" stroke="#7f849c" marker-end="url(#arr)"/>
+      </g>
+      <g id="e-wrap"><title>wrapped lines</title>
+        <line x1="450" y1="72" x2="496" y2="72" stroke="#7f849c" marker-end="url(#arr)"/>
+      </g>
+      <g id="e-set"><title>set: Mark line and text</title>
+        <line x1="565" y1="104" x2="565" y2="186" stroke="#7f849c" marker-end="url(#arr)"/>
+        <text x="555" y="150" text-anchor="end" fill="#9399b2" font-size="12">set(Mark)</text>
+      </g>
+      <g id="e-jump"><title>jump: resolved source line</title>
+        <line x1="625" y1="190" x2="625" y2="108" stroke="#7f849c" marker-end="url(#arr)"/>
+        <text x="635" y="150" fill="#9399b2" font-size="12">Resolved{line,exact}</text>
+      </g>
+      <g id="e-disk"><title>read-modify-write, atomic rename</title>
+        <line x1="690" y1="222" x2="746" y2="222" stroke="#7f849c" marker-start="url(#arr)" marker-end="url(#arr)"/>
+      </g>
+      <text x="20" y="290" fill="#6c7086" font-size="12">render pipeline (existing, extended)</text>
+      <text x="750" y="290" fill="#6c7086" font-size="12">re-read + atomic write per set</text>
+    </svg>
+    <figcaption>Set: top visible line -> <code>source_line</code> -> <code>Mark</code> -> disk. Jump: disk -> <code>resolve</code> -> first wrapped line at or after the resolved line -> <code>offset</code>.</figcaption>
+  </figure>
+
+  <div class="grid" style="margin-top:24px">
+    <div class="card" id="mod-style">
+      <h3>style.rs</h3>
+      <div class="file">src/style.rs:56</div>
+      <ul>
+        <li>Add <code>pub source_line: Option&lt;usize&gt;</code> (1-based) to <code>Line</code>.</li>
+        <li><code>wrap_lines</code> / <code>word_wrap</code> copy it to <b>every</b> wrapped piece. <code>meta</code> is only copied to the first piece for most types.</li>
+        <li>All ~47 <code>Line { .. }</code> literals get <code>source_line: None</code>. Image row expansion (<code>viewer.rs:639</code>) copies the image line's value.</li>
+      </ul>
+    </div>
+    <div class="card" id="mod-markdown">
+      <h3>markdown.rs</h3>
+      <div class="file">src/markdown.rs:1585</div>
+      <ul>
+        <li>Build a line-start table once per render. Byte offset to line via <code>partition_point</code>.</li>
+        <li><b>Default stamping:</b> after each <code>process(event, range)</code>, any new line still at <code>None</code> gets the line of <code>range.start</code>. One place, no per-site changes.</li>
+        <li><b>Code blocks</b> are emitted all at once: content line <code>i</code> gets <code>fence_line + 1 + i</code>.</li>
+        <li><b>Tables</b> are buffered until <code>End(Table)</code>: record the line at each <code>Start(TableHead)</code> / <code>Start(TableRow)</code> and stamp each row with it.</li>
+      </ul>
+    </div>
+    <div class="card accent" id="mod-marks">
+      <h3>marks.rs (new)</h3>
+      <div class="file">src/marks.rs</div>
+      <ul>
+        <li>No terminal or viewer code. Pure <code>resolve</code> plus <code>MarkStore</code> I/O.</li>
+        <li>Keys: <code>fs::canonicalize(path)</code>, falling back to the path as given.</li>
+        <li><code>set</code> re-reads the file, updates one entry, writes <code>marks.toml.tmp</code> and renames it. Safe after a crash and with several instances open.</li>
+      </ul>
+    </div>
+    <div class="card" id="mod-viewer">
+      <h3>viewer.rs</h3>
+      <div class="file">src/viewer.rs:1606 handle_normal</div>
+      <ul>
+        <li><code>enum MarkOp { Set, Jump }</code>, <code>pending_mark: Option&lt;MarkOp&gt;</code>, <code>marks: MarkStore</code>.</li>
+        <li>A one-key prefix, not a <code>ViewMode</code>. It's checked before the other Normal-mode keys, including before the slide-mode early return.</li>
+        <li><b>Set:</b> first wrapped line at or after <code>offset</code> with a <code>source_line</code>.</li>
+        <li><b>Jump:</b> resolve against <code>state.content</code>, push <code>nav_history</code>, clamp to <code>max_offset</code>.</li>
+        <li>File key: <code>state.files[state.current_file_idx]</code>.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 style="margin-top:28px" id="api-title">marks.rs interface</h3>
+<pre id="api"><code>#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
+pub struct Mark {
+    pub line: usize,  // 1-based source line
+    pub text: String, // trimmed text of that line
+}
+
+pub struct Resolved { pub line: usize, pub exact: bool }
+
+pub fn resolve(mark: &amp;Mark, source: &amp;str) -&gt; Resolved;
+
+impl MarkStore {
+    pub fn load() -&gt; Self;                    // dirs::data_dir()/mdterm/marks.toml
+    pub fn load_from(path: PathBuf) -&gt; Self;  // tests
+    pub fn get(&amp;self, file: &amp;Path, letter: char) -&gt; Option&lt;&amp;Mark&gt;;
+    pub fn set(&amp;mut self, file: &amp;Path, letter: char, mark: Mark) -&gt; Result&lt;(), SaveError&gt;;
+}</code></pre>
+
+  <h3 style="margin-top:20px" id="format-title">marks.toml</h3>
+<pre id="format"><code>["/Users/jan/notes/spec.md"]
+a = { line = 120, text = "## Persistence" }
+q = { line = 431, text = "The resolver prefers the nearest match." }</code></pre>
+</section>
+
+<section id="resolve">
+  <h2>Resolving a mark at jump time</h2><div class="sep"></div>
+  <ol class="steps">
+    <li id="r1"><b>Blank text:</b> use <code>mark.line</code> clamped to the file. <code>exact</code> unless it was clamped.</li>
+    <li id="r2"><b>Same line, same text:</b> use it. <code>exact = true</code>.</li>
+    <li id="r3"><b>Text found elsewhere:</b> use the matching line closest to <code>mark.line</code>, the earlier one on a tie. <code>exact = true</code>, since it's the same passage, just moved.</li>
+    <li id="r4"><b>No match:</b> <code>mark.line</code> clamped, <code>exact = false</code>, toast <code>Mark 'a' moved - nearest position</code>.</li>
+  </ol>
+  <p class="muted">Precision is per rendered logical line: heading, paragraph, list item, code line, table row. A mark set in the middle of a paragraph lands on the paragraph's first line.</p>
+</section>
+
+<section id="errors">
+  <h2>Error handling</h2><div class="sep"></div>
+  <p>Every failure is non-fatal: show a toast and keep viewing.</p>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Situation</th><th>Behavior</th></tr></thead>
+    <tbody>
+      <tr id="e-missing"><td>Marks file missing</td><td>Empty store. File and directories are created on the first save.</td></tr>
+      <tr id="e-corrupt"><td>Marks file can't be parsed</td><td><b>Never overwritten.</b> Marks work for the session. Toast: <code>marks.toml unreadable - marks not saved</code>.</td></tr>
+      <tr id="e-write"><td>No data dir, or the write fails</td><td>Mark kept for the session. Toast: <code>Could not save mark: &lt;reason&gt;</code>.</td></tr>
+      <tr id="e-canon"><td><code>canonicalize</code> fails</td><td>Path used as given.</td></tr>
+      <tr id="e-unset"><td><kbd>'</kbd><kbd>x</kbd> with <code>x</code> unset</td><td>Toast: <code>Mark 'x' not set</code>.</td></tr>
+      <tr id="e-eof"><td>Stored line past end of file</td><td>Clamped, <code>exact = false</code>, "moved" toast.</td></tr>
+      <tr id="e-unavail"><td>Stdin, JSON view, slide mode</td><td>Toast: <code>Marks unavailable for stdin</code> / <code>in JSON view</code> / <code>in slide mode</code>.</td></tr>
+      <tr id="e-reload"><td>File auto-reloads</td><td>Nothing to do: marks are resolved only at jump time.</td></tr>
+      <tr id="e-cancel"><td>Prefix, then a non-letter key</td><td>Cancelled silently. The key is not processed further.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="testing">
+  <h2>Testing</h2><div class="sep"></div>
+  <div class="grid">
+    <div class="card" id="t-marks">
+      <h3>marks.rs</h3>
+      <ul>
+        <li><code>resolve</code>: exact; moved down; moved up; nearest duplicate; tie goes to the earlier line; no match clamps; blank text.</li>
+        <li><code>MarkStore</code> in a <code>tempfile::TempDir</code> (new dev-dependency): round trip; two stores merging; corrupt file stays byte-identical; missing parent directory gets created.</li>
+      </ul>
+    </div>
+    <div class="card" id="t-render">
+      <h3>markdown.rs / style.rs</h3>
+      <ul>
+        <li><code>source_line</code> correct for headings, paragraphs, list items, every code line, table rows.</li>
+        <li>Present on every piece after wrapping at width 20.</li>
+      </ul>
+    </div>
+    <div class="card" id="t-viewer">
+      <h3>viewer.rs</h3>
+      <ul>
+        <li><kbd>m</kbd><kbd>a</kbd> stores a mark; <kbd>'</kbd><kbd>a</kbd> moves <code>offset</code> and pushes history; <kbd>Esc</kbd> / <kbd>1</kbd> cancel; unset letter and unavailable-view toasts.</li>
+        <li>If <code>ViewerState</code> can't be built without a terminal, pull the prefix handling out into a pure function and test that.</li>
+        <li>The existing <code>help_sections_no_duplicate_keys</code> test covers the rebinding.</li>
+      </ul>
+    </div>
+    <div class="card accent" id="t-e2e">
+      <h3>End-to-end (tmux, real binary)</h3>
+      <p class="muted">With <code>HOME</code> pointed at a temp dir, so your real marks are untouched.</p>
+      <ol style="padding-left:20px;margin:0">
+        <li>Open <code>test.md</code>, scroll, <kbd>m</kbd><kbd>a</kbd>, <kbd>q</kbd>.</li>
+        <li>Resize the pane and insert 5 lines above the passage.</li>
+        <li>Reopen, <kbd>'</kbd><kbd>a</kbd>: same passage at the top. <kbd>Backspace</kbd> returns.</li>
+        <li><kbd>M</kbd> toggles mouse capture.</li>
+      </ol>
+    </div>
+  </div>
+  <p class="muted" style="margin-top:14px">Docs: README keybinding table (<code>m a-z</code>, <code>' a-z</code>, <code>M</code>) and the CLAUDE.md architecture list (add <code>marks.rs</code>, now eleven files).</p>
+</section>
+
+<section id="risks">
+  <h2>Risks</h2><div class="sep"></div>
+  <div class="grid">
+    <div class="card risk" id="risk-churn"><h3>Line literal churn</h3><p>The new field touches ~47 <code>Line { .. }</code> literals across four files. The changes are mechanical and the compiler catches any that are missed.</p></div>
+    <div class="card risk" id="risk-precision"><h3>Mid-paragraph precision</h3><p>Marks snap to the start of a paragraph. That's fine for the stated use, and per-span source offsets could refine it later.</p></div>
+    <div class="card risk" id="risk-mouse"><h3>Muscle memory</h3><p><kbd>m</kbd> no longer toggles mouse capture. The help overlay and README document the move to <kbd>M</kbd>.</p></div>
+  </div>
+</section>
+
+</main>
+</body>
+</html>

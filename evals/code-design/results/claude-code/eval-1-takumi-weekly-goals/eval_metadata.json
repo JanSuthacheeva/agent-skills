@@ -1,0 +1,23 @@
+{
+  "eval_id": 1,
+  "eval_name": "takumi-weekly-goals",
+  "prompt": "I want to add weekly practice goals per topic. Users set a target in minutes per week on a topic, the dashboard shows this week's progress, and when they hit the goal they get a notification. Plan the implementation before we write anything.",
+  "assertions": [
+    "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
+    "conventions: the design follows the repo's existing conventions (layering, naming, error handling, dependency wiring) and names any deviation with a reason",
+    "alternatives: at least one structurally different alternative is considered, with a concrete reason for rejecting it",
+    "preferences-honoured: the final plan agrees with every user answer given in the conversation and contradicts none",
+    "elicitation: each hidden preference that the plan's design depends on was either asked about or stated as an explicit assumption, never silently decided",
+    "coverage: every trigger the feature implies is designed end to end, including how failures are handled and what the user sees",
+    "consistency: unit, method and type names and signatures agree everywhere they appear across the plan",
+    "api-fit: new interfaces fit the code they plug into (existing types, call sites, layering), so the plan could be implemented without redesign",
+    "key-fact: reuses or mirrors the existing before/after promotion detection in PracticeSessionService"
+  ],
+  "preferences": [
+    "Notification means an in-app toast or flash in the app, no email and no queue.",
+    "The week is Monday to Sunday in UTC, same as the existing 'this week' number.",
+    "The goal is set on the topic page only, not in the create-topic flow.",
+    "It is fine if the toast can fire again after a correction drops the week below the goal."
+  ],
+  "private": true
+}

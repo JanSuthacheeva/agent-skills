@@ -1,0 +1,46 @@
+{
+  "expectations": [
+    {
+      "text": "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
+      "passed": true
+    },
+    {
+      "text": "conventions: the design follows the repo's existing conventions and names any deviation with a reason",
+      "passed": true
+    },
+    {
+      "text": "alternatives: at least one structurally different alternative is considered, with a concrete reason for rejecting it",
+      "passed": true
+    },
+    {
+      "text": "preferences-honoured: the final plan agrees with every user answer and contradicts none",
+      "passed": true
+    },
+    {
+      "text": "elicitation: each hidden preference the design depends on was asked about or stated as explicit assumption",
+      "passed": true
+    },
+    {
+      "text": "coverage: every trigger the feature implies is designed end to end, including failures and what the user sees",
+      "passed": true
+    },
+    {
+      "text": "consistency: names and signatures agree everywhere",
+      "passed": true
+    },
+    {
+      "text": "api-fit: new interfaces fit the code they plug into",
+      "passed": true
+    },
+    {
+      "text": "key-fact: reuses or mirrors the existing before/after promotion detection in PracticeSessionService",
+      "passed": true
+    }
+  ],
+  "summary": {
+    "passed": 9,
+    "failed": 0,
+    "total": 9,
+    "pass_rate": 1.0
+  }
+}

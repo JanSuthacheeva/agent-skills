@@ -1,0 +1,39 @@
+{
+  "scores": {
+    "feature-dev": {
+      "correctness": 9,
+      "completeness": 9,
+      "clarity": 8,
+      "reviewability": 9,
+      "note": "Verified claims hold (m at viewer.rs:1647, into_offset_iter at markdown.rs:1585, help-toggle ordering); covers slide mode, stdin, JSON, corrupt store, edit relocation, with a confirmed-decisions table and risks, though it adds a '' feature and has no step-by-step call chains."
+    },
+    "superpowers": {
+      "correctness": 9,
+      "completeness": 9,
+      "clarity": 7,
+      "reviewability": 7,
+      "note": "Spec plus task plan is accurate (handles lazy-flush stamping, table rows, CRLF, Ctrl+c/q while pending, corrupt file never overwritten) but the full test and code bodies bury the design and slide mode is simply unsupported."
+    },
+    "code-design": {
+      "correctness": 8,
+      "completeness": 8,
+      "clarity": 9,
+      "reviewability": 9,
+      "note": "Cleanest unit-by-unit signatures and numbered call chains with explicit error branches and an assumptions list, but marks are bare source-line numbers so edits above a mark silently drift, slide mode is unbound, and lazy-flush stamping is not addressed."
+    },
+    "plain": {
+      "correctness": 7,
+      "completeness": 6,
+      "clarity": 7,
+      "reviewability": 6,
+      "note": "Short and mostly accurate, but adds an unrequested margin-marker feature, stamps raw byte offsets while admitting the lazy-flush risk is unresolved, and lets a corrupt marks file be overwritten on the next set."
+    }
+  },
+  "ranking": [
+    "feature-dev",
+    "superpowers",
+    "code-design",
+    "plain"
+  ],
+  "reason": "W anchors marks to source line plus text with a resolve step that survives resize and edits, and decides every edge (slide, stdin, JSON, corrupt store, pending-key ordering) in a visible decisions table. X is equally correct but its code-level bulk obscures the design, Y has the best call-chain review format but weaker anchoring and no slide support, and Z leaves the stamping risk open and spends scope on an unrequested margin marker."
+}

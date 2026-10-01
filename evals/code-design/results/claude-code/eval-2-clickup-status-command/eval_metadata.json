@@ -1,0 +1,23 @@
+{
+  "eval_id": 2,
+  "eval_name": "clickup-status-command",
+  "prompt": "plan how we'd add a `clickup tasks status <id> <status>` command that changes a task's status. It should validate against the statuses of the task's list and show the valid ones if it's wrong.",
+  "assertions": [
+    "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
+    "conventions: the design follows the repo's existing conventions (layering, naming, error handling, dependency wiring) and names any deviation with a reason",
+    "alternatives: at least one structurally different alternative is considered, with a concrete reason for rejecting it",
+    "preferences-honoured: the final plan agrees with every user answer given in the conversation and contradicts none",
+    "elicitation: each hidden preference that the plan's design depends on was either asked about or stated as an explicit assumption, never silently decided",
+    "coverage: every trigger the feature implies is designed end to end, including how failures are handled and what the user sees",
+    "consistency: unit, method and type names and signatures agree everywhere they appear across the plan",
+    "api-fit: new interfaces fit the code they plug into (existing types, call sites, layering), so the plan could be implemented without redesign",
+    "key-fact: notices that the repo does not build today (DetailFormatter.FormatComments declared twice in internal/output/table.go)"
+  ],
+  "preferences": [
+    "Status matching is case-insensitive but otherwise exact, no prefix or fuzzy matching.",
+    "If the task already has that status, print a notice, change nothing and exit 0.",
+    "List valid statuses in the list's board order.",
+    "No confirmation prompt before changing."
+  ],
+  "private": false
+}

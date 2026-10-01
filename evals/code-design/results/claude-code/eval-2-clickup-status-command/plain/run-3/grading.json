@@ -1,0 +1,64 @@
+{
+  "expectations": [
+    {
+      "text": "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
+      "passed": true,
+      "evidence": "Verified: tasksCmd has MaximumNArgs(1) and only local flags; doRequest sends nil body (client.go:43); custom-ID query duplicated in tasks.go:68 and comments.go:18; ListInfo/Status exist; no api/commands tests. Single citation resolves."
+    },
+    {
+      "text": "conventions: the design follows the repo's existing conventions (layering, naming, error handling, dependency wiring) and names any deviation with a reason",
+      "passed": true,
+      "evidence": "New files per resource under internal/api, pkg/models, internal/commands; getAPIClient/getConfig pattern implied; taskIDQuery dedupe. Sketch drops 'failed to ...: %w' wrapping used by repo but not a stated deviation; acceptable."
+    },
+    {
+      "text": "alternatives: at least one structurally different alternative is considered, with a concrete reason for rejecting it",
+      "passed": false,
+      "evidence": "Only a Cobra-subcommand design is presented; no structurally different alternative (e.g. flag on tasks, separate top-level command, server-side validation only) with a rejection reason."
+    },
+    {
+      "text": "preferences-honoured: the final plan agrees with every user answer given in the conversation and contradicts none",
+      "passed": true,
+      "evidence": "Final plan: case-insensitive exact match, already-status notice with exit 0 and no write, valid statuses by orderindex, no confirmation prompt; honours the 3 user answers (unquoted multi-word, no did-you-mean, one-line + -o json)."
+    },
+    {
+      "text": "elicitation: each hidden preference that the plan's design depends on was either asked about or stated as an explicit assumption, never silently decided",
+      "passed": false,
+      "evidence": "Matching strictness and already-has-status behaviour were silently decided, neither asked nor flagged as assumptions; transcript asks only about multi-word, did-you-mean and output format."
+    },
+    {
+      "text": "coverage: every trigger the feature implies is designed end to end, including how failures are handled and what the user sees",
+      "passed": true,
+      "evidence": "Covers invalid status, same status, success, race on PUT, list access failure, extra API call, subcommand typo, debug stdout pollution."
+    },
+    {
+      "text": "consistency: unit, method and type names and signatures agree everywhere they appear across the plan",
+      "passed": true,
+      "evidence": "Names/signatures (FindStatus, StatusNames, GetList, UpdateTaskStatus, taskIDQuery, Put) consistent across HTML/MD and chat."
+    },
+    {
+      "text": "api-fit: new interfaces fit the code they plug into (existing types, call sites, layering), so the plan could be implemented without redesign",
+      "passed": true,
+      "evidence": "Fits existing Client, models.Status.Orderindex, Task.List.ID, GetDisplayID. Minor: claims -o json on subcommand while noting parent flags are local, so the flag must be registered on the subcommand (not stated)."
+    },
+    {
+      "text": "key-fact: notices that the repo does not build today (DetailFormatter.FormatComments declared twice in internal/output/table.go)",
+      "passed": false,
+      "evidence": "No mention of the duplicate DetailFormatter.FormatComments (internal/output/table.go lines 190 and 237, verified in repo); plan never notes the repo does not build."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 3,
+    "total": 9,
+    "pass_rate": 0.67
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "elicitation",
+        "reason": "Plain method asked only generic questions and never surfaced matching strictness or already-set behaviour."
+      }
+    ],
+    "overall": "Solid and grounded, but no alternatives and no build-break discovery."
+  }
+}

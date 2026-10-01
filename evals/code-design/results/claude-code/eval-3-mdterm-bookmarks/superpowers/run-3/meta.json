@@ -1,0 +1,12 @@
+{
+  "config": "superpowers",
+  "eval_id": 3,
+  "approved": true,
+  "errored": false,
+  "capped": false,
+  "touched_code": [],
+  "skills": [
+    "lavish",
+    "superpowers:writing-plans"
+  ]
+}

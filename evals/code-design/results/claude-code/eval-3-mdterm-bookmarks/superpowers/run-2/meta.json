@@ -1,0 +1,13 @@
+{
+  "config": "superpowers",
+  "eval_id": 3,
+  "approved": true,
+  "errored": false,
+  "capped": false,
+  "touched_code": [],
+  "skills": [
+    "superpowers:writing-plans",
+    "lavish"
+  ],
+  "build_artifacts": 2875
+}

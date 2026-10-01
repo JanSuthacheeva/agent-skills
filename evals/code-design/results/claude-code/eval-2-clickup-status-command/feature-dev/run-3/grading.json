@@ -1,0 +1,64 @@
+{
+  "expectations": [
+    {
+      "text": "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
+      "passed": true,
+      "evidence": "Checked: tasks.go:24 tasksCmd with MaximumNArgs(1); doRequest nil body at client.go:42 and only Get; duplicate FormatComments at table.go:191/238; custom-ID query duplicated in GetTask/GetTaskComments; models.Status exists, no List model; json.go has private writeJSON. citations.json 3/3 valid."
+    },
+    {
+      "text": "conventions: the design follows the repo's existing conventions (layering, naming, error handling, dependency wiring) and names any deviation with a reason",
+      "passed": true,
+      "evidence": "API methods in api, model in pkg/models, rendering in output, thin command with own init(), error wrapping 'failed to get task: %w' like existing code, package-global apiClient/cfg injection; deviations (SetBaseURL seam, exported WriteJSON) are named with reasons."
+    },
+    {
+      "text": "alternatives: at least one structurally different alternative is considered, with a concrete reason for rejecting it",
+      "passed": true,
+      "evidence": "Approach A (all in command file) rejected as untestable; approach C (config cache) rejected for staleness vs one saved call."
+    },
+    {
+      "text": "preferences-honoured: the final plan agrees with every user answer given in the conversation and contradicts none",
+      "passed": true,
+      "evidence": "Case-insensitive exact EqualFold; already-status notice, no PUT, exit 0; orderindex board order; no confirmation prompt anywhere. Matches all user answers incl. JSON array of names."
+    },
+    {
+      "text": "elicitation: each hidden preference that the plan's design depends on was either asked about or stated as an explicit assumption, never silently decided",
+      "passed": true,
+      "evidence": "Matching, error format, already-status, board order and output were asked in turn 1; unasked choices (multi-word quoting, JSON no-op) listed explicitly as 'Things I decided'. No confirmation was never contradicted."
+    },
+    {
+      "text": "coverage: every trigger the feature implies is designed end to end, including how failures are handled and what the user sees",
+      "passed": true,
+      "evidence": "Failure paths designed: invalid status, empty list, API errors wrapped, no-op, list-only, -o json for each, with outputs shown and tests for each."
+    },
+    {
+      "text": "consistency: unit, method and type names and signatures agree everywhere they appear across the plan",
+      "passed": true,
+      "evidence": "GetList, UpdateTask(taskID, teamID, *TaskUpdate), OrderedStatuses, FindStatus, WriteStatusList, WriteJSON, taskQuery names consistent across the plan."
+    },
+    {
+      "text": "api-fit: new interfaces fit the code they plug into (existing types, call sites, layering), so the plan could be implemented without redesign",
+      "passed": true,
+      "evidence": "Fits existing Status.Orderindex, GetTask list.ID, Cobra subcommand registration, cmd.OutOrStdout for testing; doRequest signature change keeps Get via nil payload."
+    },
+    {
+      "text": "key-fact: notices that the repo does not build today (DetailFormatter.FormatComments declared twice in internal/output/table.go)",
+      "passed": true,
+      "evidence": "Turn 1 and plan: 'main does not compile: DetailFormatter.FormatComments declared twice in internal/output/table.go (191 and 238)', with fix as commit 1."
+    }
+  ],
+  "summary": {
+    "passed": 9,
+    "failed": 0,
+    "total": 9,
+    "pass_rate": 1.0
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "preferences-honoured",
+        "reason": "Hidden preferences were all asked directly by the method; consider a preference that is not naturally elicited by an obvious question."
+      }
+    ],
+    "overall": "Assertions discriminate well; key-fact is the clearest separator between runs."
+  }
+}

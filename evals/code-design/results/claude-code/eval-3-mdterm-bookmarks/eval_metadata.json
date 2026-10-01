@@ -1,0 +1,23 @@
+{
+  "eval_id": 3,
+  "eval_name": "mdterm-bookmarks",
+  "prompt": "i want bookmarks in mdterm - `m` + letter sets a mark at the current position, `'` + letter jumps back, and marks persist per file between sessions. how should we structure this?",
+  "assertions": [
+    "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
+    "conventions: the design follows the repo's existing conventions (layering, naming, error handling, dependency wiring) and names any deviation with a reason",
+    "alternatives: at least one structurally different alternative is considered, with a concrete reason for rejecting it",
+    "preferences-honoured: the final plan agrees with every user answer given in the conversation and contradicts none",
+    "elicitation: each hidden preference that the plan's design depends on was either asked about or stated as an explicit assumption, never silently decided",
+    "coverage: every trigger the feature implies is designed end to end, including how failures are handled and what the user sees",
+    "consistency: unit, method and type names and signatures agree everywhere they appear across the plan",
+    "api-fit: new interfaces fit the code they plug into (existing types, call sites, layering), so the plan could be implemented without redesign",
+    "key-fact: notices that m is already bound to the mouse-capture toggle in src/viewer.rs"
+  ],
+  "preferences": [
+    "Move the existing mouse-capture toggle from m to M.",
+    "Marks a-z only, per file. No global A-Z marks for now.",
+    "Persist marks in the platform state directory, not in config.toml.",
+    "Marks should survive resizes and small edits to the file."
+  ],
+  "private": false
+}

@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en" data-theme="nord">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan: clickup tasks status</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/daisyui.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/themes.css">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.2.4/dist/index.global.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  :where(.grid, .flex) > * { min-width: 0; }
+  :where(p, h1, h2, h3, li, td, th, .badge) { overflow-wrap: anywhere; }
+  :where(img, svg) { max-width: 100%; height: auto; }
+  body { background: var(--color-base-200); color: var(--color-base-content); }
+  .term { background: #2e3440; color: #d8dee9; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; line-height: 1.55; border-radius: 0.75rem; padding: 1rem 1.25rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .term .p { color: #88c0d0; }
+  .term .c { color: #616e88; }
+  .term .e { color: #bf616a; }
+  .term .ok { color: #a3be8c; }
+  .term .cy { color: #8fbcbb; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85em; }
+  .flow text { font-family: ui-sans-serif, system-ui, sans-serif; fill: currentColor; }
+  .flow .mono { font-family: ui-monospace, Menlo, monospace; font-size: 11px; }
+</style>
+</head>
+<body>
+<main class="mx-auto max-w-5xl p-6 lg:p-10 space-y-10">
+
+  <header class="space-y-3">
+    <div class="flex flex-wrap gap-2">
+      <span class="badge badge-soft badge-primary">Plan</span>
+      <span class="badge badge-soft">clickup-cli</span>
+      <span class="badge badge-soft badge-warning">first write operation</span>
+    </div>
+    <h1 class="text-3xl font-bold"><code>clickup tasks status &lt;id&gt; &lt;status&gt;</code></h1>
+    <p class="text-base-content/80 max-w-3xl">Change a task's status from the CLI. The status is validated against the statuses of the task's own list. If it is invalid, nothing is written and the valid statuses are printed in workflow order.</p>
+  </header>
+
+  <!-- Behavior -->
+  <section class="space-y-4" id="behavior">
+    <h2 class="text-xl font-semibold">Target behavior</h2>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="space-y-2">
+        <div class="text-sm font-medium">Valid change</div>
+<div class="term"><span class="p">$</span> clickup tasks status HGAI-1217 review
+HGAI-1217: <span class="cy">in progress</span> -&gt; <span class="ok">review</span>
+
+<span class="p">$</span> clickup tasks status HGAI-1217 In Progress
+HGAI-1217: <span class="cy">review</span> -&gt; <span class="ok">in progress</span>
+<span class="c"># case-insensitive, unquoted multi-word joined</span></div>
+      </div>
+      <div class="space-y-2">
+        <div class="text-sm font-medium">Invalid status (exit 1, nothing written)</div>
+<div class="term"><span class="p">$</span> clickup tasks status HGAI-1217 done
+<span class="e">Error: invalid status "done" for list "Sprint 12"</span>
+Valid statuses:
+  to do
+  in progress
+  review
+  complete</div>
+      </div>
+      <div class="space-y-2 md:col-span-2">
+        <div class="text-sm font-medium">Already in that status (exit 0, no PUT)</div>
+<div class="term"><span class="p">$</span> clickup tasks status HGAI-1217 review
+HGAI-1217 is already in "review"</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Flow -->
+  <section class="space-y-4" id="flow">
+    <h2 class="text-xl font-semibold">How a call flows</h2>
+    <p class="text-base-content/80">It reads twice and writes at most once. Validation runs before any write, so an invalid status never reaches ClickUp.</p>
+    <div class="card bg-base-100 card-border">
+      <div class="card-body">
+        <svg class="flow" viewBox="0 0 900 230" width="100%" role="img" aria-label="Status command flow">
+          <title>Status command flow</title>
+          <defs>
+            <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker>
+          </defs>
+          <g id="n-gettask"><title>GetTask (existing)</title>
+            <rect x="10" y="30" width="190" height="70" rx="10" fill="var(--color-base-200)" stroke="currentColor" stroke-opacity=".3"/>
+            <text x="105" y="58" text-anchor="middle" font-weight="600" font-size="14">1. GetTask</text>
+            <text x="105" y="80" text-anchor="middle" class="mono">GET /task/{id}</text>
+          </g>
+          <g id="n-getlist"><title>GetList (new)</title>
+            <rect x="240" y="30" width="190" height="70" rx="10" fill="var(--color-base-200)" stroke="var(--color-primary)"/>
+            <text x="335" y="58" text-anchor="middle" font-weight="600" font-size="14">2. GetList</text>
+            <text x="335" y="80" text-anchor="middle" class="mono">GET /list/{list.id}</text>
+          </g>
+          <g id="n-match"><title>FindStatus (new, pure)</title>
+            <rect x="470" y="30" width="190" height="70" rx="10" fill="var(--color-base-200)" stroke="var(--color-primary)"/>
+            <text x="565" y="58" text-anchor="middle" font-weight="600" font-size="14">3. FindStatus</text>
+            <text x="565" y="80" text-anchor="middle" class="mono">trim + EqualFold</text>
+          </g>
+          <g id="n-put"><title>UpdateTaskStatus (new)</title>
+            <rect x="700" y="30" width="190" height="70" rx="10" fill="var(--color-base-200)" stroke="var(--color-primary)"/>
+            <text x="795" y="58" text-anchor="middle" font-weight="600" font-size="14">4. UpdateTaskStatus</text>
+            <text x="795" y="80" text-anchor="middle" class="mono">PUT /task/{native id}</text>
+          </g>
+          <line x1="200" y1="65" x2="236" y2="65" stroke="currentColor" marker-end="url(#arr)"/>
+          <line x1="430" y1="65" x2="466" y2="65" stroke="currentColor" marker-end="url(#arr)"/>
+          <line x1="660" y1="65" x2="696" y2="65" stroke="currentColor" marker-end="url(#arr)"/>
+          <text x="678" y="55" text-anchor="middle" font-size="11" opacity=".7">match</text>
+          <g id="n-invalid"><title>Invalid status branch</title>
+            <line x1="530" y1="100" x2="420" y2="160" stroke="var(--color-error)" marker-end="url(#arr)"/>
+            <rect x="250" y="160" width="230" height="56" rx="10" fill="none" stroke="var(--color-error)"/>
+            <text x="365" y="183" text-anchor="middle" font-size="13" font-weight="600">InvalidStatusError</text>
+            <text x="365" y="203" text-anchor="middle" font-size="11" opacity=".75">list valid names, exit 1</text>
+          </g>
+          <g id="n-same"><title>Already in status branch</title>
+            <line x1="600" y1="100" x2="650" y2="160" stroke="currentColor" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+            <rect x="540" y="160" width="230" height="56" rx="10" fill="none" stroke="currentColor" stroke-opacity=".4"/>
+            <text x="655" y="183" text-anchor="middle" font-size="13" font-weight="600">same as current</text>
+            <text x="655" y="203" text-anchor="middle" font-size="11" opacity=".75">print note, exit 0, no PUT</text>
+          </g>
+        </svg>
+        <ul class="text-sm space-y-1 text-base-content/80 list-disc pl-5">
+          <li><code>GET /list/{id}</code> returns the list's <em>effective</em> statuses, including ones inherited from the folder or space.</li>
+          <li>The PUT uses the native <code>task.ID</code> from step 1, so the write path never needs <code>custom_task_ids</code> handling.</li>
+          <li>The PUT sends the canonical name from the list, not the raw user input.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Changes -->
+  <section class="space-y-4" id="changes">
+    <h2 class="text-xl font-semibold">Changes by layer</h2>
+    <p class="text-base-content/80">The command layer only orchestrates. Matching rules live in models as pure functions, and HTTP details stay in the api package.</p>
+    <div class="overflow-x-auto rounded-box border border-base-content/10 bg-base-100">
+      <table class="table">
+        <thead><tr><th>File</th><th>Change</th><th>Tests</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>pkg/models/list.go</code> <span class="badge badge-sm badge-soft badge-success">new</span></td>
+            <td><code>List{ID, Name, Statuses []Status}</code> (reuses the existing <code>Status</code>). <code>FindStatus(name) (Status, bool)</code> and <code>StatusNames()</code> sorted by <code>Orderindex</code>.</td>
+            <td><code>list_test.go</code>: exact, case and whitespace, not found, ordering</td>
+          </tr>
+          <tr>
+            <td><code>internal/api/client.go</code></td>
+            <td><code>doRequest</code> gets a <code>body any</code> param (JSON-marshaled when non-nil, printed under <code>--debug</code>). <code>Get</code> passes nil. Add <code>Put</code>.</td>
+            <td rowspan="3"><code>httptest.Server</code> tests (same package, set <code>baseURL</code>): method, path, JSON body, auth header, <code>APIError</code> mapping</td>
+          </tr>
+          <tr>
+            <td><code>internal/api/lists.go</code> <span class="badge badge-sm badge-soft badge-success">new</span></td>
+            <td><code>GetList(listID) (*models.List, error)</code></td>
+          </tr>
+          <tr>
+            <td><code>internal/api/tasks.go</code></td>
+            <td><code>UpdateTaskStatus(taskID, status string) error</code>. Body is <code>{"status": ...}</code> and it takes a native ID only.</td>
+          </tr>
+          <tr>
+            <td><code>internal/commands/tasks_status.go</code> <span class="badge badge-sm badge-soft badge-success">new</span></td>
+            <td><code>status &lt;task_id&gt; &lt;status&gt;</code>, <code>MinimumNArgs(2)</code>, status = <code>strings.Join(args[1:], " ")</code>. Registered with <code>tasksCmd.AddCommand</code>. <code>InvalidStatusError{Given, ListName, Valid}</code> renders the multi-line message through root's existing <code>Error: %v</code>.</td>
+            <td><code>tasks_status_test.go</code>: resolution and error text from a <code>models.List</code> fixture</td>
+          </tr>
+          <tr>
+            <td>Docs and binaries</td>
+            <td><code>tasks</code> Long examples, root "Get started" block, <code>README.md</code>, <code>skills/SKILL.md</code> (new section plus "change status" triggers), <code>make build-all</code> for <code>bin/</code>.</td>
+            <td>-</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="space-y-2">
+        <div class="text-sm font-medium"><code>pkg/models/list.go</code> - the validation core</div>
+        <div id="code-list"></div>
+      </div>
+      <div class="space-y-2">
+        <div class="text-sm font-medium"><code>internal/api/client.go</code> - body support (sketch)</div>
+        <div id="code-client"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Verified facts -->
+  <section class="space-y-4" id="verified">
+    <h2 class="text-xl font-semibold">Verified against the code</h2>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="card bg-base-100 card-border"><div class="card-body text-sm space-y-2">
+        <h3 class="card-title text-base">Cobra routing is safe</h3>
+        <p>I built a scratch binary on cobra v1.10.2 with the same shape: <code>tasks</code> using <code>MaximumNArgs(1)</code> and a local <code>--status</code> flag, plus a <code>status</code> subcommand.</p>
+<div class="term" style="font-size:12px">tasks HGAI-1             -&gt; tasks [HGAI-1]
+tasks --status "x"       -&gt; tasks []
+tasks HGAI-1 --status x  -&gt; tasks [HGAI-1]
+tasks status HGAI-1 in progress
+                         -&gt; status [HGAI-1 in progress]
+tasks stauts             -&gt; tasks [stauts]  <span class="c"># 404, same as today</span></div>
+      </div></div>
+      <div class="card bg-base-100 card-border"><div class="card-body text-sm space-y-2">
+        <h3 class="card-title text-base">What exists today</h3>
+        <ul class="list-disc pl-5 space-y-1">
+          <li><code>doRequest</code> sends no body. Only <code>Get</code> exists, so this is the CLI's first write.</li>
+          <li><code>GetTask</code> already returns <code>Status</code> and <code>List{ID, Name}</code> and handles custom IDs.</li>
+          <li><code>models.Status</code> already has <code>Orderindex</code> and <code>Type</code>.</li>
+          <li>There are no API tests yet. This change adds the first <code>httptest</code> coverage.</li>
+        </ul>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- Verification -->
+  <section class="space-y-3" id="verification">
+    <h2 class="text-xl font-semibold">Verification</h2>
+    <ul class="steps steps-vertical lg:steps-horizontal w-full">
+      <li class="step step-primary">Unit + httptest</li>
+      <li class="step step-primary"><code>make check</code></li>
+      <li class="step step-primary">E2E on real ClickUp</li>
+      <li class="step step-primary"><code>make build-all</code></li>
+    </ul>
+    <div class="card bg-base-100 card-border"><div class="card-body text-sm">
+      <p class="font-medium">E2E with the built binary on a throwaway task:</p>
+      <ul class="list-disc pl-5 space-y-1">
+        <li>Valid change using a custom ID and a native ID. Confirm it in the ClickUp UI.</li>
+        <li>Mixed-case input and unquoted multi-word input.</li>
+        <li>Invalid status: the list is shown, exit code is 1, and the task is unchanged in the UI.</li>
+        <li>Already in status: <code>--debug</code> shows no PUT.</li>
+        <li>A task in a list that inherits space statuses. An unknown task ID.</li>
+      </ul>
+    </div></div>
+  </section>
+
+  <!-- Risks -->
+  <section class="space-y-3" id="risks">
+    <h2 class="text-xl font-semibold">Risks and edge cases</h2>
+    <div class="grid md:grid-cols-2 gap-3">
+      <div role="alert" class="alert alert-soft"><span><strong>Tasks in multiple lists</strong> - <code>task.list</code> is the home list, and its statuses control the task's status. Correct as is.</span></div>
+      <div role="alert" class="alert alert-soft"><span><strong>Race</strong> - if list statuses change between GET and PUT, ClickUp rejects the PUT and the API error is shown. Acceptable.</span></div>
+      <div role="alert" class="alert alert-soft"><span><strong>Shadowing</strong> - a task whose ID is literally <code>status</code> would hit the subcommand. Not realistic.</span></div>
+      <div role="alert" class="alert alert-soft alert-warning"><span><strong>Signature change</strong> - <code>doRequest</code> gains a body param. All current callers go through <code>Get</code>, so the change is contained.</span></div>
+    </div>
+  </section>
+
+  <!-- Decisions -->
+  <section class="space-y-4" id="decisions">
+    <h2 class="text-xl font-semibold">Decisions</h2>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="card bg-base-100 card-border"><div class="card-body text-sm space-y-2">
+        <h3 class="card-title text-base">Unquoted multi-word status</h3>
+        <div class="flex flex-wrap gap-2"><span class="badge badge-success">Approved</span> <span>Join <code>args[1:]</code></span></div>
+        <p><code>tasks status X in progress</code> works without quotes. Quoted input still works.</p>
+      </div></div>
+      <div class="card bg-base-100 card-border"><div class="card-body text-sm space-y-2">
+        <h3 class="card-title text-base">Success output</h3>
+        <div class="flex flex-wrap gap-2"><span class="badge badge-success">Approved</span> <span>One-line confirmation only</span></div>
+        <p>Prints <code>&lt;id&gt;: &lt;old&gt; -&gt; &lt;new&gt;</code>. The command gets no <code>-o</code> flag.</p>
+      </div></div>
+    </div>
+  </section>
+
+  <footer class="text-xs text-base-content/60 pt-4">Design source: the CLI has no visual design system, so this uses the Lavish fallback (Tailwind + DaisyUI, nord). Markdown copy: <code>.lavish/tasks-status-command.md</code></footer>
+</main>
+
+<script type="module">
+  import { File } from "https://esm.sh/@pierre/diffs@1.2.10?bundle";
+  const options = { theme: { light: "github-light", dark: "github-dark" }, themeType: "light", overflow: "wrap" };
+
+  const listGo = `package models
+
+// List represents a ClickUp list and its effective statuses
+type List struct {
+	ID       string   \`json:"id"\`
+	Name     string   \`json:"name"\`
+	Statuses []Status \`json:"statuses"\`
+}
+
+// FindStatus matches name case-insensitively against the list's statuses
+func (l *List) FindStatus(name string) (Status, bool) {
+	name = strings.TrimSpace(name)
+	for _, s := range l.Statuses {
+		if strings.EqualFold(s.Status, name) {
+			return s, true
+		}
+	}
+	return Status{}, false
+}
+
+// StatusNames returns status names in workflow order
+func (l *List) StatusNames() []string {
+	sorted := slices.Clone(l.Statuses)
+	slices.SortFunc(sorted, func(a, b Status) int {
+		return cmp.Compare(a.Orderindex, b.Orderindex)
+	})
+	names := make([]string, len(sorted))
+	for i, s := range sorted {
+		names[i] = s.Status
+	}
+	return names
+}
+`;
+
+  const clientGo = `func (c *Client) doRequest(method, path string, query url.Values, body any) ([]byte, error) {
+	var reader io.Reader
+	if body != nil {
+		payload, err := json.Marshal(body)
+		if err != nil {
+			return nil, err
+		}
+		if c.debug {
+			fmt.Printf("[DEBUG] Request body: %s\\n", payload)
+		}
+		reader = bytes.NewReader(payload)
+	}
+	// ... unchanged, http.NewRequest(method, fullURL, reader)
+}
+
+func (c *Client) Get(path string, query url.Values) ([]byte, error) {
+	return c.doRequest(http.MethodGet, path, query, nil)
+}
+
+func (c *Client) Put(path string, query url.Values, body any) ([]byte, error) {
+	return c.doRequest(http.MethodPut, path, query, body)
+}
+`;
+
+  new File(options).render({ containerWrapper: document.querySelector("#code-list"), file: { name: "pkg/models/list.go", contents: listGo } });
+  new File(options).render({ containerWrapper: document.querySelector("#code-client"), file: { name: "internal/api/client.go", contents: clientGo } });
+</script>
+</body>
+</html>

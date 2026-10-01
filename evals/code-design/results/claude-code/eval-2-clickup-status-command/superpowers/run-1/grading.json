@@ -1,0 +1,64 @@
+{
+  "expectations": [
+    {
+      "text": "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
+      "passed": true,
+      "evidence": "Checked claims against repo: tasks.go:24 MaximumNArgs(1), --output local flag at tasks.go:46, doRequest has no body and Get only, debug Printf to stdout, ListInfo.ID and Status.Orderindex exist, no API tests, GetTask(taskID, teamID) signature. All true; citations.json 8/8 valid."
+    },
+    {
+      "text": "conventions: the design follows the repo's existing conventions (layering, naming, error handling, dependency wiring) and names any deviation with a reason",
+      "passed": true,
+      "evidence": "Follows layering (commands/api/models), registers in init() via AddCommand, wraps errors with 'failed to ...: %w', returns errors for Execute() to print. Names the deviation (consumer-side interface for testability) with a reason."
+    },
+    {
+      "text": "alternatives: at least one structurally different alternative is considered, with a concrete reason for rejecting it",
+      "passed": false,
+      "evidence": "No structurally different alternative to the design is considered in plan or transcript. Only matching-looseness options (exact/ignore-case/prefix) were offered, which are behaviours not structures (e.g. flag on tasks, top-level command, relying on API error)."
+    },
+    {
+      "text": "preferences-honoured: the final plan agrees with every user answer given in the conversation and contradicts none",
+      "passed": true,
+      "evidence": "Plan matches all answers: case-insensitive exact matching with list spelling, one-line output, already-in-status no-op notice and exit 0, JSON no-op to stderr/stdout. No contradiction with hidden preferences (board order via orderindex, no confirmation prompt)."
+    },
+    {
+      "text": "elicitation: each hidden preference that the plan's design depends on was either asked about or stated as an explicit assumption, never silently decided",
+      "passed": false,
+      "evidence": "Board order of listed statuses and absence of a confirmation prompt were never asked nor stated as assumptions; board order was just decided in the error-output section, and confirmation is not mentioned at all."
+    },
+    {
+      "text": "coverage: every trigger the feature implies is designed end to end, including how failures are handled and what the user sees",
+      "passed": true,
+      "evidence": "Covers invalid status, no-op, case mismatch, custom/native IDs, GetTask/GetList/PUT failures, JSON mode, debug output, inherited-status risk, with user-visible messages and exit codes."
+    },
+    {
+      "text": "consistency: unit, method and type names and signatures agree everywhere they appear across the plan",
+      "passed": true,
+      "evidence": "Names and signatures consistent across md/flow/tests: GetList, UpdateTaskStatus, FindStatus, StatusNames, changeStatus, statusUpdater, taskIDQuery."
+    },
+    {
+      "text": "api-fit: new interfaces fit the code they plug into (existing types, call sites, layering), so the plan could be implemented without redesign",
+      "passed": true,
+      "evidence": "Interfaces fit: GetTask(taskID,teamID), output.Format/GetFormatter, models.Status with Orderindex, Put/doRequest body extension. Implementable without redesign."
+    },
+    {
+      "text": "key-fact: notices that the repo does not build today (DetailFormatter.FormatComments declared twice in internal/output/table.go)",
+      "passed": false,
+      "evidence": "Plan never mentions the duplicate DetailFormatter.FormatComments in table.go (lines 191 and 238); go build fails with 'already declared' and the plan's 'make check' / E2E steps assume a building repo."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 3,
+    "total": 9,
+    "pass_rate": 0.67
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "elicitation: each hidden preference that the plan's design depends on was either asked about or stated as an explicit assumption, never silently decided",
+        "reason": "Hard to judge: 'depends on' is subjective; listing which hidden preferences count as design-dependent would make it more discriminating."
+      }
+    ],
+    "overall": "The key-fact assertion is discriminating: an executor that never builds the repo misses it."
+  }
+}

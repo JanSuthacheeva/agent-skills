@@ -1,0 +1,72 @@
+{
+  "expectations": [
+    {
+      "text": "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
+      "passed": true,
+      "evidence": "Checked: table.go:191 and :238 both declare DetailFormatter.FormatComments; doRequest at client.go:42 sends nil body, only Get exists; debug uses fmt.Printf (stdout); custom_task_ids duplicated in tasks.go:68 and comments.go:18; Task.List is ListInfo (ID/Name/Access, no statuses); models.Status has Orderindex; tasksCmd Args MaximumNArgs(1); root.go SilenceErrors + 'Error: %v' exit 1. citations.json 4/4 valid."
+    },
+    {
+      "text": "conventions: follows repo conventions and names deviations",
+      "passed": true,
+      "evidence": "Per-domain files in internal/api, models in pkg/models, getAPIClient/getConfig wiring, 'failed to ...: %w' wrapping, errors returned to Execute. Deviations (stderr debug, persistent --output, SetBaseURL, taskIDQuery) are named with reasons."
+    },
+    {
+      "text": "alternatives: structurally different alternative with reason for rejecting",
+      "passed": true,
+      "evidence": "Options A (inline in command) and C (service method on API client) each rejected with concrete reasons (untestable matching; business rules in thin HTTP layer for single caller)."
+    },
+    {
+      "text": "preferences-honoured",
+      "passed": true,
+      "evidence": "Case-insensitive exact (EqualFold, no prefix, test for 'prog'); already-in-status notice, no API call, exit 0; board order via SortedStatuses by Orderindex; Confirmation: None. Also matches answers 2-6 (mark current, no color, ExactArgs(2), no extra command, build-all)."
+    },
+    {
+      "text": "elicitation: hidden preferences asked or stated as assumption",
+      "passed": true,
+      "evidence": "All four hidden preferences were asked (matching, board order, already-in-status) or volunteered by the simulated user (no confirmation); plan has no silent decisions on them."
+    },
+    {
+      "text": "coverage: every trigger designed end to end incl. failures",
+      "passed": true,
+      "evidence": "Success, invalid status, already set, json output, zero statuses guard, API errors wrapped, race on status change, inherited statuses risk with fallback, E2E and unit tests; docs and skill updated."
+    },
+    {
+      "text": "consistency: names and signatures agree across plan",
+      "passed": true,
+      "evidence": "GetList, UpdateTaskStatus(taskID, teamID, status), FindStatus, SortedStatuses, taskIDQuery, runTasksStatus, invalidStatusError used consistently; GetListStatuses appears only in rejected option A. Examples made consistent after user feedback."
+    },
+    {
+      "text": "api-fit: interfaces fit existing code",
+      "passed": true,
+      "evidence": "Extends doRequest with body, Put alongside Get, reuses GetTask/native ID, models.Status reuse, cobra subcommand routing with MaximumNArgs(1) analysed, outputFormat package var shared via persistent flag. Implementable without redesign."
+    },
+    {
+      "text": "key-fact: notices repo does not build (duplicate FormatComments)",
+      "passed": true,
+      "evidence": "Plan and transcript identify table.go:238 duplicate of :191, merge 7411557, and make it step 0 commit."
+    }
+  ],
+  "summary": {
+    "passed": 9,
+    "failed": 0,
+    "total": 9,
+    "pass_rate": 1.0
+  },
+  "claims": [
+    {
+      "claim": "go vet/test fail on main due to duplicate method",
+      "type": "factual",
+      "verified": true,
+      "evidence": "duplicate declaration at table.go:191 and :238"
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "preferences-honoured",
+        "reason": "The simulated user volunteered the confirmation preference unprompted in turn 1, so the elicitation assertion for it is satisfied trivially."
+      }
+    ],
+    "overall": "Assertions are mostly presence-style; consider checking the PUT uses the list's canonical status spelling and that the already-in-status comparison is case-insensitive."
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "expectations": [
+    {
+      "text": "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
+      "passed": true,
+      "evidence": "citations.json 16/16 valid. Verified: m at 1647, Line derives Default (style.rs:55), GUTTER_COLS=2 (935), Print(\"\u2502 \") at 2528, into_offset_iter at markdown.rs:1585, poll_file_changes at ~751/773, help toggle ~999-1001, dirs 5 and serde_json deps. Minor 1-2 line offsets only."
+    },
+    {
+      "text": "conventions: the design follows the repo's existing conventions (layering, naming, error handling, dependency wiring) and names any deviation with a reason",
+      "passed": true,
+      "evidence": "Follows flat module layout, injectable store path for tests, existing test style, help_sections_no_duplicate_keys; viewer/marks_ctl.rs child module and new MDTERM_MARKS_PATH env are justified (keep 4356-line viewer.rs small, E2E isolation)."
+    },
+    {
+      "text": "alternatives: at least one structurally different alternative is considered, with a concrete reason for rejecting it",
+      "passed": true,
+      "evidence": "Option A (parallel side tables, no Line change) vs B (src on Line) with concrete rejection reason (silent desync, grows viewer.rs, no reload re-anchoring)."
+    },
+    {
+      "text": "preferences-honoured: the final plan agrees with every user answer given in the conversation and contradicts none",
+      "passed": false,
+      "evidence": "Regrade: M, a-z only and state_dir/data_dir marks.json (not config.toml) are fine, and the source-line anchor survives resize. But the plan says offline edits 'can only be clamped, not re-anchored' (a text-snippet relocator is deferred); only edits while the viewer is open are remapped via LineRemap. Marks do not relocate after edits between sessions, so the small-edits preference is openly not honoured."
+    },
+    {
+      "text": "elicitation: each hidden preference that the plan's design depends on was either asked about or stated as an explicit assumption, never silently decided",
+      "passed": true,
+      "evidence": "Upfront question list covered key conflict, anchor, letters, storage, stdin/slide/JSON, unset mark, deleted line; user answered all and approach/scope/lock questions were asked later."
+    },
+    {
+      "text": "coverage: every trigger the feature implies is designed end to end, including how failures are handled and what the user sees",
+      "passed": true,
+      "evidence": "Set, jump, '' , unset, stdin, slide/JSON disabled, store failure toast, corrupt/newer-version file, live reload, resize, switch_file, mouse click clearing pending, margin and status rendering, help."
+    },
+    {
+      "text": "consistency: unit, method and type names and signatures agree everywhere they appear across the plan",
+      "passed": true,
+      "evidence": "MarkName/MarkSet/Prefix/KeyOutcome/MarksStore/MarkSession/SourceIndex used consistently across layout, types, flows and build steps."
+    },
+    {
+      "text": "api-fit: new interfaces fit the code they plug into (existing types, call sites, layering), so the plan could be implemented without redesign",
+      "passed": true,
+      "evidence": "Fits Line Default derive, finalize_layout, nav_history to NavEntry refactor, ViewerOptions wiring, handle_event ordering; heavy (15 steps, 4 modules) but implementable."
+    },
+    {
+      "text": "key-fact: notices that m is already bound to the mouse-capture toggle in src/viewer.rs",
+      "passed": true,
+      "evidence": "Turn 1: m already toggles mouse capture at src/viewer.rs:1647; moved to M."
+    }
+  ],
+  "summary": {
+    "passed": 8,
+    "failed": 1,
+    "total": 9,
+    "pass_rate": 0.89
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "alternatives",
+        "reason": "Both options anchor on source line; assertion is satisfied without testing structurally different anchoring (heading/text-based)."
+      }
+    ],
+    "overall": "Reasonable; consider a stricter 'survives offline edits' check."
+  }
+}

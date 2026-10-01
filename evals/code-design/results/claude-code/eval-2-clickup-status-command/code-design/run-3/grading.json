@@ -1,0 +1,64 @@
+{
+  "expectations": [
+    {
+      "text": "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
+      "passed": true,
+      "evidence": "citations.json 26/26 valid. Verified the duplicate FormatComments, no body support in doRequest, getTask multi-call flow, concrete *api.Client with private baseURL. Minor: deletion range stated as 237-281 but the copy ends at 279 (281 is the 'Helper functions' comment)."
+    },
+    {
+      "text": "conventions: the design follows the repo's existing conventions (layering, naming, error handling, dependency wiring) and names any deviation with a reason",
+      "passed": true,
+      "evidence": "Follows getTask pattern (fmt.Printf, no writer injection), 'failed to X: %w', Cobra subcommand in init(); notes docs/plans vs .lavish deviation; flags accepted subcommand-shadow edge case."
+    },
+    {
+      "text": "alternatives: at least one structurally different alternative is considered, with a concrete reason for rejecting it",
+      "passed": true,
+      "evidence": "B (internal/tasks StatusChanger package behind interface) and C (optimistic update) each with concrete rejection reasons."
+    },
+    {
+      "text": "preferences-honoured: the final plan agrees with every user answer given in the conversation and contradicts none",
+      "passed": true,
+      "evidence": "Plan agrees with answers (A, one-line output, join args) and prefs: case-insensitive exact FindStatus, already-set no PUT exit 0, no confirmation prompt (#5). Valid statuses 'in list order' relies on API array order rather than sorting by Orderindex, but doesn't contradict board order."
+    },
+    {
+      "text": "elicitation: each hidden preference that the plan's design depends on was either asked about or stated as an explicit assumption, never silently decided",
+      "passed": true,
+      "evidence": "Assumptions section covers matching, ordering, already-set, no confirmation prompt, subtasks, json."
+    },
+    {
+      "text": "coverage: every trigger the feature implies is designed end to end, including how failures are handled and what the user sees",
+      "passed": true,
+      "evidence": "Error steps E1-E4, invalid status output, already-set, arg-count, subtask, custom/native ID covered."
+    },
+    {
+      "text": "consistency: unit, method and type names and signatures agree everywhere they appear across the plan",
+      "passed": true,
+      "evidence": "Names (changeTaskStatus, invalidStatusError, FindStatus, UpdateTaskStatus, setCustomTaskIDParams, GetList, updateTaskStatusRequest) consistent."
+    },
+    {
+      "text": "api-fit: new interfaces fit the code they plug into (existing types, call sites, layering), so the plan could be implemented without redesign",
+      "passed": true,
+      "evidence": "Fits existing client, models.Status, Cobra routing. Weak spot: command flow only E2E-tested since no client seam, but that is a declared consequence of choosing A."
+    },
+    {
+      "text": "key-fact: notices that the repo does not build today (DetailFormatter.FormatComments declared twice in internal/output/table.go)",
+      "passed": true,
+      "evidence": "Turn 1 flags duplicate FormatComments at table.go:191/238 as merge breakage from 7411557; first commit deletes it."
+    }
+  ],
+  "summary": {
+    "passed": 9,
+    "failed": 0,
+    "total": 9,
+    "pass_rate": 1.0
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "preferences-honoured",
+        "reason": "'board order' is ambiguous in run output; a plan relying on API array order passes. Consider requiring explicit Orderindex handling or an assumption."
+      }
+    ],
+    "overall": "Evals look reasonable."
+  }
+}

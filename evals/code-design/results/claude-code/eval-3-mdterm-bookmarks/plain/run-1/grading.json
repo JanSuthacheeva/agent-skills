@@ -1,0 +1,64 @@
+{
+  "expectations": [
+    {
+      "text": "grounded",
+      "passed": true,
+      "evidence": "Verified: m toggle at viewer.rs:1647, help at ~3643, into_offset_iter at markdown.rs:1585 discards range, nav_history Vec<(usize,usize)>, Line has only spans/meta, dirs and serde_json deps, ' and M unused, slide_boundaries/switch_file/finalize_layout exist. citations.json 3/3 valid. Minor: '~40' Line literals is actually 51."
+    },
+    {
+      "text": "conventions",
+      "passed": true,
+      "evidence": "Follows Line.meta propagation pattern in wrap_lines, set_toast, nav_history for Backspace, dirs crate and mdterm/ subdir like config.rs, serde_json; lists help/README/CLAUDE.md updates. Does not name a deviation but none material."
+    },
+    {
+      "text": "alternatives",
+      "passed": true,
+      "evidence": "Rejects wrapped offset, offset+width, and heading+distance anchoring with reasons; no alternative on storage layout, but anchor strategy alternatives are structurally different."
+    },
+    {
+      "text": "preferences-honoured",
+      "passed": true,
+      "evidence": "Regrade: user approved moving mouse capture to M; a-z only (A-Z left free); dirs::state_dir().or_else(data_local_dir) marks.json, not config.toml; Anchor { line, text } with nearest-matching-text resolve at jump time survives resize and edits between sessions. Matches the user's answer."
+    },
+    {
+      "text": "elicitation",
+      "passed": true,
+      "evidence": "Mouse toggle asked; a-z stated as overridable default; state dir justified explicitly (state not config); resize/edit robustness stated as goal. None silently decided."
+    },
+    {
+      "text": "coverage",
+      "passed": true,
+      "evidence": "Set, jump, missing mark, cancel, save failure, corrupt store, stdin, JSON view, slide mode, multi-instance writes, file switch all covered with user-visible toasts."
+    },
+    {
+      "text": "consistency",
+      "passed": true,
+      "evidence": "MarkStore/Anchor/FileMarks/MarkAction/pending_mark/source_at_offset/offset_for_source consistent across sections. Anchor.line is source line while resolve returns byte offset; mapping stated."
+    },
+    {
+      "text": "api-fit",
+      "passed": true,
+      "evidence": "Hooks match real dispatch (handle_normal then slide/json at 1611-1615); Line.source addition fits stamp loop; nav_history tuple reused. Minor wording that pending check goes before slide/json dispatch is compatible with handle_normal's structure."
+    },
+    {
+      "text": "key-fact",
+      "passed": true,
+      "evidence": "Plan states m is bound at src/viewer.rs:1647 and asks about moving it to M."
+    }
+  ],
+  "summary": {
+    "passed": 9,
+    "failed": 0,
+    "total": 9,
+    "pass_rate": 1.0
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "elicitation",
+        "reason": "Only one question was asked; state-dir and a-z choices were decided as defaults. Assertion cannot distinguish stated assumption from well-reasoned decision."
+      }
+    ],
+    "overall": "Assertions are satisfiable by a plan that states assumptions; none checks that Line literal counts or other quantities are exact."
+  }
+}

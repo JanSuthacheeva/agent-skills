@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en" data-theme="nord">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan - clickup tasks status</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/daisyui.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/themes.css">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.2.4/dist/index.global.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  :where(.grid, .flex) > * { min-width: 0; }
+  :where(p, h1, h2, h3, li, td, th, .badge) { overflow-wrap: anywhere; }
+  :where(img, svg) { max-width: 100%; height: auto; }
+  body { background: var(--color-base-200); color: var(--color-base-content); }
+  code.inline { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .85em; background: var(--color-base-200); padding: .05rem .35rem; border-radius: .3rem; }
+  .flow text { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; fill: currentColor; }
+  .flow .node { fill: var(--color-base-100); stroke: var(--color-base-content); stroke-opacity: .25; }
+  .flow .api { fill: color-mix(in oklab, var(--color-info) 18%, var(--color-base-100)); stroke: var(--color-info); }
+  .flow .ok { fill: color-mix(in oklab, var(--color-success) 18%, var(--color-base-100)); stroke: var(--color-success); }
+  .flow .bad { fill: color-mix(in oklab, var(--color-error) 15%, var(--color-base-100)); stroke: var(--color-error); }
+  .flow .neutral { fill: color-mix(in oklab, var(--color-warning) 18%, var(--color-base-100)); stroke: var(--color-warning); }
+  .flow .edge { stroke: currentColor; stroke-opacity: .55; fill: none; marker-end: url(#arrow); }
+  .flow .muted { fill-opacity: .65; }
+  .code-host { border-radius: .75rem; overflow: hidden; border: 1px solid color-mix(in oklab, var(--color-base-content) 12%, transparent); }
+</style>
+</head>
+<body>
+<main class="mx-auto max-w-5xl p-5 lg:p-10 space-y-8">
+
+  <header class="space-y-3">
+    <div class="flex flex-wrap gap-2">
+      <span class="badge badge-primary badge-soft">Plan</span>
+      <span class="badge badge-ghost">bounded change</span>
+      <span class="badge badge-ghost">Go / Cobra</span>
+    </div>
+    <h1 class="text-3xl lg:text-4xl font-bold"><code>clickup tasks status &lt;id&gt; &lt;status&gt;</code></h1>
+    <p class="text-lg opacity-80 max-w-3xl">Change a task's status from the terminal. The command checks the status against the task's own list before writing anything, and lists the valid statuses if the one you gave isn't valid.</p>
+  </header>
+
+  <!-- Behavior -->
+  <section id="behavior" class="card bg-base-100 shadow-sm">
+    <div class="card-body gap-5">
+      <h2 class="card-title text-2xl">Agreed behavior</h2>
+      <div class="grid gap-4 md:grid-cols-3">
+        <div class="space-y-2">
+          <span class="badge badge-success badge-soft">change - exit 0</span>
+          <div class="mockup-code text-sm"><pre data-prefix="$"><code>clickup tasks status HGAI-1217 "In Progress"</code></pre><pre data-prefix=""><code>HGAI-1217: open -&gt; in progress</code></pre></div>
+        </div>
+        <div class="space-y-2">
+          <span class="badge badge-warning badge-soft">already set - exit 0</span>
+          <div class="mockup-code text-sm"><pre data-prefix="$"><code>clickup tasks status HGAI-1217 review</code></pre><pre data-prefix=""><code>HGAI-1217 is already "review"</code></pre></div>
+        </div>
+        <div class="space-y-2">
+          <span class="badge badge-error badge-soft">invalid - exit 1</span>
+          <div class="mockup-code text-sm"><pre data-prefix="$"><code>clickup tasks status HGAI-1217 done</code></pre><pre data-prefix=""><code>Error: invalid status "done" for list "Sprint 12"</code></pre><pre data-prefix=""><code>Valid statuses:</code></pre><pre data-prefix=""><code>  to do</code></pre><pre data-prefix=""><code>  in progress</code></pre><pre data-prefix=""><code>  review</code></pre><pre data-prefix=""><code>  complete</code></pre></div>
+        </div>
+      </div>
+      <ul class="list-disc pl-5 space-y-1 opacity-90">
+        <li><b>Matching:</b> exact match, ignoring case and surrounding whitespace. ClickUp always gets the list's own spelling.</li>
+        <li><b>IDs:</b> both custom (<code class="inline">HGAI-1217</code>) and native (<code class="inline">86a3xyzw</code>) IDs work, the same as <code class="inline">clickup tasks &lt;id&gt;</code>.</li>
+        <li><b>Output:</b> plain text only, no <code class="inline">-o json</code>. Errors go to stderr through the existing <code class="inline">Execute</code> handler.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Current state -->
+  <section id="current-state" class="card bg-base-100 shadow-sm">
+    <div class="card-body gap-4">
+      <h2 class="card-title text-2xl">Current state (verified in code)</h2>
+      <div class="overflow-x-auto">
+        <table class="table">
+          <thead><tr><th>Where</th><th>Fact</th><th>Impact</th></tr></thead>
+          <tbody>
+            <tr><td><code class="inline">internal/commands/tasks.go:24</code></td><td><code class="inline">tasksCmd</code> takes optional <code class="inline">[task_id]</code> with <code class="inline">MaximumNArgs(1)</code></td><td>Cobra matches child command names before positional args, so a <code class="inline">status</code> subcommand can sit next to <code class="inline">clickup tasks &lt;id&gt;</code>. The <code class="inline">--status</code> filter flag is local to <code class="inline">tasksCmd</code>, so the subcommand doesn't inherit it.</td></tr>
+            <tr><td><code class="inline">internal/api/client.go:42</code></td><td><code class="inline">doRequest</code> always sends a nil body; only <code class="inline">Get</code> exists</td><td>Needs body support and a <code class="inline">Put</code>.</td></tr>
+            <tr><td><code class="inline">internal/api/client.go:49</code></td><td>Debug lines are printed to stdout</td><td>They end up mixed into command output, including <code class="inline">-o json</code>. Moving them to stderr is a targeted fix while we're in this function.</td></tr>
+            <tr><td><code class="inline">api/tasks.go:67</code>, <code class="inline">api/comments.go:17</code></td><td>The custom ID query is duplicated</td><td>Extract <code class="inline">taskIDQuery</code> before adding a third copy.</td></tr>
+            <tr><td><code class="inline">pkg/models/task.go:26</code></td><td><code class="inline">Task.List.ID</code> and <code class="inline">models.Status</code> already exist</td><td>The list lookup needs no new fields on <code class="inline">Task</code>.</td></tr>
+            <tr><td><code class="inline">internal/api</code>, <code class="inline">internal/commands</code></td><td>No tests</td><td>We add the first ones, using httptest and a fake client.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Flow -->
+  <section id="flow" class="card bg-base-100 shadow-sm">
+    <div class="card-body gap-4">
+      <h2 class="card-title text-2xl">What happens when you run it</h2>
+      <p class="opacity-80">The flow takes three API calls. Every decision is made locally between the list fetch and the write, so ClickUp never sees an invalid status.</p>
+      <svg class="flow" viewBox="0 0 900 400" width="100%" role="img" aria-labelledby="flow-title">
+        <title id="flow-title">tasks status control flow</title>
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor" fill-opacity=".6"/>
+          </marker>
+        </defs>
+
+        <g id="n-get-task"><title>GET task</title>
+          <rect class="node api" x="20" y="30" width="230" height="64" rx="10"/>
+          <text x="135" y="57" text-anchor="middle" font-size="15" font-weight="700">1. GET /task/{id}</text>
+          <text x="135" y="79" text-anchor="middle" font-size="12" class="muted">current status, list.id</text>
+        </g>
+        <g id="n-get-list"><title>GET list</title>
+          <rect class="node api" x="335" y="30" width="230" height="64" rx="10"/>
+          <text x="450" y="57" text-anchor="middle" font-size="15" font-weight="700">2. GET /list/{id}</text>
+          <text x="450" y="79" text-anchor="middle" font-size="12" class="muted">name, effective statuses</text>
+        </g>
+        <g id="n-find"><title>FindStatus</title>
+          <rect class="node" x="650" y="30" width="230" height="64" rx="10"/>
+          <text x="765" y="57" text-anchor="middle" font-size="15" font-weight="700">3. list.FindStatus</text>
+          <text x="765" y="79" text-anchor="middle" font-size="12" class="muted">case-insensitive</text>
+        </g>
+
+        <path id="e1" class="edge" d="M250,62 L333,62"><title>task.List.ID</title></path>
+        <path id="e2" class="edge" d="M565,62 L648,62"><title>list.Statuses</title></path>
+
+        <g id="n-invalid"><title>Invalid status</title>
+          <rect class="node bad" x="20" y="180" width="260" height="70" rx="10"/>
+          <text x="150" y="208" text-anchor="middle" font-size="14" font-weight="700">not found / no statuses</text>
+          <text x="150" y="230" text-anchor="middle" font-size="12" class="muted">print valid statuses, exit 1</text>
+        </g>
+        <g id="n-same"><title>Already set</title>
+          <rect class="node neutral" x="320" y="180" width="260" height="70" rx="10"/>
+          <text x="450" y="208" text-anchor="middle" font-size="14" font-weight="700">equals current status</text>
+          <text x="450" y="230" text-anchor="middle" font-size="12" class="muted">notice, no write, exit 0</text>
+        </g>
+        <g id="n-put"><title>PUT task</title>
+          <rect class="node api" x="620" y="180" width="260" height="70" rx="10"/>
+          <text x="750" y="208" text-anchor="middle" font-size="14" font-weight="700">4. PUT /task/{id}</text>
+          <text x="750" y="230" text-anchor="middle" font-size="12" class="muted">{"status": "in progress"}</text>
+        </g>
+
+        <path id="e3" class="edge" d="M700,94 C620,140 300,130 170,178"><title>no match</title></path>
+        <path id="e4" class="edge" d="M745,94 C700,140 500,140 460,178"><title>same as current</title></path>
+        <path id="e5" class="edge" d="M780,94 L760,178"><title>valid and different</title></path>
+
+        <g id="n-done"><title>Confirmation</title>
+          <rect class="node ok" x="620" y="310" width="260" height="60" rx="10"/>
+          <text x="750" y="345" text-anchor="middle" font-size="14" font-weight="700">ID: open -&gt; in progress</text>
+        </g>
+        <path id="e6" class="edge" d="M750,250 L750,308"><title>success</title></path>
+
+        <text x="20" y="345" font-size="12" class="muted">IDs with a hyphen add custom_task_ids=true&amp;team_id=W</text>
+        <text x="20" y="365" font-size="12" class="muted">to calls 1 and 4 (shared taskIDQuery helper)</text>
+      </svg>
+      <p class="text-sm opacity-75">The task is checked against its <b>home list</b> (<code class="inline">task.list</code>), which is the list ClickUp takes statuses from, including for tasks that live in several lists. <code class="inline">GET /list/{id}</code> returns effective statuses, including ones inherited from the folder or space. E2E step 6 confirms this.</p>
+    </div>
+  </section>
+
+  <!-- Design units -->
+  <section id="design" class="space-y-4">
+    <h2 class="text-2xl font-bold">Design, by unit</h2>
+
+    <div class="grid gap-4 md:grid-cols-2">
+      <div class="card bg-base-100 shadow-sm" id="unit-client">
+        <div class="card-body gap-2">
+          <div class="flex flex-wrap items-center gap-2"><span class="badge badge-neutral">1</span><h3 class="font-bold text-lg">API client bodies</h3></div>
+          <p class="text-sm opacity-70"><code class="inline">internal/api/client.go</code></p>
+          <ul class="list-disc pl-5 text-sm space-y-1">
+            <li><code class="inline">doRequest(method, path, query, payload any)</code> marshals a non-nil payload to JSON and sets <code class="inline">Content-Type</code> only then.</li>
+            <li>New <code class="inline">Put(path, query, payload)</code>; <code class="inline">Get</code> passes nil.</li>
+            <li>Debug lines go to stderr.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card bg-base-100 shadow-sm" id="unit-query">
+        <div class="card-body gap-2">
+          <div class="flex flex-wrap items-center gap-2"><span class="badge badge-neutral">2</span><h3 class="font-bold text-lg">Shared custom ID query</h3></div>
+          <p class="text-sm opacity-70"><code class="inline">internal/api/tasks.go</code></p>
+          <ul class="list-disc pl-5 text-sm space-y-1">
+            <li><code class="inline">taskIDQuery(taskID, teamID) url.Values</code></li>
+            <li>Used by <code class="inline">GetTask</code>, <code class="inline">GetTaskComments</code> and <code class="inline">UpdateTaskStatus</code>.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card bg-base-100 shadow-sm" id="unit-model">
+        <div class="card-body gap-2">
+          <div class="flex flex-wrap items-center gap-2"><span class="badge badge-neutral">3</span><h3 class="font-bold text-lg">List model + matching</h3></div>
+          <p class="text-sm opacity-70"><code class="inline">pkg/models/list.go</code> (new)</p>
+          <ul class="list-disc pl-5 text-sm space-y-1">
+            <li><code class="inline">List{ID, Name, Statuses []Status}</code></li>
+            <li><code class="inline">FindStatus(name)</code>: <code class="inline">strings.EqualFold</code> after <code class="inline">TrimSpace</code>.</li>
+            <li><code class="inline">StatusNames()</code> sorted by <code class="inline">Orderindex</code>.</li>
+            <li>Pure functions, so they can be tested without HTTP.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card bg-base-100 shadow-sm" id="unit-api">
+        <div class="card-body gap-2">
+          <div class="flex flex-wrap items-center gap-2"><span class="badge badge-neutral">4</span><h3 class="font-bold text-lg">API methods</h3></div>
+          <p class="text-sm opacity-70"><code class="inline">internal/api/lists.go</code> (new), <code class="inline">internal/api/tasks.go</code></p>
+          <ul class="list-disc pl-5 text-sm space-y-1">
+            <li><code class="inline">GetList(listID) (*models.List, error)</code></li>
+            <li><code class="inline">UpdateTaskStatus(taskID, teamID, status) (*models.Task, error)</code>: PUT <code class="inline">{"status": ...}</code>, returns the updated task.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card bg-base-100 shadow-sm md:col-span-2" id="unit-command">
+        <div class="card-body gap-2">
+          <div class="flex flex-wrap items-center gap-2"><span class="badge badge-neutral">5</span><h3 class="font-bold text-lg">Command</h3></div>
+          <p class="text-sm opacity-70"><code class="inline">internal/commands/tasks_status.go</code> (new), registered with <code class="inline">tasksCmd.AddCommand</code> in its own <code class="inline">init()</code></p>
+          <ul class="list-disc pl-5 text-sm space-y-1">
+            <li><code class="inline">RunE</code> is a thin wrapper. The logic lives in <code class="inline">setTaskStatus</code>, which depends on a small interface that the command package defines. <code class="inline">*api.Client</code> satisfies it, and tests pass a fake.</li>
+            <li>A custom <code class="inline">Args</code> validator replaces Cobra's <code class="inline">accepts 2 arg(s), received 3</code> with a quoting hint for multi-word statuses.</li>
+            <li>Errors are wrapped like the rest of <code class="inline">tasks.go</code>: <code class="inline">failed to get task / list / update task: %w</code>.</li>
+          </ul>
+          <div class="code-host mt-2" id="code-command"></div>
+        </div>
+      </div>
+      <div class="card bg-base-100 shadow-sm md:col-span-2" id="unit-docs">
+        <div class="card-body gap-2">
+          <div class="flex flex-wrap items-center gap-2"><span class="badge badge-neutral">6</span><h3 class="font-bold text-lg">Docs, skill, binaries</h3></div>
+          <ul class="list-disc pl-5 text-sm space-y-1">
+            <li><code class="inline">tasksCmd.Long</code> examples and the <code class="inline">rootCmd.Long</code> "Get started" list.</li>
+            <li><code class="inline">README.md</code> usage.</li>
+            <li><code class="inline">skills/SKILL.md</code>: the new command, "change status" trigger phrases, and a rule that the agent only changes a status when the user explicitly asks.</li>
+            <li><code class="inline">make build-all</code> to refresh <code class="inline">bin/</code>.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="card bg-base-100 shadow-sm" id="client-diff">
+      <div class="card-body gap-2">
+        <h3 class="font-bold text-lg">Sketch: <code class="inline">doRequest</code> before / after</h3>
+        <p class="text-sm opacity-70">This is a sketch of the shape, not final code. It covers body support, Content-Type only when there is a body, and debug output on stderr.</p>
+        <div class="code-host" id="code-client"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testing -->
+  <section id="testing" class="card bg-base-100 shadow-sm">
+    <div class="card-body gap-4">
+      <h2 class="card-title text-2xl">Testing (TDD, tests first per unit)</h2>
+      <div class="overflow-x-auto">
+        <table class="table table-zebra">
+          <thead><tr><th>Layer</th><th>File</th><th>Cases</th></tr></thead>
+          <tbody>
+            <tr><td><span class="badge badge-soft">model</span></td><td><code class="inline">pkg/models/list_test.go</code></td><td>Case-insensitive match returns the list's spelling; whitespace is trimmed; unknown status returns false; <code class="inline">StatusNames</code> is sorted by orderindex.</td></tr>
+            <tr><td><span class="badge badge-soft">api</span></td><td><code class="inline">internal/api/client_test.go</code></td><td>httptest server with <code class="inline">baseURL</code> set. <code class="inline">Put</code> sends the method, JSON body and Content-Type; <code class="inline">Get</code> sends no body; debug writes to stderr.</td></tr>
+            <tr><td><span class="badge badge-soft">api</span></td><td><code class="inline">tasks_test.go</code>, <code class="inline">lists_test.go</code></td><td><code class="inline">UpdateTaskStatus</code> body plus custom vs native ID query; <code class="inline">GetList</code> decodes name and statuses; <code class="inline">GetTask</code> still sends the custom ID query after the refactor.</td></tr>
+            <tr><td><span class="badge badge-soft">command</span></td><td><code class="inline">internal/commands/tasks_status_test.go</code></td><td>Uses a fake updater. Success sends the canonical casing and prints <code class="inline">ID: old -&gt; new</code>. Invalid status lists names in order and never calls update. Already-set prints a notice, makes no update and returns nil. A list with no statuses gives a clear error. Upstream errors are wrapped. The Args validator shows the hint for 3+ args.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="font-bold text-lg mt-2">End-to-end against a real workspace (throwaway task)</h3>
+      <ol class="list-decimal pl-5 space-y-1 text-sm">
+        <li><code class="inline">tasks status &lt;custom-id&gt; "in progress"</code> prints the confirmation, and <code class="inline">clickup tasks &lt;id&gt;</code> shows the new status.</li>
+        <li>Same with a native ID.</li>
+        <li><code class="inline">"IN PROGRESS"</code> works, and ClickUp shows the list's spelling.</li>
+        <li>Setting the same status again prints the notice and exits 0.</li>
+        <li><code class="inline">nonsense</code> lists the valid statuses, exits 1, and leaves the task unchanged.</li>
+        <li>A list that inherits statuses from its space gives the same valid set as the ClickUp UI.</li>
+        <li>An unquoted multi-word status shows the quoting hint.</li>
+        <li><code class="inline">--debug</code> output appears on stderr only.</li>
+      </ol>
+      <p class="text-sm opacity-75">Finish with <code class="inline">make check</code>.</p>
+    </div>
+  </section>
+
+  <!-- Commits -->
+  <section id="commits" class="card bg-base-100 shadow-sm">
+    <div class="card-body gap-3">
+      <h2 class="card-title text-2xl">Commit sequence</h2>
+      <ul class="steps steps-vertical">
+        <li class="step step-primary"><span class="text-left"><b>api</b>: request bodies + <code class="inline">Put</code>, debug to stderr, <code class="inline">taskIDQuery</code></span></li>
+        <li class="step step-primary"><span class="text-left"><b>models</b>: <code class="inline">List</code>, <code class="inline">FindStatus</code>, <code class="inline">StatusNames</code></span></li>
+        <li class="step step-primary"><span class="text-left"><b>api</b>: <code class="inline">GetList</code>, <code class="inline">UpdateTaskStatus</code></span></li>
+        <li class="step step-primary"><span class="text-left"><b>commands</b>: <code class="inline">tasks status</code></span></li>
+        <li class="step"><span class="text-left"><b>docs</b>: help text, README, skill</span></li>
+        <li class="step"><span class="text-left"><b>bin</b>: rebuilt binaries</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Risks -->
+  <section id="risks" class="card bg-base-100 shadow-sm">
+    <div class="card-body gap-3">
+      <h2 class="card-title text-2xl">Risks and edge cases</h2>
+      <div class="grid gap-3 md:grid-cols-2">
+        <div role="alert" class="alert alert-soft alert-warning items-start"><div><b>Statuses change between check and PUT.</b> ClickUp rejects the PUT with a 400, which we show as <code class="inline">failed to update task: ...</code>. No retry.</div></div>
+        <div role="alert" class="alert alert-soft alert-warning items-start"><div><b>Inherited statuses.</b> This depends on <code class="inline">GET /list</code> returning effective statuses. If the list comes back empty, we show a clear error instead of rejecting every status as invalid.</div></div>
+        <div role="alert" class="alert alert-soft alert-info items-start"><div><b>Name shadowing.</b> A task whose ID is literally <code class="inline">status</code> can't be viewed with <code class="inline">clickup tasks status</code>. No real ClickUp ID looks like that.</div></div>
+        <div role="alert" class="alert alert-soft alert-info items-start"><div><b>Compatibility.</b> The change only adds things. The <code class="inline">doRequest</code> signature is internal. Moving debug to stderr only affects anyone piping <code class="inline">--debug</code> output, and that output was already breaking JSON.</div></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script type="text/plain" id="src-command">package commands
+
+type statusUpdater interface {
+	GetTask(taskID, teamID string) (*models.Task, error)
+	GetList(listID string) (*models.List, error)
+	UpdateTaskStatus(taskID, teamID, status string) (*models.Task, error)
+}
+
+var tasksStatusCmd = &cobra.Command{
+	Use:   "status <task_id> <status>",
+	Short: "Change a task's status",
+	Args:  statusArgs,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		client, err := getAPIClient()
+		if err != nil {
+			return err
+		}
+		cfg, err := getConfig()
+		if err != nil {
+			return err
+		}
+		return setTaskStatus(os.Stdout, client, cfg.WorkspaceID, args[0], args[1])
+	},
+}
+
+func setTaskStatus(w io.Writer, client statusUpdater, teamID, taskID, name string) error {
+	task, err := client.GetTask(taskID, teamID)
+	if err != nil {
+		return fmt.Errorf("failed to get task: %w", err)
+	}
+
+	list, err := client.GetList(task.List.ID)
+	if err != nil {
+		return fmt.Errorf("failed to get list: %w", err)
+	}
+	if len(list.Statuses) == 0 {
+		return fmt.Errorf("list %q has no statuses", list.Name)
+	}
+
+	target, ok := list.FindStatus(name)
+	if !ok {
+		return invalidStatusError(name, list)
+	}
+
+	if strings.EqualFold(task.Status.Status, target.Status) {
+		fmt.Fprintf(w, "%s is already %q\n", task.GetDisplayID(), target.Status)
+		return nil
+	}
+
+	if _, err := client.UpdateTaskStatus(taskID, teamID, target.Status); err != nil {
+		return fmt.Errorf("failed to update task: %w", err)
+	}
+
+	fmt.Fprintf(w, "%s: %s -> %s\n", task.GetDisplayID(), task.Status.Status, target.Status)
+	return nil
+}
+</script>
+
+<script type="text/plain" id="src-client-old">func (c *Client) doRequest(method, path string, query url.Values) ([]byte, error) {
+	fullURL := c.baseURL + path
+	if query != nil && len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	if c.debug {
+		fmt.Printf("[DEBUG] %s %s\n", method, fullURL)
+	}
+
+	req, err := http.NewRequest(method, fullURL, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Authorization", c.apiToken)
+	req.Header.Set("Content-Type", "application/json")
+	// ... unchanged response handling
+}
+
+func (c *Client) Get(path string, query url.Values) ([]byte, error) {
+	return c.doRequest(http.MethodGet, path, query)
+}
+</script>
+
+<script type="text/plain" id="src-client-new">func (c *Client) doRequest(method, path string, query url.Values, payload any) ([]byte, error) {
+	fullURL := c.baseURL + path
+	if len(query) > 0 {
+		fullURL += "?" + query.Encode()
+	}
+
+	if c.debug {
+		fmt.Fprintf(os.Stderr, "[DEBUG] %s %s\n", method, fullURL)
+	}
+
+	var body io.Reader
+	if payload != nil {
+		data, err := json.Marshal(payload)
+		if err != nil {
+			return nil, err
+		}
+		body = bytes.NewReader(data)
+	}
+
+	req, err := http.NewRequest(method, fullURL, body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Authorization", c.apiToken)
+	if payload != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+	// ... unchanged response handling (debug lines also to stderr)
+}
+
+func (c *Client) Get(path string, query url.Values) ([]byte, error) {
+	return c.doRequest(http.MethodGet, path, query, nil)
+}
+
+func (c *Client) Put(path string, query url.Values, payload any) ([]byte, error) {
+	return c.doRequest(http.MethodPut, path, query, payload)
+}
+</script>
+
+<script type="module">
+  import { File, FileDiff } from "https://esm.sh/@pierre/diffs@1.2.10?bundle";
+
+  const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const options = { theme: { light: "github-light", dark: "github-dark" }, themeType: dark ? "dark" : "light", overflow: "wrap" };
+  const src = (id) => document.getElementById(id).textContent;
+
+  new File(options).render({
+    containerWrapper: document.querySelector("#code-command"),
+    file: { name: "internal/commands/tasks_status.go (sketch)", contents: src("src-command") },
+  });
+
+  const wide = window.matchMedia("(min-width: 900px)").matches;
+  new FileDiff({ ...options, diffStyle: wide ? "split" : "unified" }).render({
+    containerWrapper: document.querySelector("#code-client"),
+    oldFile: { name: "internal/api/client.go", contents: src("src-client-old") },
+    newFile: { name: "internal/api/client.go", contents: src("src-client-new") },
+  });
+</script>
+</body>
+</html>

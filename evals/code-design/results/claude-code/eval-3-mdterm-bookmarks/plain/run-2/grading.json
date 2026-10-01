@@ -1,0 +1,67 @@
+{
+  "expectations": [
+    {
+      "text": "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
+      "passed": true,
+      "evidence": "Checked: m toggle at viewer.rs:1647 and help at 3637; into_offset_iter at markdown.rs:1585; bracket_offset only in TaskItem; nav_history Vec<(usize,usize)>; serde_json and dirs deps; src has 10 files so 'eleven' with marks.rs is right; citations.json 5/5 valid."
+    },
+    {
+      "text": "conventions: the design follows the repo's existing conventions (layering, naming, error handling, dependency wiring) and names any deviation with a reason",
+      "passed": true,
+      "evidence": "Follows toast pattern (state toast helper), pure module plus viewer wiring, help_sections_no_duplicate_keys test, config uses dirs::config_dir so state_dir is a justified deviation ('state, not config')."
+    },
+    {
+      "text": "alternatives: at least one structurally different alternative is considered, with a concrete reason for rejecting it",
+      "passed": false,
+      "evidence": "The only rejected option is storing the raw wrapped offset, framed as a problem in 'Current state' rather than as a considered alternative; no alternatives section or comparison of structurally different designs (e.g. fixed storage keys, separate store vs config)."
+    },
+    {
+      "text": "preferences-honoured: the final plan agrees with every user answer given in the conversation and contradicts none",
+      "passed": true,
+      "evidence": "Regrade: user answered M for mouse capture, a-z only, JSON out of v1; plan matches. Marks in dirs::state_dir() falling back to data_local_dir, marks.json, not config.toml; Anchor { line, text } resolved lazily by nearest matching text survives resize and edits between sessions."
+    },
+    {
+      "text": "elicitation: each hidden preference that the plan's design depends on was either asked about or stated as an explicit assumption, never silently decided",
+      "passed": true,
+      "evidence": "M move and a-z asked; state dir stated explicitly with rationale; resize/edit survival stated as design goal."
+    },
+    {
+      "text": "coverage: every trigger the feature implies is designed end to end, including how failures are handled and what the user sees",
+      "passed": true,
+      "evidence": "Set/jump/cancel, slide mode, missing mark toast, JSON toast, stdin session-only, corrupt store, save error toast, concurrent instances, key-prefix ordering vs help."
+    },
+    {
+      "text": "consistency: unit, method and type names and signatures agree everywhere they appear across the plan",
+      "passed": true,
+      "evidence": "anchor_at/resolve/MarkStore/FileMarks/PendingKey names and signatures consistent between code block, prose and tests."
+    },
+    {
+      "text": "api-fit: new interfaces fit the code they plug into (existing types, call sites, layering), so the plan could be implemented without redesign",
+      "passed": true,
+      "evidence": "Line.src: Option<usize> handles synthetic lines with None; anchor_at walks forward to first Some; fits wrap_lines cloning, nav_history, toast, slide_boundaries."
+    },
+    {
+      "text": "key-fact: notices that m is already bound to the mouse-capture toggle in src/viewer.rs",
+      "passed": true,
+      "evidence": "Opening of plan and summary: m bound to mouse-capture toggle at src/viewer.rs:1647."
+    }
+  ],
+  "summary": {
+    "passed": 8,
+    "failed": 1,
+    "total": 9,
+    "pass_rate": 0.89
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "alternatives",
+        "reason": "Ambiguous when a plan rejects a naive approach inline; clarify whether implicit rejection counts."
+      },
+      {
+        "reason": "No assertion checks that the stored anchor actually survives resize/edit (hidden preference 4) beyond plan claims."
+      }
+    ],
+    "overall": "Key-fact and preferences assertions are easy to satisfy via the asked questions; alternatives is the discriminating one."
+  }
+}

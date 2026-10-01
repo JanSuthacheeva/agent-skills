@@ -1,0 +1,67 @@
+{
+  "expectations": [
+    {
+      "text": "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
+      "passed": true,
+      "evidence": "Checked: m at viewer.rs:1647, help 3637, markdown.rs:1585, nav_history type, border Print(\"\u2502 \") near viewer.rs:2528, ~51 Line literals (15+20+13+3), handle_slide_keys exists, ViewerState::new exists, theme h5 present; citations.json 6/6 valid."
+    },
+    {
+      "text": "conventions: the design follows the repo's existing conventions (layering, naming, error handling, dependency wiring) and names any deviation with a reason",
+      "passed": true,
+      "evidence": "Pure marks module, serde_json, toast, nav_history reuse, state-dir deviation justified, Theme field added in theme.rs style."
+    },
+    {
+      "text": "alternatives: at least one structurally different alternative is considered, with a concrete reason for rejecting it",
+      "passed": false,
+      "evidence": "The only rejected option is storing the raw wrapped offset, framed as a problem in 'Current state' rather than as a considered alternative; no alternatives section or comparison of structurally different designs (e.g. fixed storage keys, separate store vs config)."
+    },
+    {
+      "text": "preferences-honoured: the final plan agrees with every user answer given in the conversation and contradicts none",
+      "passed": true,
+      "evidence": "Regrade: user answers (M for mouse capture, a-z per file only, margin letters) all reflected in the plan. Marks in dirs::state_dir() falling back to data_dir(), marks.json, not config.toml; Anchor { line, row, text } resolved at jump time by nearest matching text survives resize and edits between sessions."
+    },
+    {
+      "text": "elicitation: each hidden preference that the plan's design depends on was either asked about or stated as an explicit assumption, never silently decided",
+      "passed": true,
+      "evidence": "M and a-z asked; margin marker asked; state dir stated with reason; resize/edit survival explicit."
+    },
+    {
+      "text": "coverage: every trigger the feature implies is designed end to end, including how failures are handled and what the user sees",
+      "passed": true,
+      "evidence": "Set/jump/cancel, slide mode, unknown mark toast, JSON and stdin limits, IO errors non-fatal, concurrent write, margin recompute in finalize_layout, themes."
+    },
+    {
+      "text": "consistency: unit, method and type names and signatures agree everywhere they appear across the plan",
+      "passed": true,
+      "evidence": "Anchor/anchor_at/resolve/MarkStore/PendingKey/mark_rows consistent; minor ambiguity of 'source' as both field and param name does not break agreement."
+    },
+    {
+      "text": "api-fit: new interfaces fit the code they plug into (existing types, call sites, layering), so the plan could be implemented without redesign",
+      "passed": false,
+      "evidence": "Line.source: usize non-optional with synthetic lines defaulting to 0 means spacers/JSON/diagram lines map to source line 1, and anchor_at has no handling for them; stamping 'lines just pushed' after process() is admitted in Risks to mis-stamp lazily flushed lines. Would need redesign during implementation."
+    },
+    {
+      "text": "key-fact: notices that m is already bound to the mouse-capture toggle in src/viewer.rs",
+      "passed": true,
+      "evidence": "Current state bullet: m is already bound to mouse capture toggle (src/viewer.rs:1647)."
+    }
+  ],
+  "summary": {
+    "passed": 7,
+    "failed": 2,
+    "total": 9,
+    "pass_rate": 0.78
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "alternatives",
+        "reason": "Ambiguous when a plan rejects a naive approach inline; clarify whether implicit rejection counts."
+      },
+      {
+        "reason": "No assertion checks that the stored anchor actually survives resize/edit (hidden preference 4) beyond plan claims."
+      }
+    ],
+    "overall": "Key-fact and preferences assertions are easy to satisfy via the asked questions; alternatives is the discriminating one."
+  }
+}

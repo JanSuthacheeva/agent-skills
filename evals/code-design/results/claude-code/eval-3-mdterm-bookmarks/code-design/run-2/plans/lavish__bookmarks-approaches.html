@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mdterm bookmarks - approaches</title>
+<style>
+  :root {
+    --bg: rgb(30,30,46); --fg: rgb(205,214,244); --border: rgb(68,71,90);
+    --muted: rgb(147,153,178); --dim: rgb(108,112,134); --panel: rgb(49,50,68);
+    --blue: rgb(137,180,250); --mauve: rgb(203,166,247); --green: rgb(166,227,161);
+    --yellow: rgb(249,226,175); --red: rgb(243,139,168);
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: rgb(239,241,245); --fg: rgb(76,79,105); --border: rgb(172,176,190);
+      --muted: rgb(92,95,119); --dim: rgb(108,111,133); --panel: rgb(220,224,232);
+      --blue: rgb(30,102,245); --mauve: rgb(136,57,239); --green: rgb(64,160,43);
+      --yellow: rgb(223,142,29); --red: rgb(210,15,57);
+      color-scheme: light;
+    }
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+    font: 15px/1.55 ui-sans-serif, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1040px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  h2 { font-size: 19px; color: var(--blue); margin: 40px 0 12px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+  h3 { font-size: 16px; margin: 0 0 6px; }
+  p { margin: 6px 0; overflow-wrap: anywhere; }
+  code, kbd { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px; }
+  code { background: var(--panel); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+  kbd { border: 1px solid var(--border); border-bottom-width: 2px; padding: 0 5px; border-radius: 4px; }
+  .sub { color: var(--muted); margin: 0; }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 14px; }
+  .grid2 > * { min-width: 0; }
+  .box { border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; background: color-mix(in srgb, var(--panel) 35%, transparent); }
+  .box ul { margin: 6px 0 0; padding-left: 18px; }
+  .box li { margin: 3px 0; overflow-wrap: anywhere; }
+  .warn { border-color: var(--yellow); }
+  .warn h3 { color: var(--yellow); }
+  .approach { border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; margin: 18px 0; }
+  .approach.rec { border-color: var(--green); box-shadow: 0 0 0 1px var(--green) inset; }
+  .tag { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 99px; border: 1px solid currentColor; margin-left: 8px; vertical-align: 2px; }
+  .tag.rec { color: var(--green); }
+  .tag.no { color: var(--red); }
+  .pc { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 12px; margin-top: 12px; }
+  .pc > div { min-width: 0; }
+  .pc h4 { margin: 0 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: .05em; }
+  .pros h4 { color: var(--green); } .cons h4 { color: var(--red); } .touch h4 { color: var(--muted); }
+  .pc ul { margin: 0; padding-left: 18px; } .pc li { margin: 3px 0; overflow-wrap: anywhere; }
+  figure { margin: 12px 0 4px; }
+  figure svg { width: 100%; height: auto; display: block; }
+  figcaption { color: var(--dim); font-size: 13px; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--muted); margin: 8px 0 0; }
+  .legend span::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; border: 2px solid; }
+  .lg-new::before { border-color: var(--green) !important; }
+  .lg-mod::before { border-color: var(--yellow) !important; border-style: dashed !important; }
+  .lg-ex::before { border-color: var(--border) !important; }
+  svg .n rect { fill: var(--bg); stroke-width: 2; }
+  svg .new rect { stroke: var(--green); }
+  svg .mod rect { stroke: var(--yellow); stroke-dasharray: 6 4; }
+  svg .ex rect { stroke: var(--border); }
+  svg text { fill: var(--fg); font: 13px "SF Mono", Menlo, monospace; }
+  svg text.s { fill: var(--dim); font-size: 11px; }
+  svg .e { stroke: var(--muted); stroke-width: 1.5; fill: none; marker-end: url(#arr); }
+  svg .el { fill: var(--muted); font-size: 11px; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { border-bottom: 1px solid var(--border); padding: 7px 8px; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+  th { color: var(--muted); font-weight: 600; }
+  .tw { overflow-x: auto; }
+  .good { color: var(--green); } .bad { color: var(--red); } .meh { color: var(--yellow); }
+  form { border: 1px solid var(--blue); border-radius: 10px; padding: 18px 20px; margin-top: 18px; }
+  fieldset { border: 0; padding: 0; margin: 0 0 16px; }
+  legend { font-weight: 600; margin-bottom: 6px; }
+  label.opt { display: block; padding: 6px 0; cursor: pointer; }
+  textarea { width: 100%; min-height: 80px; background: var(--bg); color: var(--fg); border: 1px solid var(--border); border-radius: 6px; padding: 8px; font: inherit; }
+  button { background: var(--blue); color: var(--bg); border: 0; border-radius: 6px; padding: 8px 16px; font: inherit; font-weight: 600; cursor: pointer; }
+  .status { color: var(--green); margin-left: 10px; font-size: 14px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>mdterm bookmarks - how to structure it</h1>
+  <p class="sub"><kbd>m</kbd>+letter sets a mark, <kbd>'</kbd>+letter jumps back, marks persist per file between sessions. Decision: <strong>what a mark is anchored to, and where mark state and persistence live.</strong></p>
+
+  <h2>What exists today</h2>
+  <div class="grid2">
+    <div class="box">
+      <h3>Keys and modes</h3>
+      <ul>
+        <li>All keys go through <code>handle_event</code> (<code>src/viewer.rs:993</code>), then per-mode handlers; Normal mode is <code>handle_normal</code> (<code>src/viewer.rs:1606</code>), one flat <code>match code</code>.</li>
+        <li>No key-sequence support yet: every binding is a single key. Multi-key flows today are <code>ViewMode</code> variants (<code>src/viewer.rs:230</code>) - Search, Toc, FuzzyHeading...</li>
+        <li>Slide mode and JSON nav intercept keys before the Normal match (<code>src/viewer.rs:1610-1617</code>).</li>
+        <li>Help overlay entries are a static table (<code>src/viewer.rs:3597</code>), guarded by a no-duplicate-keys test (<code>src/viewer.rs:3976</code>).</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>Position and navigation</h3>
+      <ul>
+        <li>"Current position" is <code>ViewerState.offset</code>: an index into <code>wrapped</code>, i.e. a <em>wrapped</em> terminal row (<code>src/viewer.rs:292-294</code>). It changes meaning on resize, width override and <kbd>l</kbd> line-number toggle, because <code>rebuild()</code> re-wraps (<code>src/viewer.rs:485</code>).</li>
+        <li>Closest sibling: <kbd>Backspace</kbd> back-navigation via <code>nav_history: Vec&lt;(file_idx, offset)&gt;</code> (<code>src/viewer.rs:365, 1765</code>), pushed by <code>dispatch_link</code> (<code>src/viewer.rs:1940</code>). In-memory only.</li>
+        <li>The renderer already receives source byte ranges per event (<code>src/markdown.rs:705, 1585</code>), but <code>Line</code> does not keep them (<code>src/style.rs:56</code>).</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>Persistence</h3>
+      <ul>
+        <li>Only persisted thing is read-only config: <code>Config::load()</code> reads <code>~/.config/mdterm/config.toml</code>, errors silently fall back to defaults (<code>src/config.rs:29-43</code>).</li>
+        <li>Nothing writes to disk today except task-checkbox toggling in the viewed file (<code>src/viewer.rs:865</code>).</li>
+        <li><code>dirs</code>, <code>serde</code>, <code>serde_json</code> and <code>toml</code> are already dependencies (<code>Cargo.toml</code>).</li>
+      </ul>
+    </div>
+    <div class="box warn">
+      <h3>Conflict: <kbd>m</kbd> is taken</h3>
+      <ul>
+        <li><kbd>m</kbd> currently toggles mouse capture (<code>src/viewer.rs:1647</code>, help entry at <code>src/viewer.rs:3637</code>). Taking it for marks means rebinding mouse capture - question at the bottom.</li>
+        <li><kbd>'</kbd> is free in every mode.</li>
+        <li>Side finding: the <kbd>m</kbd> mouse toggle is missing from the README controls table (<code>README.md:94-110</code>) - worth fixing alongside.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Approaches</h2>
+  <div class="legend"><span class="lg-new">new</span><span class="lg-mod">modified</span><span class="lg-ex">existing, unchanged</span></div>
+
+  <!-- A -->
+  <section class="approach" id="approach-a">
+    <h3>A. Row marks in ViewerState, JSON file store <span class="tag no">not recommended</span></h3>
+    <p>A mark is the wrapped-row <code>offset</code> at the time it was set. <code>ViewerState</code> holds a <code>HashMap&lt;char, usize&gt;</code> for the current file; a new <code>marks.rs</code> loads and saves a per-file map keyed by canonical path. Nothing below the viewer changes.</p>
+    <figure>
+      <svg viewBox="0 0 760 150" role="img" aria-label="Approach A units">
+        <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="color:var(--muted)"/></marker></defs>
+        <g class="n mod" id="a-viewer"><title>viewer.rs: handle_normal + ViewerState.marks</title><rect x="10" y="40" width="230" height="64" rx="6"/><text x="24" y="66">viewer.rs</text><text class="s" x="24" y="88">marks: HashMap&lt;char, usize&gt;</text></g>
+        <g class="n new" id="a-store"><title>marks.rs: MarkStore load/save</title><rect x="300" y="40" width="200" height="64" rx="6"/><text x="314" y="66">marks.rs</text><text class="s" x="314" y="88">MarkStore (row offsets)</text></g>
+        <g class="n ex" id="a-disk"><title>marks.json under data dir</title><rect x="560" y="40" width="190" height="64" rx="6"/><text x="574" y="66">marks.json</text><text class="s" x="574" y="88">{ path: { a: 120 } }</text></g>
+        <path class="e" d="M240,72 L298,72"/><path class="e" d="M500,72 L558,72"/>
+      </svg>
+    </figure>
+    <div class="pc">
+      <div class="pros"><h4>Benefits</h4><ul><li>Smallest change: viewer plus one new module.</li><li>Mirrors <code>nav_history</code>, which already stores raw offsets (<code>src/viewer.rs:365</code>).</li></ul></div>
+      <div class="cons"><h4>Costs</h4><ul><li><strong>Persistence is broken by design:</strong> a row index from an 80-col session points somewhere else in a 120-col session.</li><li>Within a session, resize or <kbd>l</kbd> silently moves every mark.</li><li>Fixing this later means a data migration of stored marks.</li></ul></div>
+      <div class="touch"><h4>Touches</h4><ul><li><code>viewer.rs</code> (keys, state, help)</li><li>new <code>marks.rs</code>, <code>main.rs</code> mod line</li></ul></div>
+    </div>
+  </section>
+
+  <!-- B -->
+  <section class="approach rec" id="approach-b">
+    <h3>B. Source-anchored marks: lines carry their source line <span class="tag rec">recommended</span></h3>
+    <p>A mark stores the <strong>source line number</strong> of the top visible line. The markdown renderer stamps each <code>Line</code> with the source line of the event that produced it (it already has the byte range, <code>src/markdown.rs:705</code>); <code>wrap_lines</code> carries it onto every wrapped fragment. On jump, the viewer finds the first wrapped row whose source line is &gt;= the mark. A new <code>marks.rs</code> owns the mark set and its persistence.</p>
+    <figure>
+      <svg viewBox="0 0 760 210" role="img" aria-label="Approach B units">
+        <g class="n mod" id="b-viewer"><title>viewer.rs: key handling, source_line_at / row_for_source_line</title><rect x="10" y="20" width="230" height="64" rx="6"/><text x="24" y="46">viewer.rs</text><text class="s" x="24" y="68">pending mark key, jump</text></g>
+        <g class="n new" id="b-store"><title>marks.rs: Marks + MarkStore</title><rect x="300" y="20" width="200" height="64" rx="6"/><text x="314" y="46">marks.rs</text><text class="s" x="314" y="68">Marks, MarkStore</text></g>
+        <g class="n ex" id="b-disk"><title>marks.json under data dir</title><rect x="560" y="20" width="190" height="64" rx="6"/><text x="574" y="46">marks.json</text><text class="s" x="574" y="68">{ path: { a: 42 } }</text></g>
+        <g class="n mod" id="b-md"><title>markdown.rs: stamp source line on each Line</title><rect x="10" y="130" width="230" height="64" rx="6"/><text x="24" y="156">markdown.rs</text><text class="s" x="24" y="178">stamps Line.source_line</text></g>
+        <g class="n mod" id="b-style"><title>style.rs: Line.source_line, kept by wrap_lines</title><rect x="300" y="130" width="200" height="64" rx="6"/><text x="314" y="156">style.rs</text><text class="s" x="314" y="178">Line.source_line</text></g>
+        <path class="e" d="M240,52 L298,52"/><path class="e" d="M500,52 L558,52"/>
+        <path class="e" d="M125,84 L125,128"/><text class="el" x="132" y="112">rebuild()</text>
+        <path class="e" d="M240,162 L298,162"/><path class="e" d="M300,140 C270,110 260,100 242,84"/><text class="el" x="268" y="112">wrapped</text>
+      </svg>
+    </figure>
+    <div class="pc">
+      <div class="pros"><h4>Benefits</h4><ul><li>Marks mean the same thing at any width, after resize, theme or line-number toggle, and across sessions.</li><li>Behaves like vim marks: edits above the mark shift it, edits below do not.</li><li>The source-line seam is reusable later (e.g. "open in $EDITOR at line", search-to-source).</li><li><code>Marks</code> is pure data - unit-testable without a terminal.</li></ul></div>
+      <div class="cons"><h4>Costs</h4><ul><li>Adds a field to <code>Line</code>, which has ~50 struct literals across <code>markdown.rs</code>, <code>style.rs</code>, <code>json.rs</code>, <code>viewer.rs</code> - mechanical but wide.</li><li>Source line is block/event granularity: a mark inside a long wrapped paragraph returns to the paragraph's first row.</li><li>JSON views have no meaningful source line, so marks are markdown-only (or row-based there).</li></ul></div>
+      <div class="touch"><h4>Touches</h4><ul><li><code>style.rs</code> (<code>Line</code>, <code>wrap_lines</code>)</li><li><code>markdown.rs</code> (stamping), <code>json.rs</code> (literals)</li><li><code>viewer.rs</code>, new <code>marks.rs</code>, <code>main.rs</code></li></ul></div>
+    </div>
+  </section>
+
+  <!-- C -->
+  <section class="approach" id="approach-c">
+    <h3>C. Heading-relative marks, no renderer change</h3>
+    <p>A mark stores <code>(heading slug, rows below heading)</code>, computed from the existing <code>toc_entries</code> (<code>src/viewer.rs:661</code>) and resolved with the same slug lookup as <code>navigate_to_anchor</code> (<code>src/viewer.rs:1979</code>). Falls back to document top when no heading precedes the mark or the heading is gone.</p>
+    <figure>
+      <svg viewBox="0 0 760 150" role="img" aria-label="Approach C units">
+        <g class="n mod" id="c-viewer"><title>viewer.rs: resolve via toc_entries + heading_to_slug</title><rect x="10" y="40" width="230" height="64" rx="6"/><text x="24" y="66">viewer.rs</text><text class="s" x="24" y="88">toc_entries + heading_to_slug</text></g>
+        <g class="n new" id="c-store"><title>marks.rs: MarkStore with heading anchors</title><rect x="300" y="40" width="200" height="64" rx="6"/><text x="314" y="66">marks.rs</text><text class="s" x="314" y="88">Mark { slug, rows }</text></g>
+        <g class="n ex" id="c-disk"><title>marks.json under data dir</title><rect x="560" y="40" width="190" height="64" rx="6"/><text x="574" y="66">marks.json</text><text class="s" x="574" y="88">{ a: ["setup", 3] }</text></g>
+        <path class="e" d="M240,72 L298,72"/><path class="e" d="M500,72 L558,72"/>
+      </svg>
+    </figure>
+    <div class="pc">
+      <div class="pros"><h4>Benefits</h4><ul><li>No changes to <code>Line</code>, renderer or wrapping.</li><li>Survives edits in other sections, even reordering sections.</li><li>Reuses existing slug logic.</li></ul></div>
+      <div class="cons"><h4>Costs</h4><ul><li>"Rows below heading" is still wrapped rows: drifts with width inside long sections.</li><li>Breaks on heading rename and on duplicate headings (first one wins, same as anchors today).</li><li>Documents without headings degrade to "top of file".</li><li>Two concepts (slug + rows) to explain and test.</li></ul></div>
+      <div class="touch"><h4>Touches</h4><ul><li><code>viewer.rs</code>, new <code>marks.rs</code>, <code>main.rs</code></li></ul></div>
+    </div>
+  </section>
+
+  <h2>Side by side</h2>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Criterion</th><th>A. Row</th><th>B. Source line</th><th>C. Heading-relative</th></tr></thead>
+      <tbody>
+        <tr><td>Correct after width change / next session</td><td class="bad">No</td><td class="good">Yes</td><td class="meh">Approx.</td></tr>
+        <tr><td>Correct after editing the file</td><td class="bad">No</td><td class="meh">Shifts like vim</td><td class="good">Mostly</td></tr>
+        <tr><td>Precision inside a long paragraph</td><td class="good">Exact row</td><td class="meh">Block start</td><td class="meh">Row, drifts</td></tr>
+        <tr><td>Blast radius</td><td class="good">2 files</td><td class="bad">6 files, ~50 literals</td><td class="good">2 files</td></tr>
+        <tr><td>Long-term maintainability</td><td class="bad">Needs migration later</td><td class="good">Clean seam, reusable</td><td class="meh">Edge-case heavy</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Shared by all approaches</h2>
+  <div class="box">
+    <ul>
+      <li>New <code>src/marks.rs</code>, peer of <code>config.rs</code>, storing <code>marks.json</code> under <code>dirs::data_dir()/mdterm/</code> (data, not config), keyed by canonicalized file path. Load/save errors degrade silently to "no marks" like <code>Config::load</code> (<code>src/config.rs:30</code>), with a toast on save failure.</li>
+      <li>The "waiting for a letter" step is a new <code>ViewMode</code> variant, matching how other multi-key flows are modeled (<code>src/viewer.rs:230</code>).</li>
+      <li>Jumping to a mark pushes onto <code>nav_history</code> so <kbd>Backspace</kbd> returns, like following a link (<code>src/viewer.rs:1966</code>).</li>
+      <li>Stdin input has no path, so marks there are session-only.</li>
+    </ul>
+  </div>
+
+  <h2>Recommendation</h2>
+  <p><strong>B.</strong> The feature's defining requirement is persistence between sessions, and only a width-independent anchor makes a persisted mark mean anything. A is wrong for that requirement, and C fixes it only partially while adding rename/duplicate edge cases. B's cost is a wide but mechanical change to <code>Line</code>, which per your guidance should not outweigh correctness, and it leaves a source-position seam the viewer currently lacks.</p>
+
+  <form data-lavish-question="approach" onsubmit="event.preventDefault(); const f = new FormData(event.currentTarget); const a = f.get('approach'); const m = f.get('mousekey'); const notes = (f.get('notes') || '').trim(); if (!a || !m) { event.currentTarget.querySelector('.status').textContent = 'Pick an approach and a mouse-capture option.'; return; } window.lavish.queuePrompt('Approach: ' + a + '. Mouse capture key: ' + m + '.' + (notes ? ' Notes: ' + notes : ''), { tag: 'choice', text: 'Approach ' + a + ', mouse: ' + m, element: event.currentTarget, data: { question: 'approach', approach: a, mousekey: m, notes } }); event.currentTarget.querySelector('.status').textContent = 'Queued - press Send to Agent.';">
+    <fieldset>
+      <legend>Which approach?</legend>
+      <label class="opt"><input type="radio" name="approach" value="A - row marks"> A. Row marks in ViewerState</label>
+      <label class="opt"><input type="radio" name="approach" value="B - source-anchored marks" checked> B. Source-anchored marks (recommended)</label>
+      <label class="opt"><input type="radio" name="approach" value="C - heading-relative marks"> C. Heading-relative marks</label>
+    </fieldset>
+    <fieldset>
+      <legend>Where does mouse capture go, since <kbd>m</kbd> becomes marks?</legend>
+      <label class="opt"><input type="radio" name="mousekey" value="move to M" checked> Move mouse capture to <kbd>M</kbd> (recommended)</label>
+      <label class="opt"><input type="radio" name="mousekey" value="keep m for mouse, use a different mark key"> Keep <kbd>m</kbd> for mouse, pick another key for marks</label>
+      <label class="opt"><input type="radio" name="mousekey" value="other (see notes)"> Other (notes)</label>
+    </fieldset>
+    <fieldset>
+      <legend>Rationale / notes</legend>
+      <textarea name="notes" placeholder="Mixes, corrections, constraints..."></textarea>
+    </fieldset>
+    <button type="submit">Queue this answer</button><span class="status" role="status" aria-live="polite"></span>
+  </form>
+</main>
+</body>
+</html>

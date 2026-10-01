@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mdterm marks - implementation plan</title>
+<style>
+  :root {
+    /* mdterm dark theme (src/theme.rs, Theme::dark) */
+    --bg: rgb(30, 30, 46);
+    --fg: rgb(205, 214, 244);
+    --border: rgb(68, 71, 90);
+    --title: rgb(147, 153, 178);
+    --muted: rgb(108, 112, 134);
+    --hint: rgb(88, 91, 112);
+    --track: rgb(49, 50, 68);
+    --h2: rgb(137, 180, 250);
+    --h3: rgb(203, 166, 247);
+    --green: rgb(166, 227, 161);
+    --peach: rgb(250, 179, 135);
+    --red: rgb(243, 139, 168);
+    --yellow: rgb(249, 226, 175);
+    --teal: rgb(148, 226, 213);
+    --panel: rgb(36, 36, 54);
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.6 var(--sans); }
+  main { max-width: 1120px; margin: 0 auto; padding: 40px 24px 96px; }
+  h1, h2, h3 { line-height: 1.25; margin: 0; }
+  h1 { font-size: 30px; letter-spacing: -0.01em; }
+  h2 { font-size: 21px; color: var(--h2); margin: 56px 0 16px; }
+  h3 { font-size: 16px; color: var(--h3); }
+  p { margin: 8px 0; }
+  code, .mono { font-family: var(--mono); font-size: 0.9em; }
+  code { background: var(--track); padding: 1px 6px; border-radius: 4px; overflow-wrap: anywhere; }
+  a { color: var(--h2); }
+  .eyebrow { font: 600 12px/1 var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; }
+  .lede { color: var(--title); font-size: 17px; max-width: 760px; }
+  .grid { display: grid; gap: 16px; }
+  .g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  @media (max-width: 860px) { .g2, .g3 { grid-template-columns: minmax(0, 1fr); } }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; min-width: 0; }
+  .card > * { min-width: 0; }
+  .pill { display: inline-block; font: 600 11px/1 var(--mono); padding: 5px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+  .pill.green { color: var(--green); } .pill.peach { color: var(--peach); } .pill.blue { color: var(--h2); } .pill.mauve { color: var(--h3); } .pill.red { color: var(--red); }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; overflow-wrap: anywhere; }
+  th { color: var(--muted); font: 600 12px/1.3 var(--mono); text-transform: uppercase; letter-spacing: 0.06em; }
+  ul { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; }
+  .muted { color: var(--muted); }
+  /* terminal mock */
+  .term { font: 13px/1.5 var(--mono); background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; overflow: hidden; }
+  .term .row { white-space: pre; overflow: hidden; text-overflow: clip; }
+  .term .b { color: var(--border); } .term .t { color: var(--title); } .term .h2 { color: var(--h2); font-weight: 700; }
+  .term .p { color: var(--h2); } .term .toast { color: var(--bg); background: var(--green); padding: 0 6px; border-radius: 3px; }
+  /* tasks */
+  .task { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 16px; padding: 20px; }
+  .task .num { font: 700 26px/1 var(--mono); color: var(--h3); }
+  .task h3 { font-size: 17px; color: var(--fg); }
+  .task .files { font: 12px/1.6 var(--mono); color: var(--title); margin: 6px 0 10px; overflow-wrap: anywhere; }
+  .tests { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .tests code { font-size: 11.5px; color: var(--teal); }
+  .iface { border-left: 3px solid var(--h2); padding: 4px 0 4px 12px; margin: 10px 0; }
+  .callout { border-left: 3px solid var(--peach); background: rgba(250, 179, 135, 0.07); padding: 12px 16px; border-radius: 0 8px 8px 0; }
+  .callout.red { border-color: var(--red); background: rgba(243, 139, 168, 0.07); }
+  .code-head { font: 12px/1.4 var(--mono); color: var(--title); margin: 18px 0 6px; overflow-wrap: anywhere; }
+  .codebox { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; min-width: 0; }
+  svg text { font-family: var(--mono); }
+  .rf { counter-reset: rf; list-style: none; padding: 0; }
+  .rf li { counter-increment: rf; display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .rf li::before { content: counter(rf); font: 700 18px/1.3 var(--mono); color: var(--peach); }
+  .choice { border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; background: var(--panel); }
+  .choice.rec { border-color: var(--green); }
+</style>
+</head>
+<body>
+<main>
+
+<!-- ── Header ──────────────────────────────────────────────────────────── -->
+<header id="header">
+  <div class="eyebrow">mdterm · implementation plan · 2026-10-01</div>
+  <h1 style="margin-top:10px">Marks: <code>m{a-z}</code> to set, <code>'{a-z}</code> to jump, kept per file</h1>
+  <p class="lede">Vim-style marks that keep pointing at the same <em>content</em> through terminal resizes, theme and line-number toggles, image loading and edits picked up by auto-reload. They persist across sessions in a small state file.</p>
+  <div class="meta">
+    <span class="pill green">spec approved · ef942dd</span>
+    <span class="pill blue">6 tasks · TDD</span>
+    <span class="pill mauve">1 new module: src/marks.rs</span>
+    <span class="pill peach">0 new runtime deps</span>
+  </div>
+  <p class="muted" style="margin-top:14px">Full step-by-step plan with every test and code block: <code>.lavish/mdterm-marks.md</code>. Spec: <code>docs/superpowers/specs/2026-10-01-bookmarks-design.md</code>.</p>
+</header>
+
+<!-- ── Current vs target ───────────────────────────────────────────────── -->
+<section id="current-vs-target">
+  <h2>Today vs after</h2>
+  <div class="grid g2">
+    <div class="card" id="today">
+      <h3>Today</h3>
+      <ul>
+        <li><code>m</code> toggles mouse capture (<code>src/viewer.rs:1647</code>).</li>
+        <li>Scroll position is just <code>state.offset</code>, a row index into the <em>wrapped</em> output. It changes with width, gutter and image sizes.</li>
+        <li><code>Line</code> has no link back to the source. The renderer reads <code>into_offset_iter()</code> (<code>src/markdown.rs:1585</code>) but throws the ranges away.</li>
+        <li>No per-file state is saved anywhere. Only <code>config.toml</code> is read.</li>
+      </ul>
+    </div>
+    <div class="card" id="after">
+      <h3>After</h3>
+      <ul>
+        <li><code>m</code> / <code>'</code> are mark prefixes. <code>M</code> toggles the mouse.</li>
+        <li>Every row carries <code>src</code>, the source byte offset it came from, through wrapping and image expansion.</li>
+        <li>A mark is stored as <code>{line, text}</code> and found again by its text first, then by its line number.</li>
+        <li><code>marks.json</code> lives in the state dir and is written atomically. It is never overwritten if unreadable.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="grid g2" style="margin-top:16px" id="ui-mock">
+    <div class="card">
+      <div class="eyebrow" style="margin-bottom:8px">After pressing <code>m</code>: prefix pending</div>
+      <div class="term" role="img" aria-label="mdterm status bar showing m- prefix hint">
+        <div class="row"><span class="b">╭─</span><span class="t"> spec.md </span><span class="b">──────────────────────────╮</span></div>
+        <div class="row"><span class="b">│ </span><span class="h2">## Rollout plan</span></div>
+        <div class="row"><span class="b">│ </span>Ship behind the flag first, then</div>
+        <div class="row"><span class="b">│ </span>enable for internal users.</div>
+        <div class="row"><span class="b">╰─</span><span class="p"> m- </span><span class="b">──────────────────────────────╯</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="eyebrow" style="margin-bottom:8px">After pressing <code>a</code>: mark set</div>
+      <div class="term" role="img" aria-label="mdterm view with Mark a set toast">
+        <div class="row"><span class="b">╭─</span><span class="t"> spec.md </span><span class="b">──────────────────────────╮</span></div>
+        <div class="row"><span class="b">│ </span><span class="h2">## Rollout plan</span>        <span class="toast">Mark a set</span></div>
+        <div class="row"><span class="b">│ </span>Ship behind the flag first, then</div>
+        <div class="row"><span class="b">│ </span>enable for internal users.</div>
+        <div class="row"><span class="b">╰─</span><span class="b">─────────────────────────────</span><span class="t"> 42% </span><span class="b">─╯</span></div>
+      </div>
+    </div>
+  </div>
+  <p class="muted">These mocks use mdterm's dark theme colors. The <code>m-</code> hint reuses the search prompt layout and color (<code>theme.search_prompt</code>). The exact toast position follows the existing toast overlay.</p>
+</section>
+
+<!-- ── Architecture ────────────────────────────────────────────────────── -->
+<section id="architecture">
+  <h2>How a mark travels</h2>
+  <p>The question this answers: <strong>why do marks survive resizes and edits?</strong> They never store a row. Rows are turned into source offsets on the way in, and back into rows on the way out, against whatever the layout is at that moment.</p>
+  <div class="card" style="padding:12px">
+    <svg viewBox="0 0 1040 330" width="100%" role="img" aria-labelledby="flow-title">
+      <title id="flow-title">Data flow from markdown source to mark and back</title>
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="rgb(127,132,156)"/>
+        </marker>
+      </defs>
+      <!-- render path -->
+      <g id="n-source"><title>Markdown source (state.content)</title>
+        <rect x="10" y="30" width="170" height="64" rx="8" fill="rgb(36,36,54)" stroke="rgb(68,71,90)"/>
+        <text x="95" y="58" text-anchor="middle" fill="rgb(205,214,244)" font-size="14">source text</text>
+        <text x="95" y="78" text-anchor="middle" fill="rgb(108,112,134)" font-size="11">state.content</text>
+      </g>
+      <g id="n-render"><title>Renderer stamps Line.src (Tasks 1-2)</title>
+        <rect x="240" y="30" width="200" height="64" rx="8" fill="rgb(36,36,54)" stroke="rgb(203,166,247)"/>
+        <text x="340" y="58" text-anchor="middle" fill="rgb(205,214,244)" font-size="14">render_with</text>
+        <text x="340" y="78" text-anchor="middle" fill="rgb(203,166,247)" font-size="11">stamps Line.src</text>
+      </g>
+      <g id="n-wrap"><title>wrap_lines and finalize_layout copy src (Task 1)</title>
+        <rect x="500" y="30" width="210" height="64" rx="8" fill="rgb(36,36,54)" stroke="rgb(203,166,247)"/>
+        <text x="605" y="58" text-anchor="middle" fill="rgb(205,214,244)" font-size="14">wrapped rows</text>
+        <text x="605" y="78" text-anchor="middle" fill="rgb(203,166,247)" font-size="11">src copied to each row</text>
+      </g>
+      <g id="n-view"><title>Viewport, state.offset</title>
+        <rect x="770" y="30" width="250" height="64" rx="8" fill="rgb(36,36,54)" stroke="rgb(68,71,90)"/>
+        <text x="895" y="58" text-anchor="middle" fill="rgb(205,214,244)" font-size="14">top visible row</text>
+        <text x="895" y="78" text-anchor="middle" fill="rgb(108,112,134)" font-size="11">state.offset (changes on resize)</text>
+      </g>
+      <path id="e1" d="M180,62 H236" stroke="rgb(127,132,156)" marker-end="url(#arr)"/>
+      <path id="e2" d="M440,62 H496" stroke="rgb(127,132,156)" marker-end="url(#arr)"/>
+      <path id="e3" d="M710,62 H766" stroke="rgb(127,132,156)" marker-end="url(#arr)"/>
+
+      <!-- set path -->
+      <g id="n-capture"><title>source_at_row + Anchor::capture (Task 3)</title>
+        <rect x="770" y="160" width="250" height="64" rx="8" fill="rgb(36,36,54)" stroke="rgb(166,227,161)"/>
+        <text x="895" y="188" text-anchor="middle" fill="rgb(166,227,161)" font-size="14">m a: capture</text>
+        <text x="895" y="208" text-anchor="middle" fill="rgb(108,112,134)" font-size="11">row → src → {line, text}</text>
+      </g>
+      <g id="n-store"><title>MarkStore, marks.json (Task 4)</title>
+        <rect x="430" y="160" width="250" height="64" rx="8" fill="rgb(36,36,54)" stroke="rgb(250,179,135)"/>
+        <text x="555" y="188" text-anchor="middle" fill="rgb(250,179,135)" font-size="14">MarkStore</text>
+        <text x="555" y="208" text-anchor="middle" fill="rgb(108,112,134)" font-size="11">marks.json · atomic write</text>
+      </g>
+      <g id="n-resolve"><title>Anchor::resolve + row_for_source (Task 3)</title>
+        <rect x="90" y="160" width="270" height="64" rx="8" fill="rgb(36,36,54)" stroke="rgb(137,180,250)"/>
+        <text x="225" y="188" text-anchor="middle" fill="rgb(137,180,250)" font-size="14">' a: resolve</text>
+        <text x="225" y="208" text-anchor="middle" fill="rgb(108,112,134)" font-size="11">text match → byte → first block row</text>
+      </g>
+      <path id="e4" d="M895,94 V156" stroke="rgb(166,227,161)" marker-end="url(#arr)"/>
+      <path id="e5" d="M770,192 H684" stroke="rgb(166,227,161)" marker-end="url(#arr)"/>
+      <path id="e6" d="M430,192 H364" stroke="rgb(137,180,250)" marker-end="url(#arr)"/>
+      <path id="e7" d="M225,224 V280 H895 V98" fill="none" stroke="rgb(137,180,250)" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+      <text x="560" y="300" text-anchor="middle" fill="rgb(137,180,250)" font-size="12">sets state.offset against the *current* layout · pushes nav_history (Backspace returns)</text>
+      <path id="e8" d="M95,94 V130 H180 V156" fill="none" stroke="rgb(68,71,90)" stroke-dasharray="3 3" marker-end="url(#arr)"/>
+      <text x="100" y="124" fill="rgb(108,112,134)" font-size="11">current content</text>
+    </svg>
+  </div>
+
+  <div class="grid g3" style="margin-top:16px" id="modules">
+    <div class="card" id="mod-style">
+      <span class="pill mauve">style.rs · markdown.rs</span>
+      <h3 style="margin-top:10px">Provenance</h3>
+      <p>The rule: <code>Line.src</code> comes from the first span's event for text, the event start for borders, tables and images, a per-line offset in code blocks, and <code>None</code> for blank separators.</p>
+    </div>
+    <div class="card" id="mod-marks">
+      <span class="pill green">marks.rs (new)</span>
+      <h3 style="margin-top:10px">Anchors + store</h3>
+      <p>Pure functions over <code>&amp;str</code> and <code>&amp;[Line]</code>, plus <code>MarkStore</code>. No terminal code, so all of it can be tested without a terminal.</p>
+    </div>
+    <div class="card" id="mod-viewer">
+      <span class="pill blue">viewer.rs</span>
+      <h3 style="margin-top:10px">Wiring only</h3>
+      <p>Prefix state, guards, toasts, status hint and help entries. No anchor logic lives here, which keeps the 4356-line file from growing a new concern.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Refinements ─────────────────────────────────────────────────────── -->
+<section id="refinements">
+  <h2>Where the plan refines the spec</h2>
+  <p>All four stay within the approved design's intent. They came from reading the renderer and test harness closely while planning.</p>
+  <table>
+    <thead><tr><th style="width:30%">Spec said</th><th style="width:36%">Plan does</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr id="ref-1"><td>Stamp <code>src</code> in the <code>render_with</code> loop only</td><td>Text lines take <code>src</code> from their first span (<code>push_span</code>). The loop fills the rest.</td><td><code>Start(List)</code> flushes the parent item's text, so stamping only in the loop would give the parent the nested list's offset.</td></tr>
+      <tr id="ref-2"><td>Scan forward from the top row for a <code>src</code></td><td>Blank separator rows get <code>src: None</code></td><td>Otherwise a blank top row would carry the <em>previous</em> paragraph's offset, and the mark would land one block too early.</td></tr>
+      <tr id="ref-3"><td><code>MarkStore</code> loaded in <code>ViewerState::new</code></td><td>Passed in through <code>ViewerOptions.marks</code> from <code>main.rs</code> (TTY path only)</td><td>Tests inject <code>MarkStore::in_memory()</code> and never touch the real marks file.</td></tr>
+      <tr id="ref-4"><td>No case for empty documents</td><td>Toast <code>Nothing to mark</code></td><td>With no content rows there is nothing to anchor to, so this avoids failing silently.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ── Tasks ───────────────────────────────────────────────────────────── -->
+<section id="tasks">
+  <h2>Tasks</h2>
+  <p class="muted">Each task follows the same loop: write failing tests, implement, then <code>cargo test</code> + <code>cargo clippy --all-targets</code> (zero warnings) + <code>cargo fmt --check</code>, then commit. Baseline today: 149 passed, 6 ignored, clippy and fmt clean.</p>
+
+  <div class="grid" style="gap:14px">
+    <article class="card task" id="task-1">
+      <div class="num">1</div>
+      <div>
+        <h3>Source provenance on <code>Line</code></h3>
+        <div class="files">src/style.rs · src/markdown.rs · src/json.rs · src/viewer.rs (finalize_layout)</div>
+        <p>Add <code>pub src: Option&lt;usize&gt;</code>, set <code>src: None</code> explicitly on every literal (the compiler lists them), copy <code>src</code> to every wrapped row, assign it in the renderer, and copy it onto expanded image rows.</p>
+        <div class="iface"><span class="muted">Produces</span> every rendered row knows its source byte offset, and blank rows don't have one.</div>
+        <div class="tests"><code>wrap_propagates_src_to_every_row</code><code>wrap_propagates_src_through_blockquote_rows</code><code>heading_and_paragraph_get_src</code><code>nested_list_item_gets_its_own_src</code><code>blockquote_paragraphs_get_their_own_src</code><code>table_rows_get_src</code><code>blank_separator_lines_have_no_src</code><code>finalize_layout_copies_src_to_image_rows</code></div>
+      </div>
+    </article>
+
+    <article class="card task" id="task-2">
+      <div class="num">2</div>
+      <div>
+        <h3>Per-line source offsets in code blocks</h3>
+        <div class="files">src/markdown.rs (emit_code_block, Text handler)</div>
+        <p>Record where the first code text event starts, then give code row <em>i</em> the start of source line <em>(first line + i)</em>. Because it is line-based, it stays correct inside blockquotes and indented blocks, where the source has <code>&gt; </code> or indentation prefixes.</p>
+        <div class="iface"><span class="muted">Produces</span> a mark inside a 200-line code block lands on that line, not on the fence.</div>
+        <div class="tests"><code>code_block_lines_get_per_line_src</code><code>code_block_in_blockquote_maps_to_source_line_starts</code><code>indented_code_block_lines_get_per_line_src</code></div>
+      </div>
+    </article>
+
+    <article class="card task" id="task-3">
+      <div class="num">3</div>
+      <div>
+        <h3><code>marks.rs</code>: anchors and row mapping</h3>
+        <div class="files">src/marks.rs (new) · src/main.rs (mod marks;)</div>
+        <p><code>Anchor::capture</code> / <code>resolve</code> (exact line, nearest text match with the earlier line winning a tie, else the line number clamped to the file), <code>source_at_row</code>, and <code>row_for_source</code> (first row of the block that contains the byte).</p>
+        <div class="iface"><span class="muted">Produces</span> <code>Anchor { line, text }</code>, <code>Resolved { byte, line, exact }</code> and two row-mapping functions.</div>
+        <div class="tests"><code>capture_handles_multibyte_and_crlf</code><code>long_line_fingerprint_still_matches</code><code>resolve_follows_lines_inserted_above</code><code>resolve_follows_lines_deleted_above</code><code>resolve_falls_back_to_line_when_text_gone</code><code>resolve_prefers_nearest_duplicate_and_earlier_on_tie</code><code>resolve_clamps_when_file_truncated</code><code>resolve_empty_file</code><code>row_for_source_finds_first_row_of_containing_block</code><span class="muted">+5 more</span></div>
+      </div>
+    </article>
+
+    <article class="card task" id="task-4">
+      <div class="num">4</div>
+      <div>
+        <h3><code>MarkStore</code> persistence</h3>
+        <div class="files">src/marks.rs · Cargo.toml (tempfile dev-dependency)</div>
+        <p>Load from <code>state_dir</code>, falling back to <code>data_dir</code>, at <code>mdterm/marks.json</code>. Keys are canonical paths. To save: re-read, merge one entry, write <code>marks.json.&lt;pid&gt;.tmp</code>, then <code>rename</code>. A corrupt file or unknown version is never written over, and the warning is reported once per session.</p>
+        <div class="iface"><span class="muted">Produces</span> <code>load()</code>, <code>load_from()</code>, <code>in_memory()</code>, <code>get()</code>, and <code>set() -&gt; io::Result&lt;SaveStatus&gt;</code> with <code>Saved | Skipped | Unreadable</code>.</div>
+        <div class="tests"><code>set_then_reload_round_trips</code><code>relative_and_absolute_paths_share_marks</code><code>set_merges_with_entries_written_by_another_instance</code><code>corrupt_file_is_never_overwritten</code><code>unknown_version_is_treated_as_unreadable</code><code>file_corrupted_after_load_is_not_overwritten</code><code>missing_parent_directory_is_created</code><code>write_failure_is_reported_and_mark_kept</code><span class="muted">+2 more</span></div>
+      </div>
+    </article>
+
+    <article class="card task" id="task-5">
+      <div class="num">5</div>
+      <div>
+        <h3>Viewer integration, keys and docs</h3>
+        <div class="files">src/viewer.rs · src/main.rs · README.md · CLAUDE.md</div>
+        <p>Add <code>MarkOp</code> and <code>pending_mark</code>. The prefix is checked in <code>handle_event</code> right after Ctrl+C and before the help toggle. <code>m</code> / <code>'</code> start a prefix, <code>M</code> toggles the mouse. Also: stdin and JSON guards, set/jump with re-anchoring, the <code>m-</code> / <code>'-</code> status hint, help entries, and README and CLAUDE.md updates.</p>
+        <div class="iface"><span class="muted">Produces</span> the feature as users see it.</div>
+        <div class="tests"><code>set_and_jump_round_trip</code><code>mark_survives_resize</code><code>mark_on_nested_list_item_round_trips</code><code>mark_follows_lines_inserted_above_on_reload</code><code>jump_after_truncation_clamps_and_reports_fallback</code><code>prefix_takes_precedence_over_help_and_quit</code><code>prefix_then_non_letter_cancels_without_side_effects</code><code>ctrl_c_quits_while_prefix_pending</code><code>marks_are_per_file</code><code>marks_need_a_file</code><code>marks_unavailable_in_json_view</code><code>nothing_to_mark_in_empty_document</code><code>help_lists_mark_keys_and_moved_mouse_toggle</code></div>
+      </div>
+    </article>
+
+    <article class="card task" id="task-6">
+      <div class="num">6</div>
+      <div>
+        <h3>End-to-end in a real terminal</h3>
+        <div class="files">tmux-driven release binary · no code unless a defect is found</div>
+        <p>Set a mark, resize to 60 columns, toggle line numbers and theme, then jump. Insert lines above the mark from another shell and jump after the auto-reload. Restart and jump. Corrupt <code>marks.json</code> and confirm it is left untouched. Check <code>M</code>, Esc-cancel, and the stdin and JSON guards. Each step is read back with <code>capture-pane</code>, including visual checks of hint alignment and toast clipping.</p>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ── Key code ────────────────────────────────────────────────────────── -->
+<section id="key-code">
+  <h2>The code that carries the design</h2>
+  <p>Three excerpts from the plan. Everything else is mechanical or follows existing patterns.</p>
+
+  <div class="code-head" id="code-1-head">src/markdown.rs - render_with: event-level stamping, blank rows excluded (Task 1)</div>
+  <div class="codebox" id="code-render"></div>
+
+  <div class="code-head" id="code-2-head">src/marks.rs - Anchor::resolve and row_for_source (Task 3)</div>
+  <div class="codebox" id="code-marks"></div>
+
+  <div class="code-head" id="code-3-head">src/viewer.rs - handle_event: the prefix is checked before the help toggle (Task 5)</div>
+  <div class="codebox" id="code-viewer"></div>
+</section>
+
+<!-- ── Review focus ────────────────────────────────────────────────────── -->
+<section id="review-focus">
+  <h2>Review focus: what's most likely to hit a real user</h2>
+  <p class="muted">Inputs the spec implies but doesn't spell out as tests. Each now has a pinned test in the task that owns the code.</p>
+  <ol class="rf">
+    <li id="rf-1"><div><strong>Resize between set and jump.</strong> Set at 80 columns, shrink to 40, then jump: you land on the same block. <span class="muted">Task 5 · <code>mark_survives_resize</code></span></div></li>
+    <li id="rf-2"><div><strong>Mark in a nested list or blockquote.</strong> The jump returns to the child item, not the parent or the start of the quote. <span class="muted">Tasks 1, 5 · <code>nested_list_item_gets_its_own_src</code>, <code>mark_on_nested_list_item_round_trips</code></span></div></li>
+    <li id="rf-3"><div><strong>File shrinks under a mark during auto-reload.</strong> The jump clamps, doesn't panic, and shows <code>(text not found)</code>. <span class="muted">Task 5 · <code>jump_after_truncation_clamps_and_reports_fallback</code></span></div></li>
+    <li id="rf-4"><div><strong>Non-ASCII, CRLF and very long lines.</strong> Offsets inside a multibyte character don't panic, and lines over 256 characters still match after truncation. <span class="muted">Task 3 · <code>capture_handles_multibyte_and_crlf</code>, <code>long_line_fingerprint_still_matches</code></span></div></li>
+    <li id="rf-5"><div><strong>Prefix followed by an unexpected key.</strong> <code>A</code>, <code>1</code>, Esc, Ctrl+x and Alt+j cancel quietly without doing anything else. <code>'</code> then <code>q</code> doesn't quit. Marks stay separate per file. <span class="muted">Task 5 · <code>prefix_then_non_letter_cancels_without_side_effects</code>, <code>marks_are_per_file</code></span></div></li>
+  </ol>
+</section>
+
+<!-- ── Risks ───────────────────────────────────────────────────────────── -->
+<section id="risks">
+  <h2>Risks and accepted trade-offs</h2>
+  <div class="grid g2">
+    <div class="callout" id="risk-granularity"><strong>Block granularity in prose.</strong> A mark set partway down a long wrapped paragraph jumps to the paragraph's first row. This was agreed in the design, because wrapped rows don't exist in the source.</div>
+    <div class="callout" id="risk-churn"><strong>About 55 mechanical <code>src: None</code> edits.</strong> They're spread across <code>json.rs</code>, <code>style.rs</code> and <code>markdown.rs</code>. The compiler finds every one, and the explicit field keeps provenance visible where each line is built.</div>
+    <div class="callout" id="risk-race"><strong>Two instances writing the same mark at once.</strong> The last write wins for that one file and letter. Other entries are merged, so nothing else is lost. No file locking, by design.</div>
+    <div class="callout red" id="risk-emdash"><strong>Existing em dashes in the mouse toasts.</strong> The <code>M</code> arm moves the old body verbatim, including <code>Mouse capture OFF — select text freely</code>. Changing that copy is out of scope here. Say the word if you want it switched to <code>-</code> in the same task.</div>
+  </div>
+</section>
+
+<!-- ── Execution choice ────────────────────────────────────────────────── -->
+<section id="execution">
+  <h2>Pick an execution approach</h2>
+  <div class="grid g2">
+    <div class="choice rec" id="exec-subagent">
+      <span class="pill green">recommended</span>
+      <h3 style="margin-top:10px">Subagent-driven</h3>
+      <p>A fresh implementer per task and a fresh reviewer gating each one, then a whole-branch review at the end.</p>
+      <p class="muted">Tasks 3-5 depend on exact signatures from earlier tasks (<code>Line.src</code>, <code>Anchor</code>, <code>SaveStatus</code>). A mistake in provenance would silently send every mark to the wrong place. Reviewing each task catches that early.</p>
+    </div>
+    <div class="choice" id="exec-native">
+      <h3>Native</h3>
+      <p>One implementer works through all six tasks in this session, then one reviewer checks the whole branch.</p>
+      <p class="muted">Cheaper and faster. The plan carries the design, but nothing is independently reviewed until the end.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script type="text/plain" id="src-render">    let parser = Parser::new_ext(input, options);
+
+    for (event, range) in parser.into_offset_iter() {
+        let before = renderer.lines.len();
+        let start = range.start;
+        renderer.process(event, range);
+        // The blockquote `is_bar_only` path pops lines, so the vec can shrink.
+        let before = before.min(renderer.lines.len());
+        for line in &mut renderer.lines[before..] {
+            let blank = line.spans.is_empty() && matches!(line.meta, LineMeta::None);
+            if line.src.is_none() && !blank {
+                line.src = Some(start);
+            }
+        }
+    }
+
+    renderer.flush_line();
+</script>
+
+<script type="text/plain" id="src-marks">impl Anchor {
+    pub fn resolve(&self, content: &str) -> Resolved {
+        let starts = line_starts(content);
+        let Some(last) = starts.len().checked_sub(1) else {
+            return Resolved { byte: 0, line: 0, exact: false };
+        };
+        let found = if self.text.is_empty() {
+            (self.line <= last).then_some(self.line)
+        } else {
+            nearest_match(content, &self.text, self.line)
+        };
+        match found {
+            Some(line) => Resolved { byte: starts[line], line, exact: true },
+            None => {
+                let line = self.line.min(last);
+                Resolved { byte: starts[line], line, exact: false }
+            }
+        }
+    }
+}
+
+fn nearest_match(content: &str, text: &str, target: usize) -> Option<usize> {
+    content
+        .lines()
+        .enumerate()
+        .filter(|(_, l)| fingerprint(l) == text)
+        .map(|(i, _)| i)
+        .min_by_key(|&i| (i.abs_diff(target), i))
+}
+
+/// First row of the block whose source offset is the greatest one at or before `byte`.
+pub fn row_for_source(lines: &[Line], byte: usize) -> Option<usize> {
+    let block = lines
+        .iter()
+        .filter_map(|l| l.src)
+        .filter(|&s| s <= byte)
+        .max()
+        .or_else(|| lines.iter().find_map(|l| l.src))?;
+    lines.iter().position(|l| l.src == Some(block))
+}
+</script>
+
+<script type="text/plain" id="src-viewer">            if ke.code == KeyCode::Char('c') && ke.modifiers.contains(KeyModifiers::CONTROL) {
+                return true;
+            }
+            if let Some(op) = state.pending_mark.take() {
+                state.dirty = true;
+                let plain = !ke
+                    .modifiers
+                    .intersects(KeyModifiers::CONTROL | KeyModifiers::ALT);
+                if let KeyCode::Char(letter @ 'a'..='z') = ke.code
+                    && plain
+                {
+                    match op {
+                        MarkOp::Set => state.set_mark(letter),
+                        MarkOp::Jump => state.jump_to_mark(letter),
+                    }
+                }
+                return false;
+            }
+            if is_help_toggle(
+</script>
+
+<script type="module">
+  import { File } from "https://esm.sh/@pierre/diffs@1.2.10?bundle";
+
+  const options = {
+    theme: { light: "catppuccin-latte", dark: "catppuccin-mocha" },
+    themeType: "dark",
+    overflow: "wrap",
+  };
+  const blocks = [
+    ["code-render", "src-render", "src/markdown.rs"],
+    ["code-marks", "src-marks", "src/marks.rs"],
+    ["code-viewer", "src-viewer", "src/viewer.rs"],
+  ];
+  for (const [target, source, name] of blocks) {
+    new File(options).render({
+      containerWrapper: document.getElementById(target),
+      file: { name, contents: document.getElementById(source).textContent },
+    });
+  }
+</script>
+</body>
+</html>

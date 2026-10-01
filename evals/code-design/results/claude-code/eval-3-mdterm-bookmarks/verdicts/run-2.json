@@ -1,0 +1,39 @@
+{
+  "scores": {
+    "superpowers": {
+      "correctness": 9,
+      "completeness": 9,
+      "clarity": 8,
+      "reviewability": 9,
+      "note": "Verified claims (m at viewer.rs:1647, help-toggle ordering, no Line Default needed) hold; line+text anchor survives offline edits, never overwrites corrupt store, and the failure table and guards are explicit."
+    },
+    "code-design": {
+      "correctness": 6,
+      "completeness": 6,
+      "clarity": 9,
+      "reviewability": 9,
+      "note": "Excellent signatures and numbered call chains, but stores a bare source line so edits between sessions or on reload silently misplace marks, and the new ViewMode::MarkPending variant would trip render_frame's suppress_images check (viewer.rs:2438) unnoticed."
+    },
+    "plain": {
+      "correctness": 7,
+      "completeness": 7,
+      "clarity": 8,
+      "reviewability": 7,
+      "note": "Accurate current-state claims and text-fingerprint anchors, but a corrupt marks file is treated as empty and then overwritten, pruning on every write, and the function-level detail is thinner."
+    },
+    "feature-dev": {
+      "correctness": 8,
+      "completeness": 9,
+      "clarity": 8,
+      "reviewability": 8,
+      "note": "Accurate file:line citations and the most features (reload remap, margin letter, '' jump-back, NavEntry), but bare-line storage cannot repair offline edits and it grows scope with four modules and 15 commits."
+    }
+  },
+  "ranking": [
+    "superpowers",
+    "feature-dev",
+    "plain",
+    "code-design"
+  ],
+  "reason": "W combined a content-fingerprint anchor (robust to edits between sessions, the core need for persistent marks) with explicit failure behavior for corrupt, unwritable and concurrent stores, and nested-list stamping refinements, while staying small. Z was thorough and well-verified but stores only line numbers and over-expands scope; X had the best call-chain clarity but a weaker anchor model and a missed ViewMode side effect."
+}

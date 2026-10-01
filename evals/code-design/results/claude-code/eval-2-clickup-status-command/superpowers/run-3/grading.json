@@ -1,0 +1,67 @@
+{
+  "expectations": [
+    {
+      "text": "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
+      "passed": true,
+      "evidence": "Verified tasks.go:24 tasksCmd, client.go:42 doRequest nil body, task.go:26 List, tasks.go:67 and comments.go:17 custom-ID duplication; 8 citations valid. Honest about unverified inherited-statuses claim."
+    },
+    {
+      "text": "conventions: the design follows the repo's existing conventions (layering, naming, error handling, dependency wiring) and names any deviation with a reason",
+      "passed": true,
+      "evidence": "Uses getAPIClient pattern via thin RunE, wrapped errors in repo style; names deviation (statusUpdater interface seam for testability) with reason."
+    },
+    {
+      "text": "alternatives: at least one structurally different alternative is considered, with a concrete reason for rejecting it",
+      "passed": false,
+      "evidence": "Only matching-strictness options A/B/C are offered; no structurally different design alternative with rejection reason."
+    },
+    {
+      "text": "preferences-honoured: the final plan agrees with every user answer given in the conversation and contradicts none",
+      "passed": true,
+      "evidence": "Exact case-insensitive, already-status notice exit 0 no write, valid statuses in orderindex order, no confirmation; consistent with user's option A and approval."
+    },
+    {
+      "text": "elicitation: each hidden preference that the plan's design depends on was either asked about or stated as an explicit assumption, never silently decided",
+      "passed": true,
+      "evidence": "Matching asked; already-status, exit codes, ID handling, output stated as assumptions and accepted by user; list order and no-prompt stated in plan table."
+    },
+    {
+      "text": "coverage: every trigger the feature implies is designed end to end, including how failures are handled and what the user sees",
+      "passed": true,
+      "evidence": "Flow and edge cases: unknown, same, empty statuses, PUT 400, wrapped errors, quoting hint, 8 E2E scenarios."
+    },
+    {
+      "text": "consistency: unit, method and type names and signatures agree everywhere they appear across the plan",
+      "passed": true,
+      "evidence": "Names and signatures (setTaskStatus, statusUpdater, FindStatus, taskIDQuery, GetList) consistent across plan and chat."
+    },
+    {
+      "text": "api-fit: new interfaces fit the code they plug into (existing types, call sites, layering), so the plan could be implemented without redesign",
+      "passed": true,
+      "evidence": "statusUpdater interface satisfied by *api.Client; doRequest signature change internal to api; implementable."
+    },
+    {
+      "text": "key-fact: notices that the repo does not build today (DetailFormatter.FormatComments declared twice in internal/output/table.go)",
+      "passed": false,
+      "evidence": "No mention of the duplicate DetailFormatter.FormatComments (internal/output/table.go lines 190 and 237, verified in repo); plan never notes the repo does not build."
+    }
+  ],
+  "summary": {
+    "passed": 7,
+    "failed": 2,
+    "total": 9,
+    "pass_rate": 0.78
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "alternatives",
+        "reason": "None of the three methods considers a structural alternative; consider whether the assertion is discriminating."
+      },
+      {
+        "reason": "key-fact is missed by all runs; the executors apparently never ran go build/make check before planning."
+      }
+    ],
+    "overall": "Best of the three, but misses alternatives and the build break."
+  }
+}

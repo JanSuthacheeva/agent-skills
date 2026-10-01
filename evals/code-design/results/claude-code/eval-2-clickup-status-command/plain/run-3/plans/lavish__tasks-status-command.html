@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en" data-theme="nord">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan - clickup tasks status</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/daisyui.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/themes.css">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.2.4/dist/index.global.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  :where(.grid, .flex) > * { min-width: 0; }
+  :where(p, h1, h2, h3, li, td, th, .badge) { overflow-wrap: anywhere; }
+  body { background: var(--color-base-200); color: var(--color-base-content); }
+  .term { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85rem; white-space: pre-wrap; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85em; }
+</style>
+</head>
+<body>
+<main class="max-w-5xl mx-auto px-5 py-10 space-y-10">
+
+<header class="space-y-3">
+  <div class="badge badge-primary badge-outline">Implementation plan</div>
+  <h1 class="text-3xl font-bold"><code>clickup tasks status &lt;id&gt; &lt;status&gt;</code></h1>
+  <p class="text-base-content/80 max-w-3xl">Change a task's status from the terminal. The requested status is validated against the statuses of the task's home list; a wrong value fails before any write and prints the valid statuses in workflow order.</p>
+</header>
+
+<section class="grid md:grid-cols-2 gap-4">
+  <div class="card bg-base-100 shadow-sm"><div class="card-body">
+    <h2 class="card-title text-success">Valid status</h2>
+    <div class="term bg-neutral text-neutral-content rounded-box p-4">$ clickup tasks status HGAI-1217 review
+HGAI-1217: in progress -> review
+
+$ clickup tasks status HGAI-1217 In Progress
+HGAI-1217: review -> in progress</div>
+  </div></div>
+  <div class="card bg-base-100 shadow-sm"><div class="card-body">
+    <h2 class="card-title text-error">Invalid status</h2>
+    <div class="term bg-neutral text-neutral-content rounded-box p-4">$ clickup tasks status HGAI-1217 revew
+Error: invalid status "revew" for list "Sprint 42"
+Valid statuses: to do, in progress, review, complete
+<span class="opacity-60"># exit 1, no PUT sent</span></div>
+  </div></div>
+</section>
+
+<section class="space-y-4">
+  <h2 class="text-2xl font-semibold">Current state (verified in code)</h2>
+  <ul class="list bg-base-100 rounded-box shadow-sm">
+    <li class="list-row"><span class="badge badge-ghost">tasks.go</span><span><code>tasksCmd</code> is <code>tasks [task_id]</code>, <code>MaximumNArgs(1)</code>, local flags only, no subcommands.</span></li>
+    <li class="list-row"><span class="badge badge-ghost">client.go</span><span>Only <code>Get</code> exists; <code>doRequest(method, path, query)</code> cannot send a body.</span></li>
+    <li class="list-row"><span class="badge badge-ghost">tasks.go / comments.go</span><span>Custom task ID query logic (<code>custom_task_ids</code> + <code>team_id</code>) is duplicated.</span></li>
+    <li class="list-row"><span class="badge badge-ghost">models</span><span><code>Task.List</code> is <code>ListInfo{ID, Name, Access}</code>; <code>Status</code> already modelled with <code>Orderindex</code>.</span></li>
+    <li class="list-row"><span class="badge badge-ghost">tests</span><span>No tests for <code>internal/api</code> or <code>internal/commands</code> yet.</span></li>
+  </ul>
+</section>
+
+<section class="space-y-4">
+  <h2 class="text-2xl font-semibold">Flow</h2>
+  <div class="card bg-base-100 shadow-sm"><div class="card-body">
+<pre class="mermaid">
+sequenceDiagram
+  participant U as User
+  participant C as tasks status
+  participant API as ClickUp API
+  U->>C: status HGAI-1217 review
+  C->>API: GET /task/HGAI-1217?custom_task_ids&team_id
+  API-->>C: task (status, list.id)
+  C->>API: GET /list/{list.id}
+  API-->>C: list (name, statuses[])
+  alt no case-insensitive match
+    C-->>U: error + valid statuses (exit 1)
+  else already in that status
+    C-->>U: already "review" (exit 0, no write)
+  else match
+    C->>API: PUT /task/HGAI-1217 {"status":"review"}
+    API-->>C: updated task
+    C-->>U: HGAI-1217: in progress -> review
+  end
+</pre>
+    <p class="text-sm text-base-content/70">The canonical name from the list is sent, not raw input. <code>GET /list</code> returns effective statuses, so folder/space inheritance is resolved by ClickUp.</p>
+  </div></div>
+</section>
+
+<section class="space-y-4">
+  <h2 class="text-2xl font-semibold">Key decisions</h2>
+  <div class="grid md:grid-cols-3 gap-4">
+    <div class="card bg-base-100 shadow-sm"><div class="card-body">
+      <h3 class="font-semibold">Cobra subcommand of <code>tasks</code></h3>
+      <p class="text-sm">Cobra matches subcommand names before the parent's positional arg, and the parent has explicit <code>Args</code>, so <code>clickup tasks HGAI-1217</code> keeps working. Parent flags are local and don't leak.</p>
+    </div></div>
+    <div class="card bg-base-100 shadow-sm"><div class="card-body">
+      <h3 class="font-semibold">Validate client-side, before write</h3>
+      <p class="text-sm">Lets us show the valid list in workflow order and a clear message, instead of relaying ClickUp's opaque 400. Costs one extra GET.</p>
+    </div></div>
+    <div class="card bg-base-100 shadow-sm"><div class="card-body">
+      <h3 class="font-semibold">Unquoted multi-word status</h3>
+      <p class="text-sm"><code>MinimumNArgs(2)</code>, status = <code>strings.Join(args[1:], " ")</code>. ID is always first, so it's unambiguous. Quoting still works.</p>
+    </div></div>
+  </div>
+</section>
+
+<section class="space-y-4">
+  <h2 class="text-2xl font-semibold">Changes by file</h2>
+  <div class="overflow-x-auto bg-base-100 rounded-box shadow-sm">
+    <table class="table">
+      <thead><tr><th>File</th><th>Change</th></tr></thead>
+      <tbody>
+        <tr><td><code>internal/api/client.go</code></td><td><code>doRequest</code> gains <code>payload any</code>, JSON-marshals when non-nil. Add <code>Put</code>. Move <code>[DEBUG]</code> output to stderr (currently pollutes <code>-o json</code>).</td></tr>
+        <tr><td><code>internal/api/tasks.go</code></td><td>Extract <code>taskIDQuery(taskID, teamID)</code>, reuse in <code>GetTask</code>, <code>GetTaskComments</code>. Add <code>UpdateTaskStatus(taskID, teamID, status) (*models.Task, error)</code>.</td></tr>
+        <tr><td><span class="badge badge-success badge-sm">new</span> <code>internal/api/lists.go</code></td><td><code>GetList(listID) (*models.List, error)</code> - <code>GET /list/{id}</code>.</td></tr>
+        <tr><td><span class="badge badge-success badge-sm">new</span> <code>pkg/models/list.go</code></td><td><code>List{ID, Name, Statuses}</code>, <code>FindStatus(name)</code>, <code>StatusNames()</code> sorted by <code>Orderindex</code>.</td></tr>
+        <tr><td><span class="badge badge-success badge-sm">new</span> <code>internal/commands/tasks_status.go</code></td><td><code>tasksStatusCmd</code>, registered with <code>tasksCmd.AddCommand</code>. Supports <code>-o json</code> (prints updated task).</td></tr>
+        <tr><td><code>internal/commands/tasks.go</code>, <code>root.go</code></td><td>Add the command to <code>Long</code> help examples.</td></tr>
+        <tr><td><code>README.md</code>, <code>skills/SKILL.md</code></td><td>Document command; extend skill triggers ("set status", "move to review", "mark done"); tell the agent never to guess a status.</td></tr>
+        <tr><td><code>bin/*</code></td><td><code>make build-all</code> to refresh pre-built binaries.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="space-y-4">
+  <h2 class="text-2xl font-semibold">Code sketches</h2>
+  <p class="text-sm text-base-content/70"><code>pkg/models/list.go</code> - pure, unit-testable matching.</p>
+  <div id="model" class="rounded-box overflow-hidden"></div>
+  <p class="text-sm text-base-content/70"><code>internal/commands/tasks_status.go</code> - core of <code>RunE</code> (error handling elided).</p>
+  <div id="cmd" class="rounded-box overflow-hidden"></div>
+</section>
+
+<section class="space-y-4">
+  <h2 class="text-2xl font-semibold">Testing (TDD, <code>make check</code>)</h2>
+  <div class="grid md:grid-cols-3 gap-4">
+    <div class="card bg-base-100 shadow-sm"><div class="card-body">
+      <h3 class="font-semibold">models</h3>
+      <ul class="text-sm list-disc pl-4 space-y-1"><li>exact, mixed-case, padded match</li><li>no match</li><li><code>StatusNames</code> ordered by orderindex</li></ul>
+    </div></div>
+    <div class="card bg-base-100 shadow-sm"><div class="card-body">
+      <h3 class="font-semibold">api (httptest)</h3>
+      <ul class="text-sm list-disc pl-4 space-y-1"><li><code>GetList</code> path + decode</li><li><code>UpdateTaskStatus</code>: PUT, JSON body, custom ID query only for custom IDs</li><li><code>Get</code> still body-less</li></ul>
+    </div></div>
+    <div class="card bg-base-100 shadow-sm"><div class="card-body">
+      <h3 class="font-semibold">command (fake ClickUp)</h3>
+      <ul class="text-sm list-disc pl-4 space-y-1"><li>invalid -> error lists statuses, <b>no PUT</b></li><li>same status -> no PUT</li><li>success -> one PUT, canonical casing</li><li><code>tasks HGAI-1217</code> still routes to detail</li></ul>
+    </div></div>
+  </div>
+  <div class="alert alert-info"><span>Command tests need a seam to point the client at <code>httptest</code>: make the base URL overridable (client option or package var). Then a manual E2E pass on a real workspace: valid move, wrong casing, typo, unquoted multi-word, subtask, custom and native IDs.</span></div>
+</section>
+
+<section class="space-y-4">
+  <h2 class="text-2xl font-semibold">Risks and edge cases</h2>
+  <div class="overflow-x-auto bg-base-100 rounded-box shadow-sm">
+    <table class="table">
+      <thead><tr><th>Case</th><th>Handling</th></tr></thead>
+      <tbody>
+        <tr><td>Task in multiple lists</td><td><code>task.list</code> is the home list, whose statuses govern the task. Correct by design.</td></tr>
+        <tr><td>Statuses change between GET and PUT</td><td>ClickUp rejects; surface its error. Acceptable.</td></tr>
+        <tr><td>No access to list (<code>GET /list</code> 401)</td><td>Wrap: <code>failed to load statuses for list "..."</code>.</td></tr>
+        <tr><td>Subcommand typo <code>tasks stauts X y</code></td><td>Falls to parent: "accepts at most 1 arg(s), received 3". Pre-existing Cobra behaviour; improve if cheap.</td></tr>
+        <tr><td>3 requests per change</td><td>Negligible for an interactive command; no caching.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="space-y-4">
+  <h2 class="text-2xl font-semibold">Decisions <span class="badge badge-success">approved</span></h2>
+  <div class="space-y-3">
+    <div class="alert"><span><b>1.</b> Unquoted multi-word statuses are accepted (<code>status X in progress</code>).</span></div>
+    <div class="alert"><span><b>2.</b> No "did you mean" suggestion for now - the full valid list is shown instead.</span></div>
+    <div class="alert"><span><b>3.</b> Success output is one line <code>ID: old -> new</code>; <code>-o json</code> prints the updated task.</span></div>
+  </div>
+</section>
+
+</main>
+
+<script type="module">
+  import { File } from "https://esm.sh/@pierre/diffs@1.2.10?bundle";
+  const options = { theme: { light: "github-light", dark: "github-dark" }, themeType: "light", overflow: "wrap" };
+  const model = `type List struct {
+	ID       string   \`json:"id"\`
+	Name     string   \`json:"name"\`
+	Statuses []Status \`json:"statuses"\`
+}
+
+func (l *List) FindStatus(name string) (Status, bool) {
+	want := strings.TrimSpace(name)
+	for _, s := range l.Statuses {
+		if strings.EqualFold(s.Status, want) {
+			return s, true
+		}
+	}
+	return Status{}, false
+}
+`;
+  const cmd = `task, err := client.GetTask(taskID, cfg.WorkspaceID)
+list, err := client.GetList(task.List.ID)
+
+target, ok := list.FindStatus(want)
+if !ok {
+	return fmt.Errorf("invalid status %q for list %q\\nValid statuses: %s",
+		want, list.Name, strings.Join(list.StatusNames(), ", "))
+}
+if strings.EqualFold(task.Status.Status, target.Status) {
+	fmt.Printf("%s is already %q\\n", task.GetDisplayID(), target.Status)
+	return nil
+}
+updated, err := client.UpdateTaskStatus(taskID, cfg.WorkspaceID, target.Status)
+fmt.Printf("%s: %s -> %s\\n", task.GetDisplayID(), task.Status.Status, updated.Status.Status)
+`;
+  new File(options).render({ containerWrapper: document.querySelector("#model"), file: { name: "pkg/models/list.go", contents: model } });
+  new File(options).render({ containerWrapper: document.querySelector("#cmd"), file: { name: "internal/commands/tasks_status.go", contents: cmd } });
+</script>
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.15.0/dist/mermaid.esm.min.mjs";
+  mermaid.initialize({ startOnLoad: false, theme: "default", securityLevel: "strict" });
+  window.addEventListener("load", () => mermaid.run({ querySelector: ".mermaid" }));
+</script>
+</body>
+</html>

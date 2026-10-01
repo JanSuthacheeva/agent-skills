@@ -1,0 +1,46 @@
+{
+  "expectations": [
+    {
+      "text": "grounded",
+      "passed": true
+    },
+    {
+      "text": "conventions",
+      "passed": true
+    },
+    {
+      "text": "alternatives",
+      "passed": true
+    },
+    {
+      "text": "preferences-honoured",
+      "passed": true
+    },
+    {
+      "text": "elicitation",
+      "passed": true
+    },
+    {
+      "text": "coverage",
+      "passed": true
+    },
+    {
+      "text": "consistency",
+      "passed": true
+    },
+    {
+      "text": "api-fit",
+      "passed": true
+    },
+    {
+      "text": "key-fact",
+      "passed": true
+    }
+  ],
+  "summary": {
+    "passed": 9,
+    "failed": 0,
+    "total": 9,
+    "pass_rate": 1.0
+  }
+}

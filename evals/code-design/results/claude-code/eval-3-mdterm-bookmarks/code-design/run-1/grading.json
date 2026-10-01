@@ -1,0 +1,64 @@
+{
+  "expectations": [
+    {
+      "text": "grounded",
+      "passed": true,
+      "evidence": "Checked: m toggles mouse at viewer.rs:1647 and help text at :3637; TaskItem.bracket_offset at style.rs:42; dirs crate in Cargo.toml and config.rs:42 uses dirs::config_dir; nav_history, switch_file, is_help_toggle before Help handling in handle_event, finalize_layout, make_state_with_lines all exist; README lacks m row; CLAUDE.md says Ten source files; 48 Line literals (~50 claimed). citations.json 16/16 valid."
+    },
+    {
+      "text": "conventions",
+      "passed": true,
+      "evidence": "Mirrors config.rs (dirs::*_dir()/mdterm/..., silent fallback), keeps renderer/viewer layering, ViewerOptions wiring from main, new module documented in CLAUDE.md; deviations (tempfile dev-dep, first disk writes in tests) are named."
+    },
+    {
+      "text": "alternatives",
+      "passed": true,
+      "evidence": "Approaches page compares A (scroll offset), B (heading-relative), C (source line) with concrete rejection reasons (drift at other widths, fallback when no headings)."
+    },
+    {
+      "text": "preferences-honoured",
+      "passed": true,
+      "evidence": "Regrade: M for mouse capture; a-z only per file (A-Z reserved); dirs::data_dir()/mdterm/marks.toml, not config.toml; marks store source_line (width-independent, so resize-safe) plus a trimmed-text fingerprint and Mark::resolve relocates to the nearest matching line on jump, covering edits between sessions. Matches all user answers."
+    },
+    {
+      "text": "elicitation",
+      "passed": true,
+      "evidence": "m/M, A-Z, and external edits were asked; storage location, per-set writes, stdin handling were stated as defaults before round 1 and listed in 18 explicit assumptions."
+    },
+    {
+      "text": "coverage",
+      "passed": true,
+      "evidence": "Set, jump, load/switch, and render stamping chains with error paths: empty doc, stdin, save failure, missing mark, NotFound, past-EOF, invalid second key, JSON view, slide mode, corrupt file; user-visible toasts specified."
+    },
+    {
+      "text": "consistency",
+      "passed": true,
+      "evidence": "Names/signatures (Mark, MarkTarget, FileMarks, MarkStore, handle_mark_key, set_mark, jump_to_mark, save_marks, source_line_at, offset_for_source_line) agree across md and call chains; no mismatches found."
+    },
+    {
+      "text": "api-fit",
+      "passed": true,
+      "evidence": "Fits existing types: Line gains field copied in wrap/finalize_layout, ViewerOptions extended, intercept placed before is_help_toggle, nav_history reused, tests helper updated. Implementable without redesign."
+    },
+    {
+      "text": "key-fact",
+      "passed": true,
+      "evidence": "Turn 1 states m is already the mouse-capture toggle at src/viewer.rs:1647 and help at :3637."
+    }
+  ],
+  "summary": {
+    "passed": 9,
+    "failed": 0,
+    "total": 9,
+    "pass_rate": 1.0
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "preferences-honoured",
+        "reason": "'platform state directory' is ambiguous (dirs::state_dir is None on macOS); plan used data_dir and nothing forces the distinction to be examined."
+      }
+    ],
+    "overall": "Assertions are reasonable; elicitation and preferences checks are the discriminating ones."
+  }
+}

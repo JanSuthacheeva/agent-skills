@@ -1,0 +1,63 @@
+{
+  "expectations": [
+    {
+      "text": "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
+      "passed": true,
+      "evidence": "citations.json 10/10 valid. Verified: m at 1647, nav_history (365/1765/1966), into_offset_iter at markdown.rs:1585, config.rs read-only, Backspace pops (file,offset), serde/serde_json/dirs deps, handle_normal slide/JSON dispatch order."
+    },
+    {
+      "text": "conventions: the design follows the repo's existing conventions (layering, naming, error handling, dependency wiring) and names any deviation with a reason",
+      "passed": true,
+      "evidence": "marks.rs beside config.rs, injectable store, canonical path keys, existing test style. Minor: adds tempfile dev-dependency (repo has none; image.rs uses std::env::temp_dir) without naming it as a deviation."
+    },
+    {
+      "text": "alternatives: at least one structurally different alternative is considered, with a concrete reason for rejecting it",
+      "passed": true,
+      "evidence": "Compares Line field vs parallel Vec<usize> source map with a concrete reason (every transform must keep it in sync); also rejects raw offset. Thinner than other runs but adequate."
+    },
+    {
+      "text": "preferences-honoured: the final plan agrees with every user answer given in the conversation and contradicts none",
+      "passed": true,
+      "evidence": "Regrade: M for mouse capture; a-z only per file, uppercase does not set marks; dirs::state_dir() falling back to dirs::data_dir(), marks.json, explicitly not config.toml; mark stores source line plus line text and resolve relocates to the nearest line with equal text, so it survives resize and edits between sessions. Matches all user answers."
+    },
+    {
+      "text": "elicitation: each hidden preference that the plan's design depends on was either asked about or stated as an explicit assumption, never silently decided",
+      "passed": true,
+      "evidence": "Eight questions covered conflict, external edits, uppercase, '', visibility, stdin/JSON/slide, overwrite, pruning; all answered."
+    },
+    {
+      "text": "coverage: every trigger the feature implies is designed end to end, including how failures are handled and what the user sees",
+      "passed": true,
+      "evidence": "Set/jump/'' , unset, uppercase toast, stdin session-only, JSON disabled, slide jump, corrupt file .bak + startup toast, save failure toast, concurrent write merge, E2E list."
+    },
+    {
+      "text": "consistency: unit, method and type names and signatures agree everywhere they appear across the plan",
+      "passed": true,
+      "evidence": "Mark{line,row,text}, capture/resolve, MarkStore API, MarkAction, go_back, position, jump_to_line consistent across sections."
+    },
+    {
+      "text": "api-fit: new interfaces fit the code they plug into (existing types, call sites, layering), so the plan could be implemented without redesign",
+      "passed": true,
+      "evidence": "Plugs into ViewerOptions, handle_event before is_help_toggle, slide_boundaries, nav_history; one wrinkle: capture/resolve take wrapped + source and slide-mode position semantic is only sketched."
+    },
+    {
+      "text": "key-fact: notices that m is already bound to the mouse-capture toggle in src/viewer.rs",
+      "passed": true,
+      "evidence": "Turn 1: m toggles mouse capture at src/viewer.rs:1647; moved to M."
+    }
+  ],
+  "summary": {
+    "passed": 9,
+    "failed": 0,
+    "total": 9,
+    "pass_rate": 1.0
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "reason": "No assertion checks that the plan adds no unjustified dependency (tempfile)."
+      }
+    ],
+    "overall": "Evals discriminate reasonably; this run passes all."
+  }
+}

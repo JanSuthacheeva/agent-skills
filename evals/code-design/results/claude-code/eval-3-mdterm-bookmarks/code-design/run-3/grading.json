@@ -1,0 +1,64 @@
+{
+  "expectations": [
+    {
+      "text": "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
+      "passed": true,
+      "evidence": "citations.json 36/36 valid. Verified: m at viewer.rs:1647, nav_history, bracket_offset in markdown.rs:897, config.rs uses dirs::config_dir, Line literal counts (15 markdown, 20 json, 3 viewer) match the plan."
+    },
+    {
+      "text": "conventions: the design follows the repo's existing conventions (layering, naming, error handling, dependency wiring) and names any deviation with a reason",
+      "passed": true,
+      "evidence": "MarkStore mirrors config.rs (load() falling back to empty, dirs-based path, serde); tests use std::env::temp_dir like image.rs; new atomic temp+rename write is called out as design, not hidden. Mouse-toggle rebind and CLAUDE.md file-list update named."
+    },
+    {
+      "text": "alternatives: at least one structurally different alternative is considered, with a concrete reason for rejecting it",
+      "passed": true,
+      "evidence": "Approaches page compares A wrapped offset, B source line, C nearest heading + offset, each with a concrete rejection reason (A breaks on width change, C drifts inside long sections)."
+    },
+    {
+      "text": "preferences-honoured: the final plan agrees with every user answer given in the conversation and contradicts none",
+      "passed": false,
+      "evidence": "Regrade: M, a-z only per file and dirs::data_dir() marks.json are fine, and the source-line anchor survives resize. But Mark is only { source_line: usize } with no text or fingerprint, so a mark does not relocate after small edits made between sessions; inserted lines above shift it onto the wrong text."
+    },
+    {
+      "text": "elicitation: each hidden preference that the plan's design depends on was either asked about or stated as an explicit assumption, never silently decided",
+      "passed": false,
+      "evidence": "Mouse key and uppercase were asked and storage was stated up front, but the small-edits preference was never asked nor listed among the 22 assumptions; the edit-drift behaviour was silently decided."
+    },
+    {
+      "text": "coverage: every trigger the feature implies is designed end to end, including how failures are handled and what the user sees",
+      "passed": true,
+      "evidence": "Call chains for set, jump, render/rebuild, startup and M toggle each with error paths and toasts (stdin, JSON, corrupt file, unset mark, save failure, past-EOF); pending-key vs help-toggle ordering handled."
+    },
+    {
+      "text": "consistency: unit, method and type names and signatures agree everywhere they appear across the plan",
+      "passed": true,
+      "evidence": "Names/signatures (MarkStore, DocKey::for_file, Mark{source_line}, MarkPrefix, handle_mark_key, top_source_line, offset_for_source_line) agree across units, data table and call chains."
+    },
+    {
+      "text": "api-fit: new interfaces fit the code they plug into (existing types, call sites, layering), so the plan could be implemented without redesign",
+      "passed": true,
+      "evidence": "Fits Line, ViewerOptions, handle_event ordering before is_help_toggle, nav_history push, rebuild/saved_offset; implementable without redesign."
+    },
+    {
+      "text": "key-fact: notices that m is already bound to the mouse-capture toggle in src/viewer.rs",
+      "passed": true,
+      "evidence": "Turn 1 states m is bound to mouse capture at src/viewer.rs:1647 and moves it to M."
+    }
+  ],
+  "summary": {
+    "passed": 7,
+    "failed": 2,
+    "total": 9,
+    "pass_rate": 0.78
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "preferences-honoured",
+        "reason": "Hidden preference 'survive small edits' is the discriminating one: source-line-only anchoring passes resize but fails edits. Keep it."
+      }
+    ],
+    "overall": "Assertions discriminate on edit robustness; 'alternatives' is easy to pass."
+  }
+}

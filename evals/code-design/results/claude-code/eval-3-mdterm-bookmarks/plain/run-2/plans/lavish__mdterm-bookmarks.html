@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mdterm bookmarks - plan</title>
+<style>
+  :root {
+    --bg: #1e1e2e; --mantle: #181825; --crust: #11111b; --surface: #313244; --overlay: #45475a;
+    --border: #44475a; --fg: #cdd6f4; --sub: #a6adc8; --muted: #6c7086;
+    --blue: #89b4fa; --mauve: #cba6f7; --green: #a6e3a1; --yellow: #f9e2af; --peach: #fab387;
+    --red: #f38ba8; --teal: #94e2d5;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+    --sans: -apple-system, "Inter", "Segoe UI", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #eff1f5; --mantle: #e6e9ef; --crust: #dce0e8; --surface: #ccd0da; --overlay: #bcc0cc;
+      --border: #bcc0cc; --fg: #4c4f69; --sub: #5c5f77; --muted: #8c8fa1;
+      --blue: #1e66f5; --mauve: #8839ef; --green: #40a02b; --yellow: #df8e1d; --peach: #fe640b;
+      --red: #d20f39; --teal: #179299;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.6 var(--sans); }
+  main { max-width: 1040px; margin: 0 auto; padding: 48px 24px 96px; }
+  h1, h2, h3 { font-family: var(--mono); font-weight: 600; line-height: 1.3; }
+  h1 { font-size: 28px; margin: 0 0 8px; }
+  h1 .hash, h2 .hash { color: var(--mauve); }
+  h2 { font-size: 19px; margin: 56px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  h3 { font-size: 15px; margin: 0 0 8px; color: var(--blue); }
+  p { margin: 0 0 12px; }
+  code, kbd { font-family: var(--mono); font-size: 0.88em; }
+  code { background: var(--mantle); padding: 1px 5px; border-radius: 4px; color: var(--peach); overflow-wrap: anywhere; }
+  kbd { display: inline-block; min-width: 1.6em; text-align: center; padding: 1px 6px; border: 1px solid var(--overlay);
+        border-bottom-width: 2px; border-radius: 5px; background: var(--mantle); color: var(--fg); }
+  .lede { color: var(--sub); font-size: 16px; max-width: 760px; }
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+  .grid > * { min-width: 0; }
+  .card { background: var(--mantle); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; min-width: 0; }
+  .card ul { margin: 0; padding-left: 18px; }
+  .card li { margin: 4px 0; }
+  .tag { display: inline-block; font: 600 11px/1 var(--mono); letter-spacing: .04em; text-transform: uppercase;
+         padding: 4px 7px; border-radius: 4px; margin-bottom: 10px; }
+  .tag.red { background: color-mix(in srgb, var(--red) 18%, transparent); color: var(--red); }
+  .tag.green { background: color-mix(in srgb, var(--green) 18%, transparent); color: var(--green); }
+  .tag.blue { background: color-mix(in srgb, var(--blue) 18%, transparent); color: var(--blue); }
+  .tag.yellow { background: color-mix(in srgb, var(--yellow) 18%, transparent); color: var(--yellow); }
+  .keys { display: flex; flex-wrap: wrap; gap: 12px; margin: 24px 0 0; }
+  .key { display: flex; align-items: center; gap: 10px; background: var(--mantle); border: 1px solid var(--border);
+         border-radius: 10px; padding: 12px 16px; min-width: 0; }
+  .key span { color: var(--sub); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font: 600 12px var(--mono); text-transform: uppercase; color: var(--muted); letter-spacing: .04em; }
+  td:first-child { white-space: nowrap; }
+  .table-wrap { overflow-x: auto; background: var(--mantle); border: 1px solid var(--border); border-radius: 10px; }
+  figure { margin: 0; background: var(--mantle); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+  figcaption { color: var(--muted); font-size: 13px; margin-top: 10px; }
+  svg { width: 100%; height: auto; display: block; }
+  svg text { font-family: var(--mono); }
+  .term { font: 13px/1.5 var(--mono); background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+          padding: 10px 14px; color: var(--sub); white-space: pre; overflow-x: auto; }
+  .term .b { color: var(--border); } .term .y { color: var(--yellow); } .term .g { color: var(--green); }
+  .term .t { color: var(--mauve); font-weight: 600; } .term .m { color: var(--muted); }
+  ol.steps { counter-reset: s; list-style: none; padding: 0; margin: 0; }
+  ol.steps li { counter-increment: s; position: relative; padding: 12px 16px 12px 52px; margin-bottom: 10px;
+                background: var(--mantle); border: 1px solid var(--border); border-radius: 10px; }
+  ol.steps li::before { content: counter(s); position: absolute; left: 14px; top: 11px; width: 26px; height: 26px;
+                        border-radius: 50%; background: var(--surface); color: var(--mauve); font: 600 13px/26px var(--mono); text-align: center; }
+  .q { border-left: 3px solid var(--yellow); }
+  .rec { color: var(--green); font-weight: 600; }
+  .code-host { border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+  .note { color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+
+<h1><span class="hash">#</span> Bookmarks for mdterm</h1>
+<p class="lede">Vim-style marks: <kbd>m</kbd>+letter sets a mark, <kbd>'</kbd>+letter jumps to it, and marks persist per file across sessions.
+The hard part is the anchor. "Position" today is a wrapped-line index, and that index changes whenever the terminal is resized, an image loads, or the file is edited.</p>
+
+<div class="keys">
+  <div class="key"><kbd>m</kbd><kbd>a-z</kbd><span>set mark at top of viewport</span></div>
+  <div class="key"><kbd>'</kbd><kbd>a-z</kbd><span>jump to mark</span></div>
+  <div class="key"><kbd>Backspace</kbd><span>back to where you jumped from</span></div>
+  <div class="key"><kbd>M</kbd><span>mouse capture (moved from <code>m</code>)</span></div>
+</div>
+
+<h2><span class="hash">##</span> What the code does today</h2>
+<div class="grid">
+  <div class="card">
+    <span class="tag red">conflict</span>
+    <h3>m is taken</h3>
+    <p><code>m</code> toggles mouse capture (<code>viewer.rs:1647</code>, help at <code>:3637</code>). <code>'</code> and <code>M</code> are unbound.</p>
+  </div>
+  <div class="card">
+    <span class="tag red">unstable</span>
+    <h3>offset is not a position</h3>
+    <p><code>state.offset</code> indexes <code>wrapped</code>, so it changes on resize, image load (<code>finalize_layout</code>), line-number toggle, auto-reload, and next session's width.</p>
+  </div>
+  <div class="card">
+    <span class="tag yellow">gap</span>
+    <h3>lines forget their source</h3>
+    <p><code>Line</code> is <code>{ spans, meta }</code>. The renderer gets byte ranges from <code>into_offset_iter()</code> (<code>markdown.rs:1585</code>) and throws them away.</p>
+  </div>
+  <div class="card">
+    <span class="tag yellow">ordering</span>
+    <h3>keys get grabbed first</h3>
+    <p><code>is_help_toggle</code> takes <code>h</code>/<code>?</code> before mode dispatch, and slide and JSON handlers take <code>h l j k H L D</code>. The prefix has to win before all of them.</p>
+  </div>
+  <div class="card">
+    <span class="tag green">reuse</span>
+    <h3>back navigation exists</h3>
+    <p><code>nav_history: Vec&lt;(file_idx, offset)&gt;</code> plus Backspace. A jump pushes onto it for free.</p>
+  </div>
+  <div class="card">
+    <span class="tag green">reuse</span>
+    <h3>serde_json is in</h3>
+    <p>No new dependencies. <code>dirs</code> is already used for config.</p>
+  </div>
+</div>
+
+<h2><span class="hash">##</span> Architecture</h2>
+<figure>
+<svg viewBox="0 0 960 330" role="img" aria-labelledby="arch-t">
+  <title id="arch-t">Set and jump flow through source anchors</title>
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+    </marker>
+  </defs>
+  <g id="n-render"><title>markdown.rs records Line.src</title>
+    <rect x="20" y="30" width="200" height="70" rx="10" fill="var(--bg)" stroke="var(--blue)"/>
+    <text x="120" y="60" text-anchor="middle" fill="var(--blue)" font-size="14" font-weight="600">Renderer</text>
+    <text x="120" y="82" text-anchor="middle" fill="var(--sub)" font-size="12">Line.src = byte offset</text>
+  </g>
+  <g id="n-wrapped"><title>wrapped lines inherit src</title>
+    <rect x="20" y="200" width="200" height="70" rx="10" fill="var(--bg)" stroke="var(--border)"/>
+    <text x="120" y="230" text-anchor="middle" fill="var(--fg)" font-size="14" font-weight="600">state.wrapped</text>
+    <text x="120" y="252" text-anchor="middle" fill="var(--sub)" font-size="12">rows carry src</text>
+  </g>
+  <path id="e-wrap" d="M120,100 L120,196" stroke="var(--muted)" fill="none" marker-end="url(#ar)"><title>wrap_lines clones src</title></path>
+
+  <g id="n-anchor"><title>anchor_at</title>
+    <rect x="320" y="30" width="220" height="70" rx="10" fill="var(--bg)" stroke="var(--mauve)"/>
+    <text x="430" y="60" text-anchor="middle" fill="var(--mauve)" font-size="14" font-weight="600">anchor_at()</text>
+    <text x="430" y="82" text-anchor="middle" fill="var(--sub)" font-size="12">offset -> {line, text}</text>
+  </g>
+  <g id="n-resolve"><title>resolve</title>
+    <rect x="320" y="200" width="220" height="70" rx="10" fill="var(--bg)" stroke="var(--mauve)"/>
+    <text x="430" y="230" text-anchor="middle" fill="var(--mauve)" font-size="14" font-weight="600">resolve()</text>
+    <text x="430" y="252" text-anchor="middle" fill="var(--sub)" font-size="12">{line, text} -> offset</text>
+  </g>
+  <path id="e-set" d="M220,235 C270,235 270,65 316,65" stroke="var(--muted)" fill="none" marker-end="url(#ar)"><title>m+letter</title></path>
+  <text x="246" y="140" fill="var(--green)" font-size="13">m a</text>
+  <path id="e-jump" d="M316,245 L224,245" stroke="var(--muted)" fill="none" marker-end="url(#ar)"><title>sets offset</title></path>
+  <text x="250" y="290" fill="var(--green)" font-size="13">' a</text>
+
+  <g id="n-marks"><title>FileMarks in ViewerState</title>
+    <rect x="640" y="115" width="140" height="70" rx="10" fill="var(--bg)" stroke="var(--teal)"/>
+    <text x="710" y="145" text-anchor="middle" fill="var(--teal)" font-size="14" font-weight="600">FileMarks</text>
+    <text x="710" y="167" text-anchor="middle" fill="var(--sub)" font-size="12">char -> Anchor</text>
+  </g>
+  <path id="e-insert" d="M540,65 C600,65 600,140 636,140" stroke="var(--muted)" fill="none" marker-end="url(#ar)"/>
+  <path id="e-lookup" d="M640,165 C600,165 600,235 544,235" stroke="var(--muted)" fill="none" marker-end="url(#ar)"/>
+
+  <g id="n-store"><title>MarkStore marks.json</title>
+    <rect x="830" y="100" width="110" height="100" rx="10" fill="var(--bg)" stroke="var(--peach)"/>
+    <text x="885" y="135" text-anchor="middle" fill="var(--peach)" font-size="14" font-weight="600">marks</text>
+    <text x="885" y="153" text-anchor="middle" fill="var(--peach)" font-size="14" font-weight="600">.json</text>
+    <text x="885" y="178" text-anchor="middle" fill="var(--sub)" font-size="11">atomic write</text>
+  </g>
+  <path id="e-save" d="M780,135 L826,135" stroke="var(--muted)" fill="none" marker-end="url(#ar)"><title>save on set</title></path>
+  <path id="e-load" d="M830,170 L784,170" stroke="var(--muted)" fill="none" marker-end="url(#ar)"><title>load on open / switch_file</title></path>
+</svg>
+<figcaption>Marks are stored as source-line anchors and resolved at jump time. Resizes, image loads and edits all go through the same path, so none of them need special handling.</figcaption>
+</figure>
+
+<h2><span class="hash">##</span> 1. Source anchors on rendered lines</h2>
+<div class="grid">
+  <div class="card">
+    <h3>style.rs</h3>
+    <ul>
+      <li>Add <code>src: Option&lt;usize&gt;</code> to <code>Line</code> (a byte offset into the markdown source).</li>
+      <li><code>wrap_lines</code> already clones lines, so continuation rows inherit it.</li>
+      <li><code>finalize_layout</code> copies it onto expanded image rows.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>markdown.rs</h3>
+    <ul>
+      <li>Record <code>line_src</code> when the first span of a pending line is pushed, and set it in <code>flush_line_with_meta</code>.</li>
+      <li>Code blocks: exact offset per line (block start plus each <code>\n</code>). Tables: <code>TableRow</code> range. Lists: <code>Item</code> start.</li>
+      <li>Spacers, rules, JSON and diagrams get <code>None</code>.</li>
+    </ul>
+  </div>
+</div>
+
+<h2><span class="hash">##</span> 2. <code>src/marks.rs</code> - pure logic, no TUI</h2>
+<div class="code-host" id="api"></div>
+<div class="grid" style="margin-top:16px">
+  <div class="card">
+    <h3>anchor_at</h3>
+    <p>Start at <code>wrapped[offset]</code> and walk forward to the first row with <code>src</code>. Convert the byte offset to a source line, and record that line's trimmed text as a fingerprint.</p>
+  </div>
+  <div class="card">
+    <h3>resolve - runs at jump time</h3>
+    <ol style="margin:0;padding-left:18px">
+      <li>Source line <code>a.line</code> still reads <code>a.text</code>: use it.</li>
+      <li>Otherwise, use the nearest line with equal text (covers lines inserted or deleted above the mark).</li>
+      <li>Otherwise, clamp <code>a.line</code> to the end of the file.</li>
+      <li>Map to the first wrapped row of the block containing that line, then clamp to <code>max_offset()</code>.</li>
+    </ol>
+  </div>
+</div>
+
+<h2><span class="hash">##</span> 3. Viewer integration</h2>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Where</th><th>Change</th></tr></thead>
+  <tbody>
+    <tr><td><code>ViewerState</code></td><td><code>pending_key: Option&lt;PendingKey&gt;</code> (<code>SetMark | JumpMark</code>), <code>marks: FileMarks</code>, <code>mark_store: Option&lt;MarkStore&gt;</code></td></tr>
+    <tr><td><code>handle_event</code></td><td>Right after Ctrl+C and <b>before</b> <code>is_help_toggle</code>: if a prefix is pending in Normal mode, consume the key. <code>a-z</code> sets or jumps; anything else (including Esc) cancels silently.</td></tr>
+    <tr><td>prefix start</td><td>Normal mode, regular and slide: <kbd>m</kbd> sets SetMark, <kbd>'</kbd> sets JumpMark. Both checked before slide and JSON handlers.</td></tr>
+    <tr><td>set</td><td>Anchor at the top line (in slide mode, <code>slide_boundaries[current_slide]</code>). Insert, save, toast <code>Mark a set</code>.</td></tr>
+    <tr><td>jump</td><td><code>resolve</code>, push <code>(file_idx, offset)</code> onto <code>nav_history</code>, set the offset (slide mode: the slide containing the target). If unset: toast <code>Mark a not set</code>.</td></tr>
+    <tr><td><code>switch_file</code></td><td>Reload <code>marks</code> from the store. Auto-reload needs nothing extra.</td></tr>
+    <tr><td>status bar</td><td>Show a pending indicator in the bottom border, same pattern as the search label.</td></tr>
+    <tr><td>help / README</td><td>New "Marks" section. Mouse capture moves to <kbd>M</kbd>. <code>help_sections_no_duplicate_keys</code> covers the help entries.</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="note" style="margin-top:12px">Status bar while a prefix is pending (mock, dark theme):</p>
+<div class="term"><span class="b">╰─</span><span class="y"> m_ </span><span class="b">──────────────────────────────────────────────</span><span class="m"> 42% </span><span class="b">─╯</span></div>
+<div class="term" style="margin-top:8px"><span class="b">╰──────────────────</span><span class="g">  Mark a set  </span><span class="b">──────────────────────────────╯</span></div>
+
+<h2><span class="hash">##</span> 4. Persistence</h2>
+<div class="grid">
+  <div class="card">
+    <h3>Location</h3>
+    <ul>
+      <li><code>dirs::state_dir()</code>: Linux <code>~/.local/state/mdterm/marks.json</code></li>
+      <li>falls back to <code>data_local_dir()</code>: macOS <code>~/Library/Application Support/mdterm/marks.json</code></li>
+      <li>It's state, not config, so it stays out of <code>config.toml</code>.</li>
+      <li>Key: <code>fs::canonicalize(path)</code></li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Writes</h3>
+    <ul>
+      <li>On every set: read-modify-write of only this file's entry.</li>
+      <li>Temp file in the same dir, then <code>rename</code>. Atomic, so a crash can't corrupt the store.</li>
+      <li>Concurrent instances don't overwrite each other's files.</li>
+      <li>Entries for deleted files are pruned on write.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Failure modes</h3>
+    <ul>
+      <li>Corrupt or unreadable store: empty marks, viewer keeps working.</li>
+      <li>Save error: toast <code>Could not save marks</code>.</li>
+      <li>stdin input: session-only marks.</li>
+      <li>JSON files: toast <code>Marks are not supported for JSON</code>.</li>
+    </ul>
+  </div>
+</div>
+<div class="code-host" id="schema" style="margin-top:16px"></div>
+
+<h2><span class="hash">##</span> Test plan</h2>
+<div class="grid">
+  <div class="card"><span class="tag blue">marks.rs</span>
+    <ul><li>Round-trip on an unchanged doc</li><li>Same block at widths 40 / 80 / 120</li><li>Lines inserted above (fingerprint search)</li><li>Anchored line deleted (clamp fallback)</li><li>Spacer snaps to the next block; code-line precision</li></ul></div>
+  <div class="card"><span class="tag blue">MarkStore</span>
+    <ul><li>Round-trip in a temp dir (no new dev-deps)</li><li>Corrupt JSON gives empty marks</li><li>Two stores saving different files merge</li><li>Missing files are pruned</li></ul></div>
+  <div class="card"><span class="tag blue">viewer + renderer</span>
+    <ul><li><kbd>m</kbd><kbd>h</kbd> sets mark h instead of opening help</li><li><kbd>m</kbd><kbd>Esc</kbd> cancels; unset mark shows a toast</li><li>Slide-mode prefix; JSON nav doesn't eat the letter</li><li>Every rendered line's <code>src</code> points at its text</li></ul></div>
+  <div class="card"><span class="tag green">E2E in tmux</span>
+    <ul><li>Set, resize pane, jump</li><li>Quit, relaunch, jump</li><li>Edit the file above the mark while it's open, jump</li></ul></div>
+</div>
+
+<h2><span class="hash">##</span> Commits</h2>
+<ol class="steps">
+  <li><code>Line.src</code> plus renderer tracking plus tests</li>
+  <li><code>marks.rs</code> anchor / resolve plus tests</li>
+  <li><code>MarkStore</code> persistence plus tests</li>
+  <li>Viewer prefix keys, <kbd>M</kbd> rebind, status hint, help, README, CLAUDE.md (now eleven source files)</li>
+</ol>
+
+<h2><span class="hash">##</span> Risks</h2>
+<div class="grid">
+  <div class="card"><span class="tag yellow">ux</span><p>Moving mouse capture from <code>m</code> to <code>M</code> breaks muscle memory for existing users. Call it out in the release notes.</p></div>
+  <div class="card"><span class="tag yellow">precision</span><p>Inside a long wrapped paragraph, a jump lands on the paragraph's first row. Code blocks are exact per line.</p></div>
+  <div class="card"><span class="tag yellow">collisions</span><p>Repeated identical lines (for example <code>---</code>): the nearest match wins, which is the correct bias.</p></div>
+</div>
+
+<h2><span class="hash">##</span> Decisions</h2>
+<div class="grid">
+  <div class="card"><span class="tag green">decided</span><h3>Mouse capture moves to M</h3><p><code>m</code> is now the mark prefix, following the vim convention.</p></div>
+  <div class="card"><span class="tag green">decided</span><h3>Letters a-z only</h3><p>A-Z stays free for possible future cross-file marks. After <kbd>m</kbd> or <kbd>'</kbd>, an uppercase letter cancels like any other non-mark key.</p></div>
+  <div class="card"><span class="tag green">decided</span><h3>JSON is out of v1</h3><p><kbd>m</kbd> and <kbd>'</kbd> show the toast <code>Marks are not supported for JSON</code>.</p></div>
+</div>
+
+</main>
+<script type="module">
+  import { File } from "https://esm.sh/@pierre/diffs@1.2.10?bundle";
+  const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+  const options = { theme: { light: "catppuccin-latte", dark: "catppuccin-mocha" }, themeType: dark ? "dark" : "light", overflow: "wrap" };
+  new File(options).render({
+    containerWrapper: document.querySelector("#api"),
+    file: { name: "src/marks.rs (public surface)", contents:
+`pub struct Anchor {
+    pub line: usize,   // 0-based source line
+    pub text: String,  // trimmed text of that line (fingerprint)
+}
+
+pub struct FileMarks(BTreeMap<char, Anchor>);
+
+pub fn anchor_at(content: &str, wrapped: &[Line], offset: usize) -> Option<Anchor>;
+pub fn resolve(content: &str, wrapped: &[Line], anchor: &Anchor) -> usize;
+
+pub struct MarkStore { path: PathBuf }
+
+impl MarkStore {
+    pub fn open_default() -> Option<Self>;
+    pub fn load(&self, file: &Path) -> FileMarks;
+    pub fn save(&self, file: &Path, marks: &FileMarks) -> io::Result<()>;
+}
+` }
+  });
+  new File(options).render({
+    containerWrapper: document.querySelector("#schema"),
+    file: { name: "marks.json", contents:
+`{
+  "version": 1,
+  "files": {
+    "/Users/jan/projects/mdterm/README.md": {
+      "a": { "line": 120, "text": "## Install" },
+      "t": { "line": 342, "text": "fn render_with(" }
+    }
+  }
+}
+` }
+  });
+</script>
+</body>
+</html>

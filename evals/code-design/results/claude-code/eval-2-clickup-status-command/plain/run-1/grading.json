@@ -1,0 +1,92 @@
+{
+  "expectations": [
+    {
+      "text": "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
+      "passed": true,
+      "evidence": "Checked: doRequest(method,path,query) has no body and only Get exists (client.go:42,94); tasksCmd uses MaximumNArgs(1) with no subcommands (tasks.go:37); no list endpoint in internal/api; models.Status with Orderindex exists; no API tests; root prints 'Error: %v' and exits 1 (root.go:50-51); Makefile has check and build-all; skills/SKILL.md exists. No file:line citations but all sampled claims true. Caveat: plan states 'make check passes' as verification, which fails today (see key-fact)."
+    },
+    {
+      "text": "conventions: the design follows the repo's existing conventions and names any deviation with a reason",
+      "passed": true,
+      "evidence": "Follows commands/api/models layering, init() registration via AddCommand, errors bubbling to root's Error: %v, docs/SKILL.md/bin rebuild convention. Names the deviation of first write op (doRequest gets body) and introduces first HTTP tests with a reason."
+    },
+    {
+      "text": "alternatives: at least one structurally different alternative is considered, with a concrete reason for rejecting it",
+      "passed": false,
+      "evidence": "Neither the md, html nor transcript presents any alternative structure (e.g. putting logic in api layer, positional two-arg vs flag, using task-endpoint statuses instead of GetList). Only open questions about arg joining and output format, which are options within one design."
+    },
+    {
+      "text": "preferences-honoured: final plan agrees with every user answer and contradicts no hidden preference",
+      "passed": true,
+      "evidence": "User answers (join args, one-line confirmation) reflected. Hidden prefs: case-insensitive exact match via EqualFold (no fuzzy); same-status prints notice, no PUT, exit 0; valid statuses in orderindex (board) order; no confirmation prompt in flow. None contradicted."
+    },
+    {
+      "text": "elicitation: each hidden preference the design depends on was asked about or stated as an explicit assumption",
+      "passed": false,
+      "evidence": "The executor asked only about unquoted multi-word args and success output. Match strictness, already-in-status behaviour/exit code, ordering and confirmation prompt were all decided silently in the plan as facts, not flagged as assumptions or questions (the plan landing on the preferred answers is luck)."
+    },
+    {
+      "text": "coverage: every trigger the feature implies is designed end to end, including failures and what the user sees",
+      "passed": true,
+      "evidence": "Covers success, invalid status (message, exit 1, no write), same status, unknown task via GetTask error, API rejection/race, inherited statuses, multi-list tasks, docs, tests and E2E verification list."
+    },
+    {
+      "text": "consistency: names and signatures agree everywhere across the plan",
+      "passed": true,
+      "evidence": "GetList, FindStatus, StatusNames, UpdateTaskStatus, InvalidStatusError, runTasksStatus, doRequest/Put signatures are used consistently in Flow, layer list and tests."
+    },
+    {
+      "text": "api-fit: new interfaces fit the code they plug into",
+      "passed": true,
+      "evidence": "Extending doRequest with body and keeping Get delegating nil fits client.go; reuses models.Status and Task.List; cobra subcommand under tasks with routing verified via scratch binary; test seam via baseURL field exists (client.go:20)."
+    },
+    {
+      "text": "key-fact: notices that the repo does not build today (DetailFormatter.FormatComments declared twice in internal/output/table.go)",
+      "passed": false,
+      "evidence": "No mention of the duplicate declaration or build failure anywhere. go build ./... fails: table.go:238 already declared at table.go:191. Plan instead lists 'make check passes' as verification."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 3,
+    "total": 9,
+    "pass_rate": 0.67
+  },
+  "execution_metrics": {},
+  "timing": {
+    "executor_duration_seconds": 203.2,
+    "total_duration_seconds": 211.9
+  },
+  "claims": [
+    {
+      "claim": "Cobra routing: adding status subcommand keeps tasks and tasks <id> working",
+      "type": "process",
+      "verified": false,
+      "evidence": "Cannot re-verify scratch binary; plausible given cobra behaviour, repo itself does not build."
+    },
+    {
+      "claim": "make check passes as a verification gate",
+      "type": "quality",
+      "verified": false,
+      "evidence": "Repo fails to compile due to duplicate FormatComments."
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "elicitation",
+        "reason": "Plans can land on the preferred answer by default; the assertion correctly requires asking or stating assumptions, but a plan that silently matches preference still passes preferences-honoured, so the two are decoupled as intended."
+      },
+      {
+        "assertion": "grounded",
+        "reason": "Does not penalise 'make check passes' being claimed on a non-building repo; key-fact covers it only once."
+      }
+    ],
+    "overall": "Assertions are discriminating; key-fact catches the build break that grounded misses."
+  }
+}

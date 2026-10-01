@@ -1,0 +1,34 @@
+{
+  "scores": {
+    "superpowers": {
+      "correctness": 8,
+      "completeness": 7,
+      "clarity": 8,
+      "reviewability": 8
+    },
+    "code-design": {
+      "correctness": 9,
+      "completeness": 9,
+      "clarity": 9,
+      "reviewability": 9
+    },
+    "plain": {
+      "correctness": 7,
+      "completeness": 7,
+      "clarity": 7,
+      "reviewability": 6
+    },
+    "feature-dev": {
+      "correctness": 8,
+      "completeness": 8,
+      "clarity": 8,
+      "reviewability": 8
+    }
+  },
+  "ranking": [
+    "code-design",
+    "feature-dev",
+    "superpowers",
+    "plain"
+  ]
+}

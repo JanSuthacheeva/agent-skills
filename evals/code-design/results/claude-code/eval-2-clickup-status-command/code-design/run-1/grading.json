@@ -1,0 +1,68 @@
+{
+  "expectations": [
+    {
+      "text": "grounded",
+      "passed": true,
+      "evidence": "Checked: FormatComments declared twice at table.go:191 and :238; doRequest is GET-only with nil body (client.go:42-96); custom-ID block duplicated in GetTask and comments.go:16-20; getTask orchestration at tasks.go:111-124; tasksCmd Args MaximumNArgs(1), local --status flag; SilenceUsage/SilenceErrors at root.go:43-44; models.Status/ListInfo shapes. citations.json: 35/35 valid."
+    },
+    {
+      "text": "conventions",
+      "passed": true,
+      "evidence": "Plan has a conventions table mirroring init() registration, getTask orchestration, fmt.Errorf wrapping, one api file per domain, models helpers; deviations (io.Writer, first nested subcommand, UpdateTaskRequest naming) are named with reasons."
+    },
+    {
+      "text": "alternatives",
+      "passed": true,
+      "evidence": "Approaches B (PUT first, explain on rejection via ECODE) and C (orchestration in api.Client with typed error) are structurally different and rejected with concrete reasons."
+    },
+    {
+      "text": "preferences-honoured",
+      "passed": true,
+      "evidence": "User answers (approach A, delete stale FormatComments first, SetBaseURL yes, generic UpdateTask) all reflected. Hidden prefs: case-insensitive match with no fuzzy (assumption 1, 6), already-in-status notice exit 0 no write (assumption 3), board order via Orderindex (StatusNames), no confirmation prompt (flow has none). Trimming surrounding whitespace is a minor extra but not prefix/fuzzy matching."
+    },
+    {
+      "text": "elicitation",
+      "passed": false,
+      "evidence": "Matching, already-same-status, listing order and output format were stated as explicit assumptions, but the absence of a confirmation prompt is never asked about nor listed among the assumptions; it is only implicit in the call chain, i.e. silently decided."
+    },
+    {
+      "text": "coverage",
+      "passed": true,
+      "evidence": "Valid path, invalid status, already-in-status, arg count, config, get task/list failures, update rejection/race, empty status list, custom vs native IDs, docs and help all designed with user-visible output."
+    },
+    {
+      "text": "consistency",
+      "passed": true,
+      "evidence": "Names and signatures (setTaskStatus, invalidStatusError, UpdateTask, taskIDQuery, GetList, FindStatus, StatusNames, Put, SetBaseURL, doRequest payload) agree across md and html."
+    },
+    {
+      "text": "api-fit",
+      "passed": true,
+      "evidence": "Fits existing types (models.Status reused, Task.List.ID, GetDisplayID), cobra nesting, doRequest extension, SetDebug-style SetBaseURL; implementable without redesign. Only unverified point is whether GET /list returns inherited statuses, which the plan flags and checks first."
+    },
+    {
+      "text": "key-fact",
+      "passed": true,
+      "evidence": "Notes main does not build: DetailFormatter.FormatComments declared twice (table.go:191 and :238); step 0 deletes stale copy."
+    }
+  ],
+  "summary": {
+    "passed": 8,
+    "failed": 1,
+    "total": 9,
+    "pass_rate": 0.89
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "elicitation",
+        "reason": "Hidden preference 'no confirmation prompt' is a default most plans will not mention; the assertion only discriminates if the grader checks each hidden preference individually."
+      },
+      {
+        "assertion": "preferences-honoured",
+        "reason": "'Case-insensitive but otherwise exact' is ambiguous about whitespace trimming; clarify."
+      }
+    ],
+    "overall": "Assertions are reasonably discriminating."
+  }
+}

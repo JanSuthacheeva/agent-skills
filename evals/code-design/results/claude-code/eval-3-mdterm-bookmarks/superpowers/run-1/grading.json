@@ -1,0 +1,67 @@
+{
+  "expectations": [
+    {
+      "text": "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
+      "passed": false,
+      "evidence": "One material grounding error. Spec 4.2 and the transcript claim list items are 'flushed when the next Start(Item) arrives (see the comment at src/markdown.rs:1101)'. Line 1101 is a TaskListMarker comment about stripping the bullet; Event::End(TagEnd::Item) (markdown.rs:892-905) calls flush_line_with_meta, so no lazy-flush-to-next-item bug exists and rule 1 is justified by a false mechanism. The other claims I checked are true: viewer.rs:1647 and :3637 (m toggle/help), :999 is_help_toggle before dispatch, :1610-1617 early returns, :1766 Backspace pops nav_history, :3023 hardcoded check prefix, markdown.rs:1585 into_offset_iter, ~51 Line literals, no dev-deps, serde_json/dirs present, README lacks mouse key. citations.json: 15/15 resolve."
+    },
+    {
+      "text": "conventions: the design follows the repo's existing conventions (layering, naming, error handling, dependency wiring) and names any deviation with a reason",
+      "passed": true,
+      "evidence": "Uses dirs (as config.rs does), serde_json, a separate module with no viewer dependency, set_toast/set_warning alongside existing toast, Line::new, theme color in both themes, existing make_state_with_lines test helper and nav_history pattern. Deviations named with reasons: first dev-dependency tempfile, new toast_warning color, MarkStore injected via ViewerOptions for testability, state dir fallback because macOS has none."
+    },
+    {
+      "text": "alternatives: at least one structurally different alternative is considered, with a concrete reason for rejecting it",
+      "passed": true,
+      "evidence": "Three approaches: carry source lines through render pipeline (chosen), reverse-map rendered text to source (rejected: fragile, markdown syntax stripped, ambiguous), store wrapped offset plus render params (rejected: fails edit requirement). Also A/B/C for m conflict and line/fingerprint/heading-relative anchors, each rejected with concrete reasons."
+    },
+    {
+      "text": "preferences-honoured: the final plan agrees with every user answer given in the conversation and contradicts none",
+      "passed": true,
+      "evidence": "Regrade: M for mouse capture; a-z only per file, no global marks; dirs::state_dir().or_else(data_local_dir) marks.json, separate from config.toml; Anchor stores source line plus snippet and resolve searches nearest matching text with healing, so it survives resize and edits between sessions. Matches all user answers."
+    },
+    {
+      "text": "elicitation: each hidden preference that the plan's design depends on was either asked about or stated as an explicit assumption, never silently decided",
+      "passed": true,
+      "evidence": "All four hidden preferences were surfaced as questions or explicit assumptions before design (m conflict question; a-z/per-file assumption confirmed; storage separate from config.toml stated and confirmed; resize/edit survival stated as assumption and drove the anchor question). Other decisions (scope extras, positions) were asked."
+    },
+    {
+      "text": "coverage: every trigger the feature implies is designed end to end, including how failures are handled and what the user sees",
+      "passed": true,
+      "evidence": "Triggers: m/' set and jump, pending key vs help toggle ordering, Esc/non-letter cancel, slide/JSON/stdin disabled, multi-file switch (mark_file in switch_file), auto-reload, resize, line-number toggle, unset mark, store failures (no dir, corrupt, newer version, write failure, canonicalize failure), concurrent instances, with the user-visible toast for each."
+    },
+    {
+      "text": "consistency: unit, method and type names and signatures agree everywhere they appear across the plan",
+      "passed": true,
+      "evidence": "Names agree across spec sections: Anchor::capture/resolve, MarkStore load/at/get/set/take_notice, SaveError, PendingKey, marks_unavailable, source_line_at, offset_for_source_line, set_warning, toast_warning, mark_file. The late change of MarkStore injection via ViewerOptions is folded into the spec consistently. Minor wording drift only in the JSON unavailable toast text between transcript and spec."
+    },
+    {
+      "text": "api-fit: new interfaces fit the code they plug into (existing types, call sites, layering), so the plan could be implemented without redesign",
+      "passed": true,
+      "evidence": "Fits the code: ViewerState has content, offset, json_view, current_file_idx, nav_history: Vec<(usize,usize)>; ViewerOptions exists in viewer.rs and make_state_with_lines builds it so adding marks is a mechanical change; handle_event/handle_normal ordering matches real code; Line has only spans and meta so a field plus Line::new is implementable. Tests with empty content would need setup but no redesign."
+    },
+    {
+      "text": "key-fact: notices that m is already bound to the mouse-capture toggle in src/viewer.rs",
+      "passed": true,
+      "evidence": "Spec section 2 and transcript turn 1 state m is bound to mouse capture at src/viewer.rs:1647 with help entry at :3637, verified correct."
+    }
+  ],
+  "summary": {
+    "passed": 8,
+    "failed": 1,
+    "total": 9,
+    "pass_rate": 0.89
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
+        "reason": "citations.json only checks that file:line resolves, not that the cited line supports the claim; the markdown.rs:1101 citation resolves but is unrelated to the claim it backs."
+      },
+      {
+        "reason": "No assertion checks that the user-facing hidden-preference questions were not leaked as leading choices; the simulated user accepts every recommendation, so elicitation is only weakly tested."
+      }
+    ],
+    "overall": "Assertions are reasonable; grounded needs semantic citation checking."
+  }
+}
