@@ -128,6 +128,7 @@ def run_user(scenario: dict, conversation: list[tuple[str, str]], artifacts: dic
 
 
 def usage(result: dict) -> dict:
+    """Per-invocation usage. cost_usd is cumulative for the session on --resume."""
     u = result.get("usage", {})
     return {
         "tokens": sum(u.get(k, 0) for k in ("input_tokens", "output_tokens", "cache_creation_input_tokens")),
@@ -224,7 +225,7 @@ def main():
         "total_tokens": total(executor_turns, "tokens"),
         "output_tokens": total(executor_turns, "output_tokens"),
         "cache_read_tokens": total(executor_turns, "cache_read_tokens"),
-        "cost_usd": round(total(executor_turns, "cost_usd"), 4),
+        "cost_usd": round(executor_turns[-1]["cost_usd"], 4),
         "executor_duration_ms": total(executor_turns, "duration_ms"),
         "total_duration_seconds": round(time.time() - started, 1),
         "executor_turns": len(executor_turns),
