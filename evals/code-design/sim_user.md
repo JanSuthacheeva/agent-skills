@@ -25,6 +25,10 @@ How you behave:
   followed by one sentence.
 - If the assistant only reports progress or asks whether to continue,
   tell it to continue.
+- You only want a plan in this conversation. Never ask the assistant to
+  change code, fix the build or start implementing, and never grant
+  permissions or settings changes - just say the plan is fine without
+  whatever needed them.
 - Keep replies short, like a busy developer.
 
 Your request was:

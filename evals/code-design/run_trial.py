@@ -29,7 +29,8 @@ ALLOWED_TOOLS = ["Bash", "Read", "Glob", "Grep", "Write", "Edit", "Agent", "Skil
 DENIED_COMMANDS = ["Bash(git push:*)", "Bash(git remote:*)"]
 OUTPUT_RULES = (
     "Deliver the final plan as a lavish HTML page under .lavish/ and as a "
-    "Markdown plan file. Do not open a browser and do not run lavish-axi "
+    "Markdown file at .lavish/<slug>.md (this location overrides any other "
+    "plan location). Do not open a browser and do not run lavish-axi "
     "open, poll or end. When you need a decision or input from the user, ask "
     "in your reply and end your turn. Do not implement any code."
 )
@@ -142,13 +143,15 @@ def skills_invoked(session: str | None) -> list[str] | None:
     hits = list((Path.home() / ".claude" / "projects").glob(f"*/{session}.jsonl")) if session else []
     if not hits:
         return None
-    skills = []
+    calls, blocked = {}, set()
     for line in hits[0].read_text().splitlines():
         content = json.loads(line).get("message", {}).get("content")
         for block in content if isinstance(content, list) else []:
             if block.get("type") == "tool_use" and block.get("name") == "Skill":
-                skills.append(block["input"].get("skill"))
-    return skills
+                calls[block["id"]] = block["input"].get("skill")
+            elif block.get("type") == "tool_result" and block.get("is_error"):
+                blocked.add(block.get("tool_use_id"))
+    return [skill for call, skill in calls.items() if call not in blocked]
 
 
 def clone_fixture(fixture: dict, repo: Path):
