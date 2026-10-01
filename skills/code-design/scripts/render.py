@@ -65,9 +65,9 @@ TEMPLATE = r"""<!doctype html>
   .doc table { width: 100%; border-collapse: collapse; font-size: 0.9rem; display: block; overflow-x: auto; }
   .doc th, .doc td { border: 1px solid var(--color-base-300); padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
   .doc th { background: var(--color-base-200); }
-  .doc .mermaid { background: var(--color-base-100); border: 1px solid var(--color-base-300); border-radius: 8px; padding: 1rem; overflow-x: auto; text-align: center; }
-  .doc .mermaid svg { max-width: 100%; height: auto; }
-  .doc .mermaid .cluster rect { fill: var(--color-base-200) !important; stroke: var(--color-base-300) !important; }
+  .doc .diagram { background: var(--color-base-100); border: 1px solid var(--color-base-300); border-radius: 8px; padding: 1rem; overflow-x: auto; text-align: center; }
+  .doc .diagram svg { max-width: 100%; height: auto; }
+  .doc .diagram .cluster rect { fill: var(--color-base-200) !important; stroke: var(--color-base-300) !important; }
   .doc h3 + pre, .doc h3 + p + pre { margin-top: 0.5rem; }
   .toc a { display: block; padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.875rem; }
   .toc a:hover { background: var(--color-base-300); }
@@ -128,7 +128,7 @@ TEMPLATE = r"""<!doctype html>
     const language = (lang || "").trim().split(/\s+/)[0];
     if (language === "mermaid") {
       window.diagrams.push(code);
-      return `<div class="mermaid" data-diagram="${window.diagrams.length - 1}"></div>`;
+      return `<div class="diagram" data-diagram="${window.diagrams.length - 1}"></div>`;
     }
     if (language === "decision") return decisionForm(parseDecision(code));
     const cls = language ? ` class="language-${escape(language)}"` : "";

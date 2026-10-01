@@ -60,7 +60,8 @@ abstraction vs extending an existing one, which layer is responsible. If
 only one approach is sensible, say so and show the alternatives you
 rejected and why, rather than inventing strawmen.
 
-Write `.lavish/<slug>-approaches.md` and render it (see "Pages" below).
+Write `.lavish/<slug>-approaches.md` and render it (see "Approaches page"
+below).
 Keep it lean - this page only has to support one decision, so about a
 screen per approach:
 
@@ -86,77 +87,81 @@ bodies (`;`, `{ ... }`, `todo!()` or the language's equivalent). Every name
 is a proposal the user will judge, so choose names that say what the thing
 does in the codebase's vocabulary.
 
-Write `.lavish/<slug>-implementation.md` and render it: one page with the
-design and its code-level detail. This Markdown file is the design and,
-once approved, the plan - write it once and edit it in place afterwards.
-Start it with a `# <feature> - implementation` title, then these `##`
-sections:
+Build the implementation page by hand as a lavish artifact,
+`.lavish/<slug>-implementation.html` (open the `plan`, `diagram`, `code`
+and `input` playbooks first). It holds the design and its code-level
+detail on one page, with these sections:
 
 1. **Decision recap** - the chosen approach in two sentences, and what was
    explicitly decided in phase 2.
-2. **Structure overview** - one Mermaid `flowchart` of every unit
-   involved, grouped by layer or module with `subgraph`, new / modified /
-   existing marked distinctly, arrows for dependencies.
-3. **Units** - one `###` per class, module, struct or file, headed by its
-   path and a `[new]` or `[modified]` tag:
-   - layer
+2. **Structure overview** - one diagram of every unit involved, grouped by
+   layer or module, new / modified / existing marked distinctly, arrows for
+   dependencies.
+3. **Units** - one card per class, module, struct or file:
+   - file path, layer, new or modified
    - responsibility in one sentence (if it needs "and", question the split)
    - injected dependencies / collaborators
-   - public methods with full typed signatures in one fenced code block,
-     each with a one-line comment on what it does and returns or throws
+   - public methods with full typed signatures, each with a one-line
+     description of what it does and what it returns or throws
    - for modified units, only the added or changed members, and what
      changes about existing ones
 4. **Data** - new or changed DTOs, value objects, enums, models, schema or
    migrations, with fields and types. Show which boundary each one crosses.
 5. **Call chains** - the heart of the design. For each trigger (a user
-   action, request, command, event, job, key press) a Mermaid
-   `sequenceDiagram` of the calls in order, from the entry point down to
-   persistence or output and back. Under each diagram, a numbered list of the same steps as
+   action, request, command, event, job, key press) a sequence diagram of
+   the calls in order, from the entry point down to persistence or output
+   and back. Under each diagram, a numbered list of the same steps as
    `Caller -> Callee::method(args): Return`. Include the error paths: what
    fails where, what is thrown or returned, which layer handles it, and
-   what the user ends up seeing - a table works well. Show error paths in
-   the diagram too (`alt` / `opt` blocks), secondary to the happy path.
+   what the user ends up seeing. Draw error paths in the diagram too, but
+   visually secondary to the happy path.
 6. **Conventions followed** - the patterns the design copies, each with the
    `file:line` of the existing code it mirrors. Call out any place the
    design deviates from a convention and why.
 7. **Test seams** - briefly, which units get tested at which level and
    what gets faked. One line per unit is enough.
 8. **Open questions** - design choices you could not settle alone, each
-   as a `decision` block with your recommended option marked.
+   with your recommended answer and an input control so the user can
+   answer in place.
 
 Keep the diagrams one concept each: the overview shows topology, each call
 chain shows one trigger. A dense everything-diagram is harder to review
 than several small ones.
 
-Before opening it, check the design against itself: every method in a call
-chain exists on a unit with the same signature, every unit appears in the overview, every DTO used in a signature is defined in Data
+Before serving, check the design against itself: every method in a call
+chain exists on a unit card with the same signature, every unit on a card
+appears in the overview, every DTO used in a signature is defined in Data
 or already exists. Mismatches here are what makes a design review go in
 circles.
 
-Open it, poll, and iterate on the user's annotations. Change the Markdown
-with targeted edits rather than rewriting it, and re-render - rename
-consistently everywhere, remove resolved open questions and fold the
-answer into the design. Continue until the user approves.
+Open it, poll, and iterate on the user's annotations. Update the artifact
+in place - rename consistently everywhere, remove resolved open questions
+and fold the answer into the design. Continue until the user approves.
 
 ## 4. Persist
 
-The approved design Markdown already is the plan, so do not write it
-again. Copy it with `cp` to the project's plan location if it has one
-(`docs/plans/`, `.claude-bw/plans/`, or wherever earlier plans live),
-otherwise `docs/plans/<YYYY-MM-DD>-<slug>.md`. If a hook or project rule
-rejects that path, use the location it asks for and mention it; if you
-were told where plans go, use that.
+Once approved, write the design as a Markdown plan so a later
+implementation session can follow it without the browser. Use the
+project's existing plan location if it has one (`docs/plans/`,
+`.claude-bw/plans/`, or wherever earlier plans live), otherwise
+`docs/plans/<YYYY-MM-DD>-<slug>.md`. If a hook or project rule rejects
+that path, use the location it asks for and mention it.
 
-End the lavish session with `npx -y lavish-axi end <page>` and tell the
-user where the plan and the review page are. Do not start implementing
-unless asked.
+The Markdown carries the same content as the artifact: decision recap,
+units with signatures in fenced code blocks, data structures, call chains
+as numbered steps (Mermaid `sequenceDiagram` blocks are fine here),
+conventions followed, test seams, and any decisions made during review.
+Link the HTML artifact path at the top.
 
-## Pages
+End the lavish session with `npx -y lavish-axi end <file>` and tell the
+user where both files are. Do not start implementing unless asked.
 
-You write Markdown; a bundled script turns it into the lavish review page,
-so you never hand-write HTML. That keeps the plan in one file and saves
-the tokens a hand-built page costs. The script owns the page design, so
-the lavish playbooks and design guidance are not needed here.
+## Approaches page
+
+The approaches page is written as Markdown and turned into the lavish page
+by a bundled script, so it costs no hand-written HTML. The script owns
+that page's design, so no lavish playbooks are needed for it. The
+implementation page is hand-built (phase 3).
 
 - Render: `python3 <this skill's directory>/scripts/render.py <file>.md`
   writes `<file>.html` next to it. Re-run it after every edit.
@@ -177,8 +182,8 @@ the lavish playbooks and design guidance are not needed here.
   ```
   ````
 
-- Review loop: open with `npx -y lavish-axi <file>.html`, then run
-  `npx -y lavish-axi poll <file>.html` (in the foreground, or as a tracked
-  background task) and wait for feedback. After changing the page, poll
+- Review loop (both pages): open with `npx -y lavish-axi <file>.html`,
+  then run `npx -y lavish-axi poll <file>.html` (in the foreground, or as
+  a tracked background task) and wait for feedback. After changing the page, poll
   again with `--agent-reply "<short reply>"`. If the user ends the session
   in the browser, stop polling and continue in the conversation.
