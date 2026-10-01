@@ -11,10 +11,10 @@ description: >-
   even if they just say "plan this" or "how would we build X". Not for
   product specs, task checklists, or trivial one-file changes.
 compatibility: >-
-  Requires python3 and npx (lavish-axi) for the review pages.
+  Requires the lavish skill (npx lavish-axi) for the review artifacts.
 metadata:
     author: Jan Suthacheeva
-    version: "0.2"
+    version: "0.3"
 ---
 
 Produce a code design the user can discuss and correct before any code
@@ -46,7 +46,7 @@ is clean in isolation, so earn the right to propose one first.
   to change.
 - For wide sweeps, dispatch Explore subagents in parallel and read the key
   files yourself. Keep `file:line` references for every claim you will
-  make; the pages cite them.
+  make; the artifacts cite them.
 
 If a requirement is ambiguous in a way that changes the design (not a
 detail you can decide and flag), ask before phase 2. Keep it to the
@@ -60,24 +60,29 @@ abstraction vs extending an existing one, which layer is responsible. If
 only one approach is sensible, say so and show the alternatives you
 rejected and why, rather than inventing strawmen.
 
-Write `.lavish/<slug>-approaches.md` and render it (see "Approaches page"
-below).
-Keep it lean - this page only has to support one decision, so about a
-screen per approach:
+Build a lavish artifact, `.lavish/<slug>-approaches.html` (open the
+`comparison`, `diagram` and `input` playbooks first). It only has to
+support one decision, so keep it lean - roughly a screen per approach,
+not a mini design doc. For each approach show:
 
-- `## What exists today` first, a few bullets with citations, so the user
-  can check your understanding of the codebase.
-- `## Approach A - <name>` per approach: the idea in two or three
-  sentences, a small Mermaid `flowchart` of the units involved, then short
-  bullet lists for what it touches, how it fits the conventions found in
-  phase 1, and its costs (complexity, coupling, migration, testability,
-  what it makes harder later). Make the costs as visible as the benefits.
-- `## Recommendation` with your pick and why, followed by a `decision`
-  block with one option per approach.
+- The idea in two or three sentences.
+- One small component diagram: which units exist and how they connect,
+  marking new, modified and existing units distinctly. Signatures,
+  data shapes and call sequences belong on the implementation page.
+- What it touches (files/modules), and how well it fits the conventions
+  found in phase 1, with citations.
+- Costs as visibly as benefits: complexity, coupling, migration,
+  testability, performance, what it makes harder later.
 
-Open the page, poll for the decision, and answer follow-up annotations
-until the user has chosen. The chosen approach may be a mix - take what
-they say literally.
+Put a short "What exists today" section first so the user can check your
+understanding of the codebase. End with your recommendation and why, and a
+native radio form (one option per approach plus a rationale/notes
+textarea) that queues exactly one prompt on submit, as the `input` playbook
+describes.
+
+Open it with `npx -y lavish-axi <file>`, poll for the decision, and answer
+follow-up annotations until the user has chosen. The chosen approach may
+be a mix - take what they say literally.
 
 ## 3. Implementation page - the user reviews
 
@@ -87,7 +92,7 @@ bodies (`;`, `{ ... }`, `todo!()` or the language's equivalent). Every name
 is a proposal the user will judge, so choose names that say what the thing
 does in the codebase's vocabulary.
 
-Build the implementation page by hand as a lavish artifact,
+Build the implementation page as a new lavish artifact,
 `.lavish/<slug>-implementation.html` (open the `plan`, `diagram`, `code`
 and `input` playbooks first). It holds the design and its code-level
 detail on one page, with these sections:
@@ -134,9 +139,11 @@ appears in the overview, every DTO used in a signature is defined in Data
 or already exists. Mismatches here are what makes a design review go in
 circles.
 
-Open it, poll, and iterate on the user's annotations. Update the artifact
-in place - rename consistently everywhere, remove resolved open questions
-and fold the answer into the design. Continue until the user approves.
+Open it, poll, and iterate on the user's annotations. Change the page with
+targeted edits, never by regenerating it - a rewrite costs the whole page
+again and risks silently changing parts the user already reviewed. Rename
+consistently everywhere, remove resolved open questions and fold the
+answer into the design. Continue until the user approves.
 
 ## 4. Persist
 
@@ -147,43 +154,20 @@ project's existing plan location if it has one (`docs/plans/`,
 `docs/plans/<YYYY-MM-DD>-<slug>.md`. If a hook or project rule rejects
 that path, use the location it asks for and mention it.
 
-The Markdown carries the same content as the artifact: decision recap,
-units with signatures in fenced code blocks, data structures, call chains
-as numbered steps (Mermaid `sequenceDiagram` blocks are fine here),
-conventions followed, test seams, and any decisions made during review.
-Link the HTML artifact path at the top.
+The page stays the review surface; the Markdown only carries what an
+implementation session needs, so do not copy the page into it. Link the
+implementation page at the top, then: the decision in a few lines, units
+with their paths and signatures in fenced code blocks, data structures,
+call chains as numbered `Caller -> Callee::method(args): Return` steps
+including error paths, test seams, and any decisions made during
+review. Leave out the diagrams, the rationale prose and the convention
+citations.
 
 End the lavish session with `npx -y lavish-axi end <file>` and tell the
 user where both files are. Do not start implementing unless asked.
 
-## Approaches page
+## Artifacts
 
-The approaches page is written as Markdown and turned into the lavish page
-by a bundled script, so it costs no hand-written HTML. The script owns
-that page's design, so no lavish playbooks are needed for it. The
-implementation page is hand-built (phase 3).
-
-- Render: `python3 <this skill's directory>/scripts/render.py <file>.md`
-  writes `<file>.html` next to it. Re-run it after every edit.
-- Mermaid ` ```mermaid ` blocks render as diagrams. In flowcharts, tag
-  nodes with `:::new`, `:::modified` or `:::existing` for consistent
-  colouring. Quote labels that contain punctuation (`A["Get(id)"]`).
-- `[new]`, `[modified]`, `[existing]`, `[removed]`, `[recommended]` and
-  `[rejected]` in headings, lists and tables render as badges.
-- A choice the user should make in the browser is a fenced `decision`
-  block; it renders as a form that sends the answer back through lavish:
-
-  ````
-  ```decision
-  id: approach
-  question: Which approach should the design use?
-  - A: Check first, in the command (recommended)
-  - B: Send first, explain on failure
-  ```
-  ````
-
-- Review loop (both pages): open with `npx -y lavish-axi <file>.html`,
-  then run `npx -y lavish-axi poll <file>.html` (in the foreground, or as
-  a tracked background task) and wait for feedback. After changing the page, poll
-  again with `--agent-reply "<short reply>"`. If the user ends the session
-  in the browser, stop polling and continue in the conversation.
+Save the pages under `.lavish/` in the project unless told otherwise.
+Follow the lavish skill for design system choice, layout and render
+verification.
