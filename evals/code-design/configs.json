@@ -1,43 +1,35 @@
 {
   "code-design": {
     "invoke": "/code-design {task}",
-    "plugins_off": [
-      "feature-dev@claude-plugins-official",
-      "superpowers@claude-plugins-official"
+    "skills": [
+      "lavish",
+      "code-design"
     ],
-    "deny": [
-      "Skill(buzzwoo-standard:new-cycle)"
-    ]
+    "plugins": []
   },
   "superpowers": {
     "invoke": "/superpowers:brainstorming {task}",
-    "plugins_off": [
-      "feature-dev@claude-plugins-official"
+    "skills": [
+      "lavish"
     ],
-    "deny": [
-      "Skill(code-design)",
-      "Skill(buzzwoo-standard:new-cycle)"
+    "plugins": [
+      "superpowers@claude-plugins-official"
     ]
   },
-  "new-cycle": {
-    "invoke": "/buzzwoo-standard:new-cycle {task}",
-    "plugins_off": [
-      "feature-dev@claude-plugins-official",
-      "superpowers@claude-plugins-official"
+  "feature-dev": {
+    "invoke": "/feature-dev:feature-dev {task}",
+    "skills": [
+      "lavish"
     ],
-    "deny": [
-      "Skill(code-design)"
+    "plugins": [
+      "feature-dev@claude-plugins-official"
     ]
   },
   "plain": {
     "invoke": "{task}",
-    "plugins_off": [
-      "feature-dev@claude-plugins-official",
-      "superpowers@claude-plugins-official"
+    "skills": [
+      "lavish"
     ],
-    "deny": [
-      "Skill(code-design)",
-      "Skill(buzzwoo-standard:new-cycle)"
-    ]
+    "plugins": []
   }
 }

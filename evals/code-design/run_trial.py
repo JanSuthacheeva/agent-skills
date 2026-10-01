@@ -25,6 +25,10 @@ TURN_TIMEOUT = 45 * 60
 ARTIFACT_CHARS = 60_000
 PLAN_SUFFIXES = {".html", ".md"}
 MAX_COLLECT_BYTES = 1_000_000
+SKILL_SOURCES = {
+    "lavish": Path.home() / ".claude" / "skills" / "lavish",
+    "code-design": HERE.parent.parent / "skills" / "code-design",
+}
 ALLOWED_TOOLS = ["Bash", "Read", "Glob", "Grep", "Write", "Edit", "Agent", "Skill", "WebFetch", "WebSearch", "ToolSearch"]
 DENIED_COMMANDS = ["Bash(git push:*)", "Bash(git remote:*)"]
 OUTPUT_RULES = (
@@ -94,21 +98,29 @@ def changed_files(repo: Path, base: str) -> dict[str, float]:
     files = {}
     for rel in status + committed:
         path = repo / rel
-        if path.is_file() and ".git/" not in rel and path.stat().st_size <= MAX_COLLECT_BYTES:
+        if (path.is_file() and ".git/" not in rel and not rel.startswith(".claude/skills/")
+                and path.stat().st_size <= MAX_COLLECT_BYTES):
             files[rel] = path.stat().st_mtime
     return files
 
 
 def executor_settings(cfg: dict) -> str:
     return json.dumps({
-        "enabledPlugins": {plugin: False for plugin in cfg["plugins_off"]},
-        "permissions": {"deny": cfg["deny"] + DENIED_COMMANDS},
+        "enabledPlugins": {plugin: True for plugin in cfg["plugins"]},
+        "permissions": {"deny": DENIED_COMMANDS},
     })
+
+
+def install_skills(cfg: dict, repo: Path):
+    for name in cfg["skills"]:
+        shutil.copytree(SKILL_SOURCES[name], repo / ".claude" / "skills" / name, symlinks=False)
 
 
 def run_executor(message: str, session: str | None, cfg: dict, repo: Path) -> dict:
     args = ["-p", message, "--output-format", "json", "--model", EXECUTOR_MODEL,
             "--permission-mode", "acceptEdits", "--settings", executor_settings(cfg),
+            "--setting-sources", "project,local",
+            "--strict-mcp-config", "--mcp-config", '{"mcpServers": {}}',
             "--allowedTools", *ALLOWED_TOOLS,
             "--append-system-prompt", OUTPUT_RULES, "--disallowedTools", "AskUserQuestion"]
     if session:
@@ -181,6 +193,7 @@ def main():
     repo, outputs = run_dir / "repo", run_dir / "outputs"
     outputs.mkdir(parents=True, exist_ok=True)
     clone_fixture(scenario["fixture"], repo)
+    install_skills(cfg, repo)
 
     started = time.time()
     message = cfg["invoke"].format(task=scenario["prompt"])
