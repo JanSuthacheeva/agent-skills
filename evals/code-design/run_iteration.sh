@@ -2,6 +2,7 @@
 # Run every scenario in evals.json for every config, N runs each.
 # Usage: run_iteration.sh <iteration-dir> [runs=1] [parallel=4]
 # CONFIGS="code-design plain" limits which configs run (default: all).
+# Runs that already have a timing.json are skipped, so an iteration can grow.
 set -euo pipefail
 it=$1; runs=${2:-1}; par=${3:-4}
 here=$(cd "$(dirname "$0")" && pwd)
@@ -20,5 +21,7 @@ for e in json.load(open(evals))["evals"]:
     for cfg in configs:
         for r in range(1, runs + 1):
             os.makedirs(f"{d}/{cfg}", exist_ok=True)
+            if os.path.exists(f"{d}/{cfg}/run-{r}/timing.json"):
+                continue
             sys.stdout.write("\0".join([str(e["id"]), cfg, f"{d}/{cfg}/run-{r}"]) + "\0")
 P
