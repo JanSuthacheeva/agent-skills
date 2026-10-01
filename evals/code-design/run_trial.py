@@ -231,8 +231,11 @@ def main():
             message += "\n\n" + APPROVAL_NOTE
 
     collect_outputs(repo, base, outputs)
-    touched_code = sorted(rel for rel in changed_files(repo, base)
-                          if Path(rel).suffix not in PLAN_SUFFIXES and not rel.startswith(".lavish/"))
+    touched = [rel for rel in changed_files(repo, base)
+               if Path(rel).suffix not in PLAN_SUFFIXES and not rel.startswith(".lavish/")]
+    ignored = set(subprocess.run(["git", "check-ignore", "--stdin"], cwd=repo, input="\n".join(touched),
+                                 capture_output=True, text=True).stdout.splitlines())
+    touched_code = sorted(rel for rel in touched if rel not in ignored)
     invocation = cfg["invoke"].format(task=scenario["prompt"])
     (outputs / "transcript.md").write_text(f"## Eval Prompt\n\n{invocation}\n\n" + "\n\n".join(transcript) + "\n")
 
@@ -253,7 +256,8 @@ def main():
     (run_dir / "meta.json").write_text(json.dumps({
         "config": config_name, "eval_id": eval_id, "session_id": session,
         "approved": approved, "errored": errored,
-        "capped": not approved and not errored, "touched_code": touched_code, "skills": skills_invoked(session),
+        "capped": not approved and not errored, "touched_code": touched_code,
+        "build_artifacts": len(ignored), "skills": skills_invoked(session),
     }, indent=2))
 
 
