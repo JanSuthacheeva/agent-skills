@@ -78,7 +78,7 @@ Open the page, poll for the decision, and answer follow-up annotations
 until the user has chosen. The chosen approach may be a mix - take what
 they say literally.
 
-## 3. Code design - the user reviews
+## 3. Implementation page - the user reviews
 
 Now design the chosen approach in full. Write signatures in the codebase's
 own language and syntax, following its conventions exactly, but with no
@@ -86,10 +86,11 @@ bodies (`;`, `{ ... }`, `todo!()` or the language's equivalent). Every name
 is a proposal the user will judge, so choose names that say what the thing
 does in the codebase's vocabulary.
 
-Write `.lavish/<slug>-design.md` and render it. This Markdown file is the
-design and, once approved, the plan - write it once and edit it in place
-afterwards. Start it with a `# <feature> - code design` title, then these
-`##` sections:
+Write `.lavish/<slug>-implementation.md` and render it: one page with the
+design and its code-level detail. This Markdown file is the design and,
+once approved, the plan - write it once and edit it in place afterwards.
+Start it with a `# <feature> - implementation` title, then these `##`
+sections:
 
 1. **Decision recap** - the chosen approach in two sentences, and what was
    explicitly decided in phase 2.
