@@ -29,6 +29,7 @@
         "clarity": 9,
         "reviewability": 9.222222222222221
       },
+      "score_per_dollar": 10.917756401059583,
       "failed_checks": {
         "elicitation": 2,
         "preferences-honoured": 2
@@ -56,6 +57,7 @@
         "clarity": 8.11111111111111,
         "reviewability": 8.555555555555555
       },
+      "score_per_dollar": 12.18744772540804,
       "failed_checks": {
         "alternatives": 2,
         "grounded": 1,
@@ -85,6 +87,7 @@
         "clarity": 7.777777777777778,
         "reviewability": 7.666666666666667
       },
+      "score_per_dollar": 13.80340221935129,
       "failed_checks": {
         "alternatives": 3,
         "key-fact": 3,
@@ -114,6 +117,7 @@
         "clarity": 7.222222222222222,
         "reviewability": 6.333333333333333
       },
+      "score_per_dollar": 18.439078655623536,
       "failed_checks": {
         "alternatives": 5,
         "elicitation": 3,
@@ -330,19 +334,67 @@
   },
   "pairwise_vs_target": {
     "feature-dev": {
-      "wins": 3,
-      "losses": 6,
-      "p": 0.5078125
+      "rank_wins": 3,
+      "rank_losses": 6,
+      "rank_p": 0.5078125,
+      "score_diffs": [
+        2,
+        4,
+        -2,
+        0,
+        1,
+        -1,
+        6,
+        -3,
+        -1
+      ],
+      "score_mean_diff": 0.6666666666666666,
+      "score_wins": 4,
+      "score_losses": 4,
+      "score_ties": 1,
+      "score_p": 0.6796875
     },
     "superpowers": {
-      "wins": 6,
-      "losses": 3,
-      "p": 0.5078125
+      "rank_wins": 6,
+      "rank_losses": 3,
+      "rank_p": 0.5078125,
+      "score_diffs": [
+        8,
+        5,
+        -2,
+        6,
+        11,
+        2,
+        4,
+        -5,
+        2
+      ],
+      "score_mean_diff": 3.4444444444444446,
+      "score_wins": 7,
+      "score_losses": 2,
+      "score_ties": 0,
+      "score_p": 0.08203125
     },
     "plain": {
-      "wins": 8,
-      "losses": 1,
-      "p": 0.0390625
+      "rank_wins": 8,
+      "rank_losses": 1,
+      "rank_p": 0.0390625,
+      "score_diffs": [
+        7,
+        9,
+        7,
+        10,
+        8,
+        8,
+        12,
+        1,
+        8
+      ],
+      "score_mean_diff": 7.777777777777778,
+      "score_wins": 9,
+      "score_losses": 0,
+      "score_ties": 0,
+      "score_p": 0.00390625
     }
   }
 }

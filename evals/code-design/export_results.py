@@ -126,6 +126,31 @@ def chi2_sf_df3(x):
     return math.erfc(math.sqrt(x / 2)) + math.sqrt(2 * x / math.pi) * math.exp(-x / 2)
 
 
+def wilcoxon(diffs):
+    """Exact two-sided Wilcoxon signed-rank test; zero differences are dropped."""
+    d = [x for x in diffs if x != 0]
+    n = len(d)
+    if n == 0:
+        return 1.0
+    order = sorted(range(n), key=lambda i: abs(d[i]))
+    ranks, i = [0.0] * n, 0
+    while i < n:
+        j = i
+        while j + 1 < n and abs(d[order[j + 1]]) == abs(d[order[i]]):
+            j += 1
+        for k in range(i, j + 1):
+            ranks[order[k]] = (i + j) / 2 + 1
+        i = j + 1
+    total = n * (n + 1) / 2
+    positive = sum(r for r, x in zip(ranks, d) if x > 0)
+    observed = min(positive, total - positive)
+    extreme = 0
+    for mask in range(2 ** n):
+        w = sum(ranks[k] for k in range(n) if mask >> k & 1)
+        extreme += min(w, total - w) <= observed + 1e-9
+    return extreme / 2 ** n
+
+
 def sign_test(wins, losses):
     n = wins + losses
     if n == 0:
@@ -135,7 +160,7 @@ def sign_test(wins, losses):
 
 
 def summarize(out, version, model, harness):
-    runs, blocks = {c: [] for c in CONFIGS}, []
+    runs, blocks, block_scores = {c: [] for c in CONFIGS}, [], []
     per_scenario, criteria = {}, {c: {k: [] for k in CRITERIA} for c in CONFIGS}
     for scenario in sorted(p for p in out.glob("eval-*") if p.is_dir()):
         per_scenario[scenario.name] = {c: {"judge": [], "ranks": [], "checks": [0, 0]} for c in CONFIGS}
@@ -151,6 +176,7 @@ def summarize(out, version, model, harness):
             verdict = json.loads(verdict_file.read_text())
             ranks = {c: verdict["ranking"].index(c) + 1 for c in CONFIGS}
             blocks.append(ranks)
+            block_scores.append({c: sum(verdict["scores"][c][k] for k in CRITERIA) for c in CONFIGS})
             for c in CONFIGS:
                 per_scenario[scenario.name][c]["judge"].append(sum(verdict["scores"][c][k] for k in CRITERIA))
                 for k in CRITERIA:
@@ -176,6 +202,7 @@ def summarize(out, version, model, harness):
             "approved": sum(r["meta"]["approved"] for r in runs[c]),
             "touched_code": sum(bool(r["meta"]["touched_code"]) for r in runs[c]),
             "criteria": {k: mean_sd(v)[0] for k, v in criteria[c].items()},
+            "score_per_dollar": mean_sd(judge)[0] / mean_sd(cost)[0] if cost else 0.0,
             "failed_checks": failed_checks(out, c),
         }
 
@@ -188,7 +215,13 @@ def summarize(out, version, model, harness):
             continue
         wins = sum(b[TARGET] < b[other] for b in blocks)
         losses = sum(b[TARGET] > b[other] for b in blocks)
-        pairwise[other] = {"wins": wins, "losses": losses, "p": sign_test(wins, losses)}
+        diffs = [b[TARGET] - b[other] for b in block_scores]
+        pairwise[other] = {
+            "rank_wins": wins, "rank_losses": losses, "rank_p": sign_test(wins, losses),
+            "score_diffs": diffs, "score_mean_diff": st.mean(diffs) if diffs else 0.0,
+            "score_wins": sum(x > 0 for x in diffs), "score_losses": sum(x < 0 for x in diffs),
+            "score_ties": diffs.count(0), "score_p": wilcoxon(diffs),
+        }
 
     return {
         "skill_version": version, "model": model, "harness": harness,
@@ -206,12 +239,19 @@ def fmt_p(p):
 
 def tables(summary):
     c = summary["configs"]
-    rows = ["| Method | Judge score (of 40) | Mean rank | First places | Checks passed |", "|---|---|---|---|---|"]
+    rows = ["| Method | Judge score (of 40) | Assertions passed | Cost per run (USD) | Judge score per USD |",
+            "|---|---|---|---|---|"]
     for name in CONFIGS:
         v = c[name]
-        rows.append(f"| `{name}` | {v['judge_mean']:.1f} ({v['judge_sd']:.1f}) | {v['rank_mean']:.2f} | "
-                    f"{v['first_places']}/{summary['n_blocks']} | {v['checks_passed']}/{v['checks_total']} |")
+        rows.append(f"| `{name}` | {v['judge_mean']:.1f} ({v['judge_sd']:.1f}) | {v['checks_passed']}/{v['checks_total']} | "
+                    f"{v['cost_mean']:.2f} ({v['cost_sd']:.2f}) | {v['score_per_dollar']:.1f} |")
     overall = "\n".join(rows)
+
+    rows = ["| Method | Mean rank | First places |", "|---|---|---|"]
+    for name in CONFIGS:
+        v = c[name]
+        rows.append(f"| `{name}` | {v['rank_mean']:.2f} | {v['first_places']}/{summary['n_blocks']} |")
+    ranks_table = "\n".join(rows)
 
     rows = ["| Scenario | " + " | ".join(f"`{n}`" for n in CONFIGS) + " |", "|---|" + "---|" * len(CONFIGS)]
     for scen, data in summary["per_scenario"].items():
@@ -228,10 +268,17 @@ def tables(summary):
         rows.append(f"| {label} | " + " | ".join(fmt.format(c[n][key] / scale) for n in CONFIGS) + " |")
     cost_table = "\n".join(rows)
 
+    rows = ["| Compared with | Mean score difference | `code-design` higher / lower / equal | Wilcoxon p |",
+            "|---|---|---|---|"]
+    for other, v in summary["pairwise_vs_target"].items():
+        rows.append(f"| `{other}` | {v['score_mean_diff']:+.1f} | {v['score_wins']} / {v['score_losses']} / "
+                    f"{v['score_ties']} | {fmt_p(v['score_p'])} |")
+    pairwise_table = "\n".join(rows)
+
     rows = ["| Compared with | `code-design` ranked higher | ranked lower | Sign test p |", "|---|---|---|---|"]
     for other, v in summary["pairwise_vs_target"].items():
-        rows.append(f"| `{other}` | {v['wins']} | {v['losses']} | {fmt_p(v['p'])} |")
-    pairwise_table = "\n".join(rows)
+        rows.append(f"| `{other}` | {v['rank_wins']} | {v['rank_losses']} | {fmt_p(v['rank_p'])} |")
+    rank_pairwise_table = "\n".join(rows)
 
     rows = ["| Criterion | " + " | ".join(f"`{n}`" for n in CONFIGS) + " |", "|---|" + "---|" * len(CONFIGS)]
     for k in CRITERIA:
@@ -243,12 +290,14 @@ def tables(summary):
     for k in names:
         rows.append(f"| {k} | " + " | ".join(str(c[n]["failed_checks"].get(k, 0)) for n in CONFIGS) + " |")
     failures_table = "\n".join(rows)
-    return overall, scenarios_table, cost_table, pairwise_table, criteria_table, failures_table
+    return (overall, scenarios_table, cost_table, pairwise_table, criteria_table, failures_table,
+            ranks_table, rank_pairwise_table)
 
 
 def render(out):
     summary = json.loads((out / "summary.json").read_text())
-    overall, scenarios_table, cost_table, pairwise_table, criteria_table, failures_table = tables(summary)
+    (overall, scenarios_table, cost_table, pairwise_table, criteria_table, failures_table,
+     ranks_table, rank_pairwise_table) = tables(summary)
     c = summary["configs"]
     best = min(CONFIGS, key=lambda n: c[n]["rank_mean"])
     values = {
@@ -264,6 +313,7 @@ def render(out):
         "table_overall": overall, "table_scenarios": scenarios_table,
         "table_cost": cost_table, "table_pairwise": pairwise_table,
         "table_criteria": criteria_table, "table_failures": failures_table,
+        "table_ranks": ranks_table, "table_rank_pairwise": rank_pairwise_table,
         "runs_per_method": c[TARGET]["runs"],
     }
     for name in CONFIGS:
@@ -271,6 +321,12 @@ def render(out):
         values[f"{slug}_judge"] = f"{c[name]['judge_mean']:.1f}"
         values[f"{slug}_rank"] = f"{c[name]['rank_mean']:.2f}"
         values[f"{slug}_cost"] = f"{c[name]['cost_mean']:.2f}"
+        values[f"{slug}_checks"] = f"{c[name]['checks_passed']}/{c[name]['checks_total']}"
+        values[f"{slug}_per_dollar"] = f"{c[name]['score_per_dollar']:.1f}"
+    for other, v in summary["pairwise_vs_target"].items():
+        slug = other.replace("-", "_")
+        values[f"vs_{slug}_diff"] = f"{v['score_mean_diff']:+.1f}"
+        values[f"vs_{slug}_p"] = fmt_p(v["score_p"])
     template = (HERE / "report.md").read_text()
     template = re.sub(r"\A<!--.*?-->\n", "", template, flags=re.S)
     text = re.sub(r"\{\{(\w+)\}\}", lambda m: str(values[m.group(1)]), template)

@@ -20,15 +20,19 @@ model without a planning skill. All four are told to deliver the plan as a
 lavish HTML page and a Markdown file, run in the same public-only
 environment and answer to the same simulated user. Across
 {{n_blocks}} blind comparisons ({{n_scenarios}} scenarios x {{runs}} runs),
-`code-design` received the highest mean judge score ({{target_judge}} of 40)
-and the highest scores for clarity and reviewability, while `feature-dev`
-achieved the better mean rank ({{feature_dev_rank}} against
-{{target_rank}}) and the higher completeness. The difference between these
-two, and between them and `superpowers`, is not resolved at this sample
-size; all three planning methods were ranked above planning without a
-skill. `code-design` plans cost about {{cost_ratio_feature_dev}} times as
-much as `feature-dev` plans and {{cost_ratio_plain}} times as much as
-planning without a skill.
+`code-design` received a mean judge score of {{code_design_judge}} of 40 and
+passed {{code_design_checks}} assertions, against {{feature_dev_judge}} and
+{{feature_dev_checks}} for `feature-dev`; the paired score difference to
+`feature-dev` ({{vs_feature_dev_diff}} points, p = {{vs_feature_dev_p}}) is
+not distinguishable from zero. Its lead over `superpowers`
+({{vs_superpowers_diff}}, p = {{vs_superpowers_p}}) is suggestive but not
+established, and its lead over planning without a skill
+({{vs_plain_diff}}, p = {{vs_plain_p}}) is consistent across every
+comparison. `code-design` scored highest on clarity and reviewability, and
+cost {{code_design_cost}} USD per run against {{feature_dev_cost}} for
+`feature-dev` and {{plain_cost}} without a skill. At equal judged quality,
+`feature-dev` is therefore the more cost-effective of the two leading
+methods.
 
 ## 1 Question
 
@@ -100,14 +104,18 @@ plan is done. A run ends one turn after approval or after 14 turns.
 
 ### 2.5 Measures
 
-**Blind ranking (primary).** For each scenario and run, a judge
-(`claude-sonnet-5-5`) receives the four final plans under shuffled labels,
-without the conversations, and the pinned repository. It scores each plan
-from 1 to 10 on correctness, completeness, clarity and reviewability, and
-ranks the four. It is told not to reward length, styling or format, and to
-check at least three claims per plan against the repository.
+Three measures are primary: the judge score, the assertions passed and the
+cost.
 
-**Assertions (secondary).** A grader (`claude-sonnet-5-5`) checks each run
+**Judge score.** For each scenario and run, a judge (`claude-sonnet-5-5`)
+receives the four final plans under shuffled labels, without the
+conversations, and the pinned repository. It scores each plan from 1 to 10
+on correctness, completeness, clarity and reviewability (at most 40 per
+plan). It is told not to reward length, styling or format, and to check at
+least three claims per plan against the repository. It also ranks the four
+plans; the ranks are reported as a secondary measure.
+
+**Assertions.** A grader (`claude-sonnet-5-5`) checks each run
 against nine format-neutral assertions: grounded claims, repository
 conventions, a structurally different alternative, agreement with the
 user's answers and hidden preferences, elicitation (no hidden preference
@@ -119,22 +127,20 @@ fact. Cited `file:line` references are additionally checked by script.
 reads, output tokens, executor turns and wall-clock duration, for the
 method only; the simulated user's cost is excluded.
 
-Methods are compared with a Friedman test over the {{n_blocks}} ranked
-comparisons [3], and `code-design` with each other method by a two-sided
-sign test on pairwise ranks.
+`code-design` is compared with each other method by an exact two-sided
+Wilcoxon signed-rank test [3] on the paired judge-score differences of the
+{{n_blocks}} comparisons. The ranks are compared with a Friedman test [4]
+and pairwise sign tests.
 
 ## 3 Results
 
 ### 3.1 Overall
 
-**Table 2.** Judge score (mean, standard deviation), rank and assertions per method.
+**Table 2.** Judge score and cost per run (mean, standard deviation), assertions passed, and judge score per USD.
 
 {{table_overall}}
 
-The Friedman test over all comparisons yields chi-squared = {{friedman_chi2}}
-(df = 3, p = {{friedman_p}}).
-
-**Table 3.** Pairwise ranks of `code-design` against each other method.
+**Table 3.** Paired judge-score differences of `code-design` against each other method, over {{n_blocks}} comparisons.
 
 {{table_pairwise}}
 
@@ -162,6 +168,23 @@ The Friedman test over all comparisons yields chi-squared = {{friedman_chi2}}
 
 {{table_cost}}
 
+### 3.6 Ranks
+
+The judge's forced ranking is reported as a secondary measure. It shows
+which plan the judge preferred when made to choose, but discards how large
+the differences were.
+
+**Table 8.** Mean rank (1 = best) and first places.
+
+{{table_ranks}}
+
+The Friedman test over all comparisons yields chi-squared = {{friedman_chi2}}
+(df = 3, p = {{friedman_p}}).
+
+**Table 9.** Pairwise ranks of `code-design` against each other method.
+
+{{table_rank_pairwise}}
+
 ## 4 Discussion
 
 The methods differ overall, but most of that difference separates the
@@ -188,8 +211,8 @@ and for its last place in one comparison. The skill would benefit from
 asking about the durability requirements of persisted state, not only
 listing them.
 
-`feature-dev` was the most consistent method: it was ranked first most
-often and scored highest on completeness, but its plans described call
+`feature-dev` matched `code-design` on judged quality at lower cost: it
+was ranked first most often and scored highest on completeness, but its plans described call
 flow less precisely. `superpowers` produced the most thorough edge-case
 coverage in `mdterm-bookmarks`, but its plans often contained full
 implementation code, which lowered clarity, and it missed the broken build
@@ -198,13 +221,17 @@ in every `clickup-status-command` run.
 `code-design` is the most expensive method. It produces about twice the
 output tokens of `feature-dev` and `plain` and about 1.5 times those of
 `superpowers`, mainly because it writes two review pages (an approaches
-page and an implementation page) and a more detailed design.
+page and an implementation page) and a more detailed design. Since its
+judged quality matches `feature-dev`, its additional cost buys a format
+that is easier to review rather than a better design; whether that is
+worth it depends on how much of the plan the user intends to review and
+correct before implementation.
 
 ## 5 Limitations
 
-- **Sample size.** Three runs per scenario and method give nine ranked
-  comparisons. The pairwise sign tests cannot resolve differences between
-  the planning methods; only the separation from `plain` is clear.
+- **Sample size.** Three runs per scenario and method give nine paired
+  comparisons. They cannot resolve differences of a few points between the
+  planning methods; only the separation from `plain` is clear.
 - **Model as judge.** Each comparison was scored by a single judge model,
   of the same family as the methods under test, with no second judge or
   human rating. Blinding is partial: `code-design` is recognizable by its
@@ -259,6 +286,9 @@ evals/code-design/export_results.py export <run-dir> evals/code-design/results/c
 
 [2] Chen, K. lavish-axi. https://www.npmjs.com/package/lavish-axi
 
-[3] Friedman, M. (1937). The use of ranks to avoid the assumption of
+[3] Wilcoxon, F. (1945). Individual comparisons by ranking methods.
+*Biometrics Bulletin*, 1(6), 80-83.
+
+[4] Friedman, M. (1937). The use of ranks to avoid the assumption of
 normality implicit in the analysis of variance. *Journal of the American
 Statistical Association*, 32(200), 675-701.
