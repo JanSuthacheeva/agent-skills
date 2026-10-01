@@ -15,6 +15,18 @@ import sys
 from pathlib import Path
 
 LABELS = ["W", "X", "Y", "Z"]
+HERE = Path(__file__).resolve().parent
+
+
+def write_judge_prompt(scenario: Path, target: Path):
+    eval_id = int(scenario.name.split("-")[1])
+    spec = next(e for e in json.loads((HERE / "evals.json").read_text())["evals"] if e["id"] == eval_id)
+    repo = HERE / "workspace" / "fixtures" / Path(spec["fixture"]["source"]).name
+    plans = "\n".join(f"- {label}: {target / label}/" for label in LABELS)
+    prompt = (HERE / "judge.md").read_text().format(task=spec["prompt"], repo=repo, plans=plans)
+    prompt += (f"\n\nWrite the JSON to {target / 'verdict.json'} as well as replying with it. "
+               f"Do not open anything outside the four plan directories and the repository.")
+    (target / "judge-prompt.md").write_text(prompt)
 
 
 def main():
@@ -36,6 +48,7 @@ def main():
                 for n, f in enumerate(files, 1):
                     shutil.copy2(f, dest / f"{kind}-{n}{suffix}")
             key[label] = config
+        write_judge_prompt(scenario, target)
         keys = iteration / "blind-keys"
         keys.mkdir(exist_ok=True)
         (keys / f"{scenario.name}.json").write_text(json.dumps(key, indent=2))
