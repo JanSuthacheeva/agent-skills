@@ -16,7 +16,7 @@ compatibility: >-
   https://github.com/JanSuthacheeva/agent-skills/tree/main/evals/code-design/results/claude-code
 metadata:
     author: Jan Suthacheeva
-    version: "0.5"
+    version: "0.4"
 ---
 
 Produce a code design the user can discuss and correct before any code
@@ -34,30 +34,21 @@ do not skip ahead of it.
 A design that ignores how the codebase already works is wrong even if it
 is clean in isolation, so earn the right to propose one first.
 
-Delegate the reading. Every file you read stays in your context and is
-re-read on every later turn of the session, so broad reading in the main
-session is what makes a design expensive. Dispatch two or three Explore
-subagents in parallel, on a faster model (`model: "sonnet"` in Claude
-Code), each with one focus:
-
-- **Entry points and the closest sibling feature** - where the feature
-  hangs off (routes, commands, key handlers, jobs, events, CLI flags), and
-  one or two similar existing features traced end to end. The closest
-  sibling is the best template for naming, layering and wiring.
-- **Conventions** - layering and where logic lives, naming patterns
-  (suffixes like `Service`, `Repository`, `DTO`, module and file naming),
-  how dependencies are injected, how errors are represented and surfaced,
-  how data crosses boundaries, how things are tested. Include project rule
-  files (`CLAUDE.md`, `AGENTS.md`, `.claude/rules/`, lint configs) - they
-  state conventions the code only implies.
-- **Reuse and impact** - what already exists that the feature can reuse,
-  and what will have to change.
-
-Ask each for a condensed brief, not file dumps: findings as short bullets,
-every claim with its `file:line`, and the exact signatures of the
-interfaces the feature will call or extend. Then read yourself only the
-few files whose code the design must match exactly, usually the closest
-sibling feature. Keep the `file:line` references; the artifacts cite them.
+- Find the entry points the feature hangs off (routes, commands, key
+  handlers, jobs, events, CLI flags) and trace one or two similar existing
+  features end to end. The closest sibling feature is the best template for
+  naming, layering and wiring.
+- Collect the conventions the design must follow: layering and where logic
+  lives, naming patterns (suffixes like `Service`, `Repository`, `DTO`,
+  module and file naming), how dependencies are injected, how errors are
+  represented and surfaced, how data crosses boundaries, how things are
+  tested. Read project rule files (`CLAUDE.md`, `AGENTS.md`, `.claude/rules/`,
+  lint configs) - they state conventions the code only implies.
+- Note what already exists that the feature can reuse, and what will have
+  to change.
+- For wide sweeps, dispatch Explore subagents in parallel and read the key
+  files yourself. Keep `file:line` references for every claim you will
+  make; the artifacts cite them.
 
 If a requirement is ambiguous in a way that changes the design (not a
 detail you can decide and flag), ask before phase 2. Keep it to the
@@ -166,31 +157,21 @@ until the user approves.
 
 ## 4. Persist
 
-Once approved - not before - have a general-purpose subagent on a faster
-model (`model: "sonnet"` in Claude Code) write the design as a Markdown
-plan, so a later implementation session can follow it without the
-browser. This is a transcription of the approved page, not design work,
-so it does not need your context or your model. Give it the
-implementation page path, the target path, the decisions made during
-review and the format below.
-
+Once approved - not before - write the design as a Markdown plan, in one
+go, so a later implementation session can follow it without the browser.
 Use the project's existing plan location if it has one (`docs/plans/`,
 `.claude-bw/plans/`, or wherever earlier plans live), otherwise
 `docs/plans/<YYYY-MM-DD>-<slug>.md`. If a hook or project rule rejects
 that path, use the location it asks for and mention it.
 
 The page stays the review surface; the Markdown only carries what an
-implementation session needs, so it does not copy the page. Format: a
-link to the implementation page at the top, then the decision in a few
-lines, units with their paths and signatures in fenced code blocks, data
-structures, call chains as numbered `Caller -> Callee::method(args):
-Return` steps including error paths, test seams, the assumptions, and the
-decisions made during review. No diagrams, rationale prose or convention
-citations. Signatures are copied verbatim, never paraphrased.
-
-When it is done, check that the file exists and that its unit headings
-match the page's unit cards; fix gaps with a targeted edit rather than
-rewriting it.
+implementation session needs, so do not copy the page into it. Link the
+implementation page at the top, then: the decision in a few lines, units
+with their paths and signatures in fenced code blocks, data structures,
+call chains as numbered `Caller -> Callee::method(args): Return` steps
+including error paths, test seams, the assumptions, and any decisions
+made during review. Leave out the diagrams, the rationale prose and the
+convention citations.
 
 End the lavish session with `npx -y lavish-axi end <file>` and tell the
 user where both files are. Do not start implementing unless asked.
