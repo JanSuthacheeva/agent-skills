@@ -6,7 +6,7 @@ by hand after every new export.
 -->
 # Evaluation of the `code-design` skill v{{version}} in Claude Code
 
-{{harness}}, `{{model}}`, {{n_scenarios}} scenarios, {{runs}} runs per scenario and method, {{date_long}}.
+{{harness}}, `{{model}}` at {{effort}} effort, {{n_scenarios}} scenarios, {{runs}} runs per scenario and method, {{date_long}}.
 
 ## Summary
 
@@ -83,7 +83,8 @@ simulated user reveals only when asked (Table 1).
 ### 2.3 Environment
 
 All runs use Claude Code in headless mode (`claude -p`, resumed with
-`--resume` for every turn) with `{{model}}`. To make runs reproducible
+`--resume` for every turn) with `{{model}}` at {{effort}} effort,
+which subagents inherit. To make runs reproducible
 with public components only, no user settings, user hooks, user
 instructions (`CLAUDE.md`) or MCP servers are loaded. Each run starts from
 a fresh clone of the pinned commit, into which the lavish skill [2] is
@@ -285,7 +286,7 @@ repeated with:
 evals/code-design/run_iteration.sh <run-dir> {{runs}} 4
 # grade every run with grader.md, then for each run index:
 evals/code-design/blind.py <run-dir> <run> <seed>
-evals/code-design/export_results.py export <run-dir> evals/code-design/results/claude-code --version {{version}} --model {{model}}
+evals/code-design/export_results.py export <run-dir> evals/code-design/results/claude-code --version {{version}} --model {{model}} --effort {{effort}}
 ```
 
 ## Sources

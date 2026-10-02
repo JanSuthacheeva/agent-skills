@@ -20,6 +20,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 EXECUTOR_MODEL = os.environ.get("MODEL", "claude-opus-5-5")
 USER_MODEL = os.environ.get("USER_MODEL", "claude-sonnet-5-5")
+EFFORT = os.environ.get("EFFORT", "medium")
 MAX_TURNS = int(os.environ.get("MAX_TURNS", "14"))
 TURN_TIMEOUT = 45 * 60
 ARTIFACT_CHARS = 60_000
@@ -119,7 +120,7 @@ def install_skills(cfg: dict, repo: Path):
 
 
 def run_executor(message: str, session: str | None, cfg: dict, repo: Path) -> dict:
-    args = ["-p", message, "--output-format", "json", "--model", EXECUTOR_MODEL,
+    args = ["-p", message, "--output-format", "json", "--model", EXECUTOR_MODEL, "--effort", EFFORT,
             "--permission-mode", "acceptEdits", "--settings", executor_settings(cfg),
             "--setting-sources", "project,local",
             "--strict-mcp-config", "--mcp-config", '{"mcpServers": {}}',

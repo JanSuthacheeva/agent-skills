@@ -78,7 +78,7 @@ def unblinded_verdict(verdict, key, private):
     return out
 
 
-def export(iteration, out, version, model):
+def export(iteration, out, version, model, effort):
     if out.exists():
         shutil.rmtree(out)
     specs = scenarios()
@@ -102,7 +102,7 @@ def export(iteration, out, version, model):
             dst.mkdir(exist_ok=True)
             (dst / f"{run_name}.json").write_text(json.dumps(verdict, indent=2))
     harness = normalize_harness((iteration / "harness.txt").read_text())
-    summary = summarize(out, version, model, harness)
+    summary = summarize(out, version, model, effort, harness)
     (out / "summary.json").write_text(json.dumps(summary, indent=2))
     render(out)
 
@@ -159,7 +159,7 @@ def sign_test(wins, losses):
     return min(1.0, 2 * sum(comb(n, i) for i in range(k + 1)) / 2 ** n)
 
 
-def summarize(out, version, model, harness):
+def summarize(out, version, model, effort, harness):
     runs, blocks, block_scores = {c: [] for c in CONFIGS}, [], []
     per_scenario, criteria = {}, {c: {k: [] for k in CRITERIA} for c in CONFIGS}
     for scenario in sorted(p for p in out.glob("eval-*") if p.is_dir()):
@@ -226,7 +226,7 @@ def summarize(out, version, model, harness):
         }
 
     return {
-        "skill_version": version, "model": model, "harness": harness,
+        "skill_version": version, "model": model, "effort": effort, "harness": harness,
         "date": date.today().isoformat(), "n_scenarios": len(per_scenario),
         "runs_per_cell": max(len(v) for v in runs.values()) // max(len(per_scenario), 1),
         "n_blocks": n, "configs": configs, "per_scenario": per_scenario,
@@ -305,7 +305,7 @@ def render(out):
     c = summary["configs"]
     best = min(CONFIGS, key=lambda n: c[n]["rank_mean"])
     values = {
-        "version": summary["skill_version"], "model": summary["model"], "harness": summary["harness"],
+        "version": summary["skill_version"], "model": summary["model"], "effort": summary["effort"], "harness": summary["harness"],
         "date_long": date.fromisoformat(summary["date"]).strftime("%-d %B %Y"),
         "n_scenarios": summary["n_scenarios"], "runs": summary["runs_per_cell"], "n_blocks": summary["n_blocks"],
         "n_runs": sum(v["runs"] for v in c.values()),
@@ -345,11 +345,12 @@ def main():
     exp.add_argument("out", type=Path)
     exp.add_argument("--version", required=True)
     exp.add_argument("--model", required=True)
+    exp.add_argument("--effort", required=True)
     ren = sub.add_parser("render")
     ren.add_argument("out", type=Path)
     args = parser.parse_args()
     if args.cmd == "export":
-        export(args.iteration.resolve(), args.out, args.version, args.model)
+        export(args.iteration.resolve(), args.out, args.version, args.model, args.effort)
     else:
         render(args.out)
 

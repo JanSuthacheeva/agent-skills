@@ -1,6 +1,6 @@
 # Evaluation of the `code-design` skill v0.4 in Claude Code
 
-Claude Code 2.1.286, `claude-opus-5-5`, 3 scenarios, 3 runs per scenario and method, 1 October 2026.
+Claude Code 2.1.286, `claude-opus-5-5` at medium effort, 3 scenarios, 3 runs per scenario and method, 1 October 2026.
 
 ## Summary
 
@@ -77,7 +77,8 @@ simulated user reveals only when asked (Table 1).
 ### 2.3 Environment
 
 All runs use Claude Code in headless mode (`claude -p`, resumed with
-`--resume` for every turn) with `claude-opus-5-5`. To make runs reproducible
+`--resume` for every turn) with `claude-opus-5-5` at medium effort,
+which subagents inherit. To make runs reproducible
 with public components only, no user settings, user hooks, user
 instructions (`CLAUDE.md`) or MCP servers are loaded. Each run starts from
 a fresh clone of the pinned commit, into which the lavish skill [2] is
@@ -321,7 +322,7 @@ repeated with:
 evals/code-design/run_iteration.sh <run-dir> 3 4
 # grade every run with grader.md, then for each run index:
 evals/code-design/blind.py <run-dir> <run> <seed>
-evals/code-design/export_results.py export <run-dir> evals/code-design/results/claude-code --version 0.4 --model claude-opus-5-5
+evals/code-design/export_results.py export <run-dir> evals/code-design/results/claude-code --version 0.4 --model claude-opus-5-5 --effort medium
 ```
 
 ## Sources

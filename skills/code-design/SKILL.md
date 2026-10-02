@@ -12,7 +12,7 @@ description: >-
   product specs, task checklists, or trivial one-file changes.
 compatibility: >-
   Requires the lavish skill (npx lavish-axi) for the review artifacts.
-  Tested in Claude Code with Claude Opus 5.5, see
+  Tested in Claude Code with Claude Opus 5.5 at medium effort, see
   https://github.com/JanSuthacheeva/agent-skills/tree/main/evals/code-design/results/claude-code
 metadata:
     author: Jan Suthacheeva
