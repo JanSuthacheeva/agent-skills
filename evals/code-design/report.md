@@ -124,8 +124,12 @@ names and signatures, fit with existing interfaces, and the scenario's key
 fact. Cited `file:line` references are additionally checked by script.
 
 **Cost.** Cost in USD as reported by the harness, tokens excluding cache
-reads, output tokens, executor turns and wall-clock duration, for the
-method only; the simulated user's cost is excluded.
+reads, output tokens, cache reads, executor turns and wall-clock duration,
+for the method only; the simulated user's cost is excluded. Tokens are
+counted from the session logs, including subagents, because the headless
+result's usage omits them; its cost already includes them. Subagents may
+run on a cheaper model, so tokens and cost are not proportional across
+methods.
 
 `code-design` is compared with each other method by an exact two-sided
 Wilcoxon signed-rank test [3] on the paired judge-score differences of the
@@ -218,10 +222,14 @@ coverage in `mdterm-bookmarks`, but its plans often contained full
 implementation code, which lowered clarity, and it missed the broken build
 in every `clickup-status-command` run.
 
-`code-design` is the most expensive method. It produces about twice the
-output tokens of `feature-dev` and `plain` and about 1.5 times those of
-`superpowers`, mainly because it writes two review pages (an approaches
-page and an implementation page) and a more detailed design. Since its
+`code-design` is the most expensive method, although `feature-dev` uses
+more tokens in total: in four of its nine runs `feature-dev` delegated
+exploration and architecture to subagents on Claude Sonnet 5.5, a cheaper
+model, while `code-design` does all of its work in the main Claude Opus 5.5
+session. `code-design` also produces about 2.6 times the output tokens of
+`plain` and about 1.5 times those of `superpowers`, mainly because it
+writes two review pages (an approaches page and an implementation page)
+and a more detailed design. Since its
 judged quality matches `feature-dev`, its additional cost buys a format
 that is easier to review rather than a better design; whether that is
 worth it depends on how much of the plan the user intends to review and

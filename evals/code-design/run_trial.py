@@ -25,6 +25,8 @@ TURN_TIMEOUT = 45 * 60
 ARTIFACT_CHARS = 60_000
 PLAN_SUFFIXES = {".html", ".md"}
 MAX_COLLECT_BYTES = 1_000_000
+BILLED_INPUT = ("input_tokens", "cache_creation_input_tokens")
+TOKEN_KINDS = BILLED_INPUT + ("output_tokens", "cache_read_input_tokens")
 SKILL_SOURCES = {
     "lavish": Path.home() / ".claude" / "skills" / "lavish",
     "code-design": HERE.parent.parent / "skills" / "code-design",
@@ -141,24 +143,69 @@ def run_user(scenario: dict, conversation: list[tuple[str, str]], artifacts: dic
 
 
 def usage(result: dict) -> dict:
-    """Per-invocation usage. cost_usd is cumulative for the session on --resume."""
+    """Per-invocation usage. cost_usd is cumulative for the session on --resume and
+    includes subagents; the usage tokens do not, so executor tokens come from the
+    session log instead (session_tokens)."""
     u = result.get("usage", {})
     return {
-        "tokens": sum(u.get(k, 0) for k in ("input_tokens", "output_tokens", "cache_creation_input_tokens")),
-        "output_tokens": u.get("output_tokens", 0),
-        "cache_read_tokens": u.get("cache_read_input_tokens", 0),
+        "tokens": sum(u.get(k, 0) for k in BILLED_INPUT + ("output_tokens",)),
         "cost_usd": result.get("total_cost_usd", 0),
         "duration_ms": result.get("duration_ms", 0),
         "num_turns": result.get("num_turns", 0),
     }
 
 
-def skills_invoked(session: str | None) -> list[str] | None:
+def session_log(session: str | None) -> Path | None:
     hits = list((Path.home() / ".claude" / "projects").glob(f"*/{session}.jsonl")) if session else []
-    if not hits:
+    return hits[0] if hits else None
+
+
+def log_usage(log: Path) -> dict[str, dict[str, int]]:
+    """Token usage per model in one transcript, counting each API message once."""
+    messages = {}
+    for line in log.read_text().splitlines():
+        msg = json.loads(line).get("message") or {}
+        if msg.get("usage"):
+            messages[msg.get("id")] = (msg.get("model"), msg["usage"])
+    per_model = {}
+    for model, u in messages.values():
+        row = per_model.setdefault(model, dict.fromkeys(TOKEN_KINDS, 0))
+        for kind in TOKEN_KINDS:
+            row[kind] += u.get(kind, 0)
+    return per_model
+
+
+def session_tokens(session: str | None) -> dict | None:
+    """Executor tokens from the session log and its subagent logs. The headless
+    result's usage misses subagents and background-agent turns."""
+    log = session_log(session)
+    if not log:
+        return None
+    main = log_usage(log)
+    subagents = {}
+    for sub in log.with_suffix("").glob("subagents/**/*.jsonl"):
+        for model, row in log_usage(sub).items():
+            acc = subagents.setdefault(model, dict.fromkeys(TOKEN_KINDS, 0))
+            for kind in TOKEN_KINDS:
+                acc[kind] += row[kind]
+    billed = lambda rows: sum(r[k] for r in rows.values() for k in BILLED_INPUT + ("output_tokens",))
+    every = list(main.values()) + list(subagents.values())
+    return {
+        "total_tokens": billed(main) + billed(subagents),
+        "main_tokens": billed(main),
+        "subagent_tokens": billed(subagents),
+        "output_tokens": sum(r["output_tokens"] for r in every),
+        "cache_read_tokens": sum(r["cache_read_input_tokens"] for r in every),
+        "tokens_by_model": {"main": main, "subagents": subagents},
+    }
+
+
+def skills_invoked(session: str | None) -> list[str] | None:
+    log = session_log(session)
+    if not log:
         return None
     calls, blocked = {}, set()
-    for line in hits[0].read_text().splitlines():
+    for line in log.read_text().splitlines():
         content = json.loads(line).get("message", {}).get("content")
         for block in content if isinstance(content, list) else []:
             if block.get("type") == "tool_use" and block.get("name") == "Skill":
@@ -241,9 +288,7 @@ def main():
 
     total = lambda turns, key: sum(t[key] for t in turns)
     timing = {
-        "total_tokens": total(executor_turns, "tokens"),
-        "output_tokens": total(executor_turns, "output_tokens"),
-        "cache_read_tokens": total(executor_turns, "cache_read_tokens"),
+        **(session_tokens(session) or {}),
         "cost_usd": round(executor_turns[-1]["cost_usd"], 4),
         "executor_duration_ms": total(executor_turns, "duration_ms"),
         "total_duration_seconds": round(time.time() - started, 1),

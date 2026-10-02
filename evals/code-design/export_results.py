@@ -196,7 +196,9 @@ def summarize(out, version, model, harness):
             "checks_total": sum(r["checks"]["total"] for r in runs[c]),
             "cost_mean": mean_sd(cost)[0], "cost_sd": mean_sd(cost)[1],
             "tokens_mean": mean_sd([r["timing"]["total_tokens"] for r in runs[c]])[0],
+            "subagent_tokens_mean": mean_sd([r["timing"]["subagent_tokens"] for r in runs[c]])[0],
             "output_tokens_mean": mean_sd([r["timing"]["output_tokens"] for r in runs[c]])[0],
+            "cache_read_tokens_mean": mean_sd([r["timing"]["cache_read_tokens"] for r in runs[c]])[0],
             "turns_mean": mean_sd([r["timing"]["executor_turns"] for r in runs[c]])[0],
             "duration_mean": mean_sd([r["timing"]["total_duration_seconds"] for r in runs[c]])[0],
             "approved": sum(r["meta"]["approved"] for r in runs[c]),
@@ -262,7 +264,9 @@ def tables(summary):
 
     rows = ["| Measure | " + " | ".join(f"`{n}`" for n in CONFIGS) + " |", "|---|" + "---|" * len(CONFIGS)]
     for label, key, fmt in (("Cost (USD)", "cost_mean", "{:.2f}"), ("Tokens excl. cache reads", "tokens_mean", "{:,.0f}"),
-                            ("Output tokens", "output_tokens_mean", "{:,.0f}"), ("Executor turns", "turns_mean", "{:.1f}"),
+                            ("of which in subagents", "subagent_tokens_mean", "{:,.0f}"),
+                            ("Output tokens", "output_tokens_mean", "{:,.0f}"),
+                            ("Cache reads", "cache_read_tokens_mean", "{:,.0f}"), ("Executor turns", "turns_mean", "{:.1f}"),
                             ("Duration (min)", "duration_mean", "{:.1f}")):
         scale = 60 if key == "duration_mean" else 1
         rows.append(f"| {label} | " + " | ".join(fmt.format(c[n][key] / scale) for n in CONFIGS) + " |")

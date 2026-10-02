@@ -8,5 +8,18 @@
   "executor_turns": 3,
   "executor_tool_turns": 41,
   "user_tokens": 16853,
-  "user_cost_usd": 0.0726
+  "user_cost_usd": 0.0726,
+  "main_tokens": 109560,
+  "subagent_tokens": 0,
+  "tokens_by_model": {
+    "main": {
+      "claude-opus-5-5": {
+        "input_tokens": 50,
+        "cache_creation_input_tokens": 82089,
+        "output_tokens": 27421,
+        "cache_read_input_tokens": 1659037
+      }
+    },
+    "subagents": {}
+  }
 }

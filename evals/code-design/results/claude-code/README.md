@@ -118,8 +118,12 @@ names and signatures, fit with existing interfaces, and the scenario's key
 fact. Cited `file:line` references are additionally checked by script.
 
 **Cost.** Cost in USD as reported by the harness, tokens excluding cache
-reads, output tokens, executor turns and wall-clock duration, for the
-method only; the simulated user's cost is excluded.
+reads, output tokens, cache reads, executor turns and wall-clock duration,
+for the method only; the simulated user's cost is excluded. Tokens are
+counted from the session logs, including subagents, because the headless
+result's usage omits them; its cost already includes them. Subagents may
+run on a cheaper model, so tokens and cost are not proportional across
+methods.
 
 `code-design` is compared with each other method by an exact two-sided
 Wilcoxon signed-rank test [3] on the paired judge-score differences of the
@@ -188,8 +192,10 @@ and pairwise sign tests.
 | Measure | `code-design` | `feature-dev` | `superpowers` | `plain` |
 |---|---|---|---|---|
 | Cost (USD) | 3.18 | 2.79 | 2.26 | 1.46 |
-| Tokens excl. cache reads | 226,574 | 114,651 | 154,748 | 111,377 |
-| Output tokens | 72,669 | 35,863 | 47,671 | 27,553 |
+| Tokens excl. cache reads | 226,574 | 319,217 | 162,560 | 111,377 |
+| of which in subagents | 0 | 171,084 | 7,812 | 0 |
+| Output tokens | 72,669 | 75,569 | 48,723 | 27,553 |
+| Cache reads | 2,454,278 | 2,140,877 | 1,986,340 | 1,183,740 |
 | Executor turns | 3.8 | 3.6 | 7.0 | 2.7 |
 | Duration (min) | 12.0 | 9.2 | 9.7 | 5.2 |
 
@@ -252,10 +258,14 @@ coverage in `mdterm-bookmarks`, but its plans often contained full
 implementation code, which lowered clarity, and it missed the broken build
 in every `clickup-status-command` run.
 
-`code-design` is the most expensive method. It produces about twice the
-output tokens of `feature-dev` and `plain` and about 1.5 times those of
-`superpowers`, mainly because it writes two review pages (an approaches
-page and an implementation page) and a more detailed design. Since its
+`code-design` is the most expensive method, although `feature-dev` uses
+more tokens in total: in four of its nine runs `feature-dev` delegated
+exploration and architecture to subagents on Claude Sonnet 5.5, a cheaper
+model, while `code-design` does all of its work in the main Claude Opus 5.5
+session. `code-design` also produces about 2.6 times the output tokens of
+`plain` and about 1.5 times those of `superpowers`, mainly because it
+writes two review pages (an approaches page and an implementation page)
+and a more detailed design. Since its
 judged quality matches `feature-dev`, its additional cost buys a format
 that is easier to review rather than a better design; whether that is
 worth it depends on how much of the plan the user intends to review and
