@@ -3,65 +3,66 @@
     {
       "text": "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
       "passed": true,
-      "evidence": "citations.json 27/27 valid. Verified: duplicate FormatComments at table.go:191/238 (second copy spans 237-279 as stated), doRequest has no payload (client.go:42), custom-ID query block duplicated in GetTask and GetTaskComments, Task.List is ListInfo, globals cfg/apiClient exist, Status has Orderindex."
+      "evidence": "citations.json: 29/29 valid. Checked claims: tasks is single `tasks [task_id]` command with aliases task,t (tasks.go:24-39); doRequest(method,path,query) has no body and only Get exists (client.go:42-96); duplicated custom-ID block in GetTask (tasks.go:66-70) and GetTaskComments (comments.go:17-20); getTask chains GetTask then parent GetTask; models.Status has Orderindex int; getAPIClient/getConfig exist in root.go. All true."
     },
     {
       "text": "conventions: the design follows the repo's existing conventions (layering, naming, error handling, dependency wiring) and names any deviation with a reason",
       "passed": true,
-      "evidence": "Mirrors getTask fetch-then-act flow, Cobra subcommand on tasksCmd, init() registration, 'failed to X: %w' wrapping, errors surface via Execute. Names deviations (io.Writer instead of os.Stdout; shared custom-ID helper) with reasons."
+      "evidence": "New tasks_status.go mirrors runTasks -> changeTaskStatus like getTask, getAPIClient/getConfig wiring, `failed to ...: %w` wrapping, Execute() prints Error and exits 1, one client method per endpoint in api/, models in pkg/models, plain stdout line like --open. Deviations (extracting addCustomTaskIDQuery, first httptest tests, doRequest signature change) are named with reasons."
     },
     {
       "text": "alternatives: at least one structurally different alternative is considered, with a concrete reason for rejecting it",
       "passed": true,
-      "evidence": "Approaches B (optimistic PUT, explain on failure) and C (validating Client.SetTaskStatus) with concrete rejection reasons (undocumented error code, breaks one-method-per-endpoint pattern)."
+      "evidence": "Approaches page compares A (command orchestrates), B (client.SetTaskStatus owning validation, typed error) and C (PUT first, explain on failure), each with a concrete rejection reason (business rules in HTTP layer, no fake server; depends on undocumented ClickUp error code, cannot skip no-op)."
     },
     {
       "text": "preferences-honoured: the final plan agrees with every user answer given in the conversation and contradicts none",
       "passed": true,
-      "evidence": "Final plan matches user answers (A, join trailing args, confirmation line only, no --output json) and hidden prefs: EqualFold exact, already-set no-op exit 0, StatusNames sorted by Orderindex, no confirmation prompt."
+      "evidence": "User answers: Approach A, one line with no -o flag, skip PUT/print message/exit 0 when already set, full name case-insensitive. All reflected in the final plan. Hidden preferences also not contradicted: board order via StatusNames by Orderindex, no confirmation prompt step in call chain."
     },
     {
       "text": "elicitation: each hidden preference that the plan's design depends on was either asked about or stated as an explicit assumption, never silently decided",
-      "passed": true,
-      "evidence": "Plan lists Assumptions: case-insensitive match, already-status behaviour, ordering, 'no confirmation prompt' (#8), no 'did you mean'."
+      "passed": false,
+      "evidence": "Case matching, already-in-status and output were asked; board order is stated as assumption 4. But the absence of a confirmation prompt before a state-changing write was never asked nor listed among the 8 assumptions; the plan silently decided it (grep for confirm only hits 'confirmation line' output)."
     },
     {
       "text": "coverage: every trigger the feature implies is designed end to end, including how failures are handled and what the user sees",
       "passed": true,
-      "evidence": "Valid, already-set, invalid, 404/401 task, list fetch failure, PUT failure, too few args each designed with message and exit code; invalid output shown."
+      "evidence": "Call chain covers config load, GetTask, GetList, FindStatus, same-status no-op, PUT, success output; error paths E0-E5 with messages and exit code 1, including invalid status listing valid ones, and docs/help updates. Also flags the inherited-statuses assumption for GET /list."
     },
     {
       "text": "consistency: unit, method and type names and signatures agree everywhere they appear across the plan",
       "passed": true,
-      "evidence": "Names (setTaskStatus, invalidStatusError, FindStatus, StatusNames, UpdateTaskStatus, addCustomTaskIDParams, GetList) consistent across units, call chains and tests."
+      "evidence": "Names and signatures (changeTaskStatus, invalidStatusError, GetList, UpdateTaskStatus, Put, doRequest with body, FindStatus, StatusNames, addCustomTaskIDQuery, models.List) are identical across the md plan and transcript summaries."
     },
     {
       "text": "api-fit: new interfaces fit the code they plug into (existing types, call sites, layering), so the plan could be implemented without redesign",
       "passed": true,
-      "evidence": "Fits Client.Get/doRequest, Task.Status/List.ID, getAPIClient/getConfig, models.Status reuse; Cobra resolves child before MaximumNArgs(1). Implementable without redesign."
+      "evidence": "Fits existing code: reuses models.Status (Orderindex int), Task.List.ID, getTask-style chaining, cobra AddCommand on tasksCmd, Get call sites unchanged by passing nil body. Minor: tasks arg parsing of tasksCmd (MaximumNArgs(1)) with subcommand is addressed. Implementable without redesign."
     },
     {
       "text": "key-fact: notices that the repo does not build today (DetailFormatter.FormatComments declared twice in internal/output/table.go)",
-      "passed": true,
-      "evidence": "Transcript turn 1 and Step 0 of plan: duplicate FormatComments at table.go:191 and 238, deletes 237-279 first."
+      "passed": false,
+      "evidence": "No mention anywhere in transcript, md or html of the duplicate DetailFormatter.FormatComments (table.go:191 and 238) or that the repo does not compile. The plan never notes the build is broken, so tests/E2E steps would fail first."
     }
   ],
   "summary": {
-    "passed": 9,
-    "failed": 0,
+    "passed": 7,
+    "failed": 2,
     "total": 9,
-    "pass_rate": 1.0
+    "pass_rate": 0.78
   },
   "eval_feedback": {
     "suggestions": [
       {
-        "reason": "key-fact could also check the plan names which copy to keep and why."
+        "assertion": "elicitation",
+        "reason": "Passing depends on whether the plan mentions a confirmation prompt; the design has no natural place where it would surface, so the 'no confirmation' preference is only testable by explicit mention. Consider noting that listing it as an assumption is sufficient."
       },
       {
-        "assertion": "preferences-honoured",
-        "reason": "Doesn't separate 'board order' (orderindex sort) from API array order; runs that merely say 'list order' pass the same way."
+        "assertion": "key-fact",
+        "reason": "Discriminating and useful; the plan's E2E/test steps would hit the compile error first."
       }
     ],
-    "overall": "Solid run; assertions are mostly presence checks."
+    "overall": "Assertions are mostly discriminating; key-fact separates runs that actually built or compiled the repo."
   }
 }

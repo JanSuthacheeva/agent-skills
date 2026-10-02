@@ -11,199 +11,148 @@
   *, *::before, *::after { box-sizing: border-box; }
   :where(.grid, .flex) > * { min-width: 0; }
   :where(p, li, td, th, .badge) { overflow-wrap: anywhere; }
-  svg { max-width: 100%; height: auto; }
+  :where(svg) { max-width: 100%; height: auto; }
+  body { background: var(--color-base-200); color: var(--color-base-content); }
   code { font-size: .85em; background: var(--color-base-200); padding: .05em .3em; border-radius: .25rem; }
-  .fig text { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; fill: currentColor; }
-  .fig .lbl { font-size: 10px; opacity: .7; }
-  .n-new rect { fill: color-mix(in oklab, var(--color-success) 22%, transparent); stroke: var(--color-success); stroke-width: 2; }
-  .n-mod rect { fill: color-mix(in oklab, var(--color-warning) 22%, transparent); stroke: var(--color-warning); stroke-width: 2; stroke-dasharray: 5 3; }
-  .n-old rect { fill: var(--color-base-200); stroke: color-mix(in oklab, currentColor 35%, transparent); stroke-width: 1; }
-  .edge { stroke: currentColor; stroke-width: 1.4; fill: none; opacity: .65; }
-  .edge-err { stroke: var(--color-error); stroke-width: 1.2; fill: none; stroke-dasharray: 4 3; opacity: .8; }
+  .fig text { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; fill: var(--color-base-content); }
+  .fig .lbl { font: 10px ui-sans-serif, system-ui, sans-serif; fill: color-mix(in oklab, var(--color-base-content) 65%, transparent); }
+  .fig .n-new rect { fill: color-mix(in oklab, var(--color-success) 18%, var(--color-base-100)); stroke: var(--color-success); stroke-width: 1.6; }
+  .fig .n-mod rect { fill: color-mix(in oklab, var(--color-warning) 20%, var(--color-base-100)); stroke: var(--color-warning); stroke-width: 1.6; stroke-dasharray: 5 3; }
+  .fig .n-old rect { fill: var(--color-base-100); stroke: color-mix(in oklab, var(--color-base-content) 35%, transparent); stroke-width: 1.2; }
+  .fig .edge { stroke: color-mix(in oklab, var(--color-base-content) 60%, transparent); stroke-width: 1.4; fill: none; marker-end: url(#arrow); }
+  .fig .edge.err { stroke: var(--color-error); stroke-dasharray: 4 3; marker-end: url(#arrow-err); }
+  .fig marker path { fill: color-mix(in oklab, var(--color-base-content) 60%, transparent); }
+  .fig #arrow-err path { fill: var(--color-error); }
+  .legend span { display: inline-flex; align-items: center; gap: .35rem; margin-right: 1rem; font-size: .8rem; }
+  .sw { width: 14px; height: 10px; border-radius: 2px; display: inline-block; }
 </style>
 </head>
-<body class="bg-base-100 text-base-content">
-<main class="mx-auto max-w-5xl p-6 lg:p-10 space-y-10">
+<body>
+<main class="mx-auto max-w-5xl p-5 lg:p-10 space-y-8">
 
 <header class="space-y-2">
-  <p class="text-sm opacity-60">Code design - phase 2 of 4</p>
-  <h1 class="text-3xl font-bold">Where should status validation live for <code>clickup tasks status &lt;id&gt; &lt;status&gt;</code>?</h1>
-  <p class="opacity-80">Pick one structure. Signatures, data shapes and call chains come on the implementation page once this is settled.</p>
-  <div class="flex flex-wrap gap-2 text-xs pt-1">
-    <span class="badge badge-soft badge-success">new unit</span>
-    <span class="badge badge-soft badge-warning">modified unit</span>
-    <span class="badge badge-ghost">existing, unchanged</span>
-  </div>
+  <p class="text-sm uppercase tracking-wide opacity-60">Code design - phase 2</p>
+  <h1 class="text-3xl font-bold">Where does the status change live?</h1>
+  <p class="max-w-3xl">Adding <code>clickup tasks status &lt;id&gt; &lt;status&gt;</code>. It changes a task's status, checks the new status against the statuses of the task's list, and lists the valid ones when the status is wrong. The approaches below differ in <b>which layer owns the "fetch task, fetch list, validate, update" flow</b>.</p>
 </header>
 
-<section id="today" class="space-y-3">
-  <h2 class="text-xl font-semibold">What exists today</h2>
-  <ul class="list-disc pl-6 space-y-1.5 text-sm">
-    <li><code>tasksCmd</code> is <code>tasks [task_id]</code> with <code>MaximumNArgs(1)</code>; no subcommands yet (<code>internal/commands/tasks.go:24-39</code>). Its local <code>--status</code> flag is a <em>list filter</em>, not inherited by subcommands (<code>tasks.go:44</code>).</li>
-    <li>Commands orchestrate: <code>getTask</code> fetches the task, then optionally the parent task, then formats (<code>tasks.go:100-159</code>). Errors are wrapped with <code>fmt.Errorf("failed to ...: %w")</code> and printed once by <code>Execute</code> as <code>Error: ...</code> (<code>root.go:48-53</code>).</li>
-    <li>API methods are thin endpoint wrappers on <code>*api.Client</code>, one domain per file (<code>api/tasks.go</code>, <code>api/comments.go</code>, <code>api/user.go</code>), each handling custom IDs via <code>isCustomTaskID</code> + <code>team_id</code> (<code>api/tasks.go:66-70</code>).</li>
-    <li>The HTTP layer is GET-only: <code>doRequest(method, path, query)</code> never sends a body, and only <code>Get</code> is exported (<code>api/client.go:42-96</code>). A PUT with a JSON body is new plumbing either way.</li>
-    <li><code>models.Status</code> exists (<code>pkg/models/task.go:55-61</code>); <code>models.ListInfo</code> holds only id/name/access (<code>task.go:80-84</code>). No list model with statuses, no list endpoint.</li>
-    <li>Non-API errors are plain <code>fmt.Errorf</code>; the only typed error is <code>*api.APIError</code> (<code>api/errors.go:8-23</code>).</li>
-    <li>Tests: models and output only (<code>pkg/models/task_test.go</code>, <code>internal/output/table_test.go</code>). None for <code>api</code> or <code>commands</code>.</li>
-  </ul>
-  <div role="alert" class="alert alert-error alert-soft text-sm">
-    <span><strong>main does not build right now.</strong> <code>DetailFormatter.FormatComments</code> is declared twice (<code>internal/output/table.go:191</code> and <code>:238</code>, the second an older non-wrapping copy left by the last merge). <code>make check</code> fails. Every approach below starts by deleting the stale copy at <code>:238</code>.</span>
+<div role="alert" class="alert alert-error alert-soft">
+  <span><b>Prerequisite, unrelated to this feature:</b> <code>main</code> does not compile. <code>DetailFormatter.FormatComments</code> is declared twice (<code>internal/output/table.go:191</code> and <code>:238</code>, from the word-wrap commit). Every approach starts with a separate commit that deletes the older, non-wrapping copy at <code>:238</code>.</span>
+</div>
+
+<section class="card bg-base-100 card-border" id="today">
+  <div class="card-body">
+    <h2 class="card-title">What exists today</h2>
+    <ul class="list-disc pl-5 space-y-1 text-sm">
+      <li><b>Commands orchestrate.</b> <code>getTask</code> calls <code>client.GetTask</code>, then makes a second <code>GetTask</code> call for the parent, then formats the output. Any multi-call flow lives in the command layer (<code>internal/commands/tasks.go:100-159</code>).</li>
+      <li><b>The API client is a thin wrapper.</b> Each method builds a path and query, calls <code>c.Get</code> and unmarshals the response into a model (<code>internal/api/tasks.go:59-83</code>, <code>comments.go:13-33</code>). The client has no domain rules.</li>
+      <li><b>The client can only send GET requests.</b> <code>doRequest(method, path, query)</code> sends a <code>nil</code> body (<code>internal/api/client.go:42,52</code>), so a PUT needs a request body to be added.</li>
+      <li><b>Custom task IDs</b> (<code>HGAI-1217</code>) need <code>custom_task_ids=true&amp;team_id=...</code>. <code>isCustomTaskID</code> handles this and is reused per endpoint (<code>tasks.go:67-70,88</code>).</li>
+      <li><b>Models</b> already have <code>Status</code> (<code>pkg/models/task.go:55</code>) and <code>Task.List ListInfo</code> (id and name only, <code>:79</code>). Nothing models a list's status set yet.</li>
+      <li><b>Command tree:</b> <code>tasks [task_id]</code> uses <code>cobra.MaximumNArgs(1)</code> (<code>tasks.go:25,37</code>). Cobra routes <code>tasks status ...</code> to a child command before positional args are handled, so <code>tasks &lt;id&gt;</code> keeps working.</li>
+      <li><b>Errors:</b> commands wrap with <code>fmt.Errorf("failed to ...: %w")</code>, and <code>Execute</code> prints <code>Error: ...</code> to stderr and exits with code 1 (<code>root.go:48-53</code>). <code>APIError</code> is the only typed error (<code>api/errors.go</code>).</li>
+      <li><b>Tests</b> exist only for models, output and config (<code>pkg/models/task_test.go</code>, <code>internal/output/table_test.go</code>). Nothing tests <code>api</code> or <code>commands</code>.</li>
+    </ul>
+    <p class="legend pt-2"><span><i class="sw" style="background:color-mix(in oklab,var(--color-success) 30%,transparent);border:1.5px solid var(--color-success)"></i>new</span><span><i class="sw" style="border:1.5px dashed var(--color-warning)"></i>modified</span><span><i class="sw" style="border:1.2px solid color-mix(in oklab,var(--color-base-content) 35%,transparent)"></i>existing</span></p>
   </div>
-  <p class="text-sm opacity-80">ClickUp endpoints involved: <code>GET /task/{id}</code> (gives <code>list.id</code>), <code>GET /list/{list_id}</code> (returns the list's effective <code>statuses</code>), <code>PUT /task/{id}</code> with <code>{"status": "..."}</code>. The API itself also rejects unknown statuses with a 400.</p>
 </section>
 
-<!-- Approach A -->
-<section id="approach-a" class="card card-border bg-base-100">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z"/></marker>
+    <marker id="arrow-err" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z"/></marker>
+  </defs>
+</svg>
+
+<!-- A -->
+<section class="card bg-base-100 card-border border-primary border-2" id="approach-a">
   <div class="card-body space-y-3">
     <div class="flex flex-wrap items-center gap-2">
-      <h2 class="card-title text-xl">A. Command orchestrates, validate up front</h2>
-      <span class="badge badge-primary">recommended</span>
+      <h2 class="card-title">A - Command orchestrates, thin API methods, matching on the model</h2>
+      <span class="badge badge-primary">Recommended</span>
     </div>
-    <p>The <code>status</code> subcommand does what <code>getTask</code> already does: call thin API methods in sequence - get task, get its list, match the requested status, update. The matching rule ("case-insensitive name match, return the canonical status") is a small pure method on a new <code>models.List</code>, so it is unit-testable without HTTP.</p>
-    <svg class="fig" viewBox="0 0 760 200" role="img" aria-labelledby="fa-t">
+    <p>A new <code>tasks status</code> subcommand fetches the task, then its list, and asks <code>List.FindStatus</code> for a case-insensitive match. On a match it calls <code>UpdateTaskStatus</code>; otherwise it returns an error that lists the valid statuses. The API gets two thin methods and a <code>Put</code>, like the existing ones. The command layer orchestrates the calls, as <code>getTask</code> already does.</p>
+    <svg class="fig" viewBox="0 0 760 210" role="img" aria-labelledby="fa-t">
       <title id="fa-t">Approach A components</title>
-      <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="currentColor" opacity=".65"/></marker></defs>
-      <g class="n-new" id="a-cmd"><title>tasksStatusCmd (new)</title><rect x="10" y="70" width="190" height="56" rx="8"/><text x="22" y="94">tasksStatusCmd</text><text class="lbl" x="22" y="112">commands/tasks_status.go</text></g>
-      <g class="n-mod" id="a-api"><title>api.Client (modified)</title><rect x="290" y="10" width="200" height="74" rx="8"/><text x="302" y="32">api.Client</text><text class="lbl" x="302" y="50">+ GetList  (api/lists.go)</text><text class="lbl" x="302" y="66">+ UpdateTaskStatus, + Put</text></g>
-      <g class="n-new" id="a-list"><title>models.List (new)</title><rect x="290" y="120" width="200" height="56" rx="8"/><text x="302" y="144">models.List</text><text class="lbl" x="302" y="162">FindStatus(name)</text></g>
-      <g class="n-old" id="a-http"><title>ClickUp API</title><rect x="580" y="20" width="170" height="54" rx="8"/><text x="592" y="44">ClickUp API</text><text class="lbl" x="592" y="62">GET task, GET list, PUT</text></g>
-      <path class="edge" d="M200,90 L288,52" marker-end="url(#arr)"/>
-      <path class="edge" d="M200,108 L288,146" marker-end="url(#arr)"/>
-      <path class="edge" d="M490,47 L578,47" marker-end="url(#arr)"/>
+      <text class="lbl" x="10" y="16">commands</text><text class="lbl" x="290" y="16">api</text><text class="lbl" x="560" y="16">models</text>
+      <g class="n-old" id="a-tasks"><title>tasksCmd</title><rect x="10" y="28" width="210" height="34" rx="6"/><text x="22" y="50">tasksCmd</text></g>
+      <g class="n-new" id="a-cmd"><title>tasksStatusCmd</title><rect x="10" y="100" width="210" height="50" rx="6"/><text x="22" y="122">tasksStatusCmd</text><text class="lbl" x="22" y="140">tasks_status.go - orchestrates</text></g>
+      <g class="n-mod" id="a-client"><title>api.Client</title><rect x="290" y="28" width="210" height="122" rx="6"/><text x="302" y="50">api.Client</text><text class="lbl" x="302" y="72">GetTask (existing)</text><text class="lbl" x="302" y="90">+ GetList</text><text class="lbl" x="302" y="108">+ UpdateTaskStatus</text><text class="lbl" x="302" y="126">+ Put, doRequest gets a body</text></g>
+      <g class="n-new" id="a-list"><title>models.List</title><rect x="560" y="28" width="190" height="56" rx="6"/><text x="572" y="50">models.List</text><text class="lbl" x="572" y="70">+ FindStatus(name)</text></g>
+      <g class="n-old" id="a-status"><title>models.Status</title><rect x="560" y="116" width="190" height="34" rx="6"/><text x="572" y="138">models.Status</text></g>
+      <path class="edge" d="M115,62 V98"/><text class="lbl" x="122" y="84">AddCommand</text>
+      <path class="edge" d="M220,125 H288"/>
+      <path class="edge" d="M220,112 C 400,180 520,180 600,86"/><text class="lbl" x="380" y="190">FindStatus - pure, no I/O</text>
+      <path class="edge" d="M655,84 V114"/>
     </svg>
     <div class="grid md:grid-cols-2 gap-4 text-sm">
-      <div>
-        <h3 class="font-semibold mb-1">Touches</h3>
-        <ul class="list-disc pl-5 space-y-1">
-          <li>new <code>commands/tasks_status.go</code> (subcommand of <code>tasksCmd</code>)</li>
-          <li>new <code>api/lists.go</code>; <code>api/tasks.go</code> + <code>UpdateTaskStatus</code>; <code>api/client.go</code> body support + <code>Put</code></li>
-          <li>new <code>pkg/models/list.go</code></li>
-          <li>docs: <code>README.md</code>, <code>skills/SKILL.md</code>, root help</li>
-        </ul>
-        <h3 class="font-semibold mt-3 mb-1">Fit</h3>
-        <p>Same shape as <code>getTask</code> chaining <code>GetTask</code> calls (<code>tasks.go:111-124</code>); API stays one-endpoint-per-method (<code>api/tasks.go:59</code>); helpers on models like <code>GetDisplayID</code> (<code>task.go:36</code>).</p>
-      </div>
-      <div>
-        <h3 class="font-semibold mb-1 text-success">Benefits</h3>
-        <ul class="list-disc pl-5 space-y-1">
-          <li>Valid statuses are known before any write; error message is fully ours.</li>
-          <li>Typo-tolerant: <code>"In Progress"</code> matches <code>"in progress"</code> and we send the canonical name.</li>
-          <li>Can detect "already in that status" and skip the PUT.</li>
-          <li><code>GetList</code> is reusable (e.g. a future <code>clickup lists</code> or shell completion of statuses).</li>
-        </ul>
-        <h3 class="font-semibold mt-3 mb-1 text-error">Costs</h3>
-        <ul class="list-disc pl-5 space-y-1">
-          <li>3 requests on the happy path (task, list, update) - roughly 3x latency of a bare PUT.</li>
-          <li>Small race: status set could change between GET list and PUT (API still rejects, we surface its error).</li>
-        </ul>
-      </div>
+      <div><h3 class="font-semibold mb-1">Touches</h3><ul class="list-disc pl-5"><li>new <code>internal/commands/tasks_status.go</code></li><li>new <code>internal/api/lists.go</code> (<code>GetList</code>)</li><li><code>internal/api/tasks.go</code> (+<code>UpdateTaskStatus</code>)</li><li><code>internal/api/client.go</code> (body + <code>Put</code>)</li><li>new <code>pkg/models/list.go</code> (<code>List</code>, <code>FindStatus</code>)</li><li><code>skills/SKILL.md</code>, <code>README.md</code></li></ul></div>
+      <div><h3 class="font-semibold mb-1">Fit</h3><ul class="list-disc pl-5"><li>Uses the same orchestration pattern as <code>getTask</code> (<code>tasks.go:100-124</code>).</li><li>New API methods follow <code>GetTask</code>/<code>GetTaskComments</code> exactly.</li><li>Domain helper on the model, like <code>Task.GetDisplayID</code> (<code>task.go:36</code>).</li><li>Puts each domain file in its own file, like <code>comments.go</code>/<code>user.go</code>.</li></ul></div>
+    </div>
+    <div class="grid md:grid-cols-2 gap-4 text-sm">
+      <div class="rounded-box bg-success/10 p-3"><b>Gains</b><ul class="list-disc pl-5"><li>The matching rule is a pure function on <code>models.List</code> that you can unit test with no HTTP.</li><li>Every API method stays a 1:1 endpoint wrapper, so it can be reused later (for example to validate <code>--status</code> on list).</li><li>No new error types.</li></ul></div>
+      <div class="rounded-box bg-error/10 p-3"><b>Costs</b><ul class="list-disc pl-5"><li>Makes 3 HTTP calls per change (GET task, GET list, PUT).</li><li>The command function holds the flow. Like the rest of <code>commands</code>, it has no automated test without an HTTP fake, so the flow is only covered manually or end to end.</li></ul></div>
     </div>
   </div>
 </section>
 
-<!-- Approach B -->
-<section id="approach-b" class="card card-border bg-base-100">
+<!-- B -->
+<section class="card bg-base-100 card-border" id="approach-b">
   <div class="card-body space-y-3">
-    <h2 class="card-title text-xl">B. Try the update, explain only on rejection</h2>
-    <p>The command sends the PUT straight away. If ClickUp rejects it as an unknown status, it then fetches the task and its list to print the valid statuses. Validation is effectively delegated to the API; we only decorate its error.</p>
-    <svg class="fig" viewBox="0 0 760 200" role="img" aria-labelledby="fb-t">
+    <h2 class="card-title">B - API client owns the whole operation</h2>
+    <p>A single <code>client.SetTaskStatus(taskID, teamID, status)</code> fetches the task and its list, validates the status, and sends the PUT. A wrong status comes back as a typed <code>*InvalidStatusError{Requested, Valid []models.Status}</code>. The command only parses args, calls this method, and formats the result or the error.</p>
+    <svg class="fig" viewBox="0 0 760 190" role="img" aria-labelledby="fb-t">
       <title id="fb-t">Approach B components</title>
-      <defs><marker id="arrb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="currentColor" opacity=".65"/></marker></defs>
-      <g class="n-new" id="b-cmd"><title>tasksStatusCmd (new)</title><rect x="10" y="70" width="190" height="56" rx="8"/><text x="22" y="94">tasksStatusCmd</text><text class="lbl" x="22" y="112">commands/tasks_status.go</text></g>
-      <g class="n-mod" id="b-api"><title>api.Client (modified)</title><rect x="290" y="10" width="200" height="74" rx="8"/><text x="302" y="32">api.Client</text><text class="lbl" x="302" y="50">+ UpdateTaskStatus, + Put</text><text class="lbl" x="302" y="66">+ GetList (fallback only)</text></g>
-      <g class="n-mod" id="b-err"><title>api.APIError (modified)</title><rect x="290" y="120" width="200" height="56" rx="8"/><text x="302" y="144">api.APIError</text><text class="lbl" x="302" y="162">+ IsInvalidStatus()</text></g>
-      <g class="n-old" id="b-http"><title>ClickUp API</title><rect x="580" y="20" width="170" height="54" rx="8"/><text x="592" y="44">ClickUp API</text><text class="lbl" x="592" y="62">PUT, then GETs on 400</text></g>
-      <path class="edge" d="M200,90 L288,52" marker-end="url(#arrb)"/>
-      <path class="edge-err" d="M200,108 L288,146" marker-end="url(#arrb)"/>
-      <path class="edge" d="M490,47 L578,47" marker-end="url(#arrb)"/>
+      <text class="lbl" x="10" y="16">commands</text><text class="lbl" x="290" y="16">api</text><text class="lbl" x="560" y="16">models</text>
+      <g class="n-new" id="b-cmd"><title>tasksStatusCmd</title><rect x="10" y="40" width="210" height="50" rx="6"/><text x="22" y="62">tasksStatusCmd</text><text class="lbl" x="22" y="80">thin: args + output</text></g>
+      <g class="n-mod" id="b-client"><title>api.Client</title><rect x="290" y="28" width="210" height="104" rx="6"/><text x="302" y="50">api.Client</text><text class="lbl" x="302" y="72">+ SetTaskStatus (orchestrates)</text><text class="lbl" x="302" y="90">+ getList, putTaskStatus</text><text class="lbl" x="302" y="108">+ Put, doRequest gets a body</text></g>
+      <g class="n-new" id="b-err"><title>InvalidStatusError</title><rect x="290" y="146" width="210" height="34" rx="6"/><text x="302" y="168">InvalidStatusError</text></g>
+      <g class="n-new" id="b-list"><title>models.List</title><rect x="560" y="40" width="190" height="34" rx="6"/><text x="572" y="62">models.List</text></g>
+      <path class="edge" d="M220,65 H288"/>
+      <path class="edge" d="M500,57 H558"/>
+      <path class="edge err" d="M395,132 V144"/>
+      <path class="edge err" d="M288,163 C 200,163 120,140 115,92"/><text class="lbl" x="130" y="150">returned to command</text>
     </svg>
     <div class="grid md:grid-cols-2 gap-4 text-sm">
-      <div>
-        <h3 class="font-semibold mb-1">Touches</h3>
-        <ul class="list-disc pl-5 space-y-1">
-          <li>same files as A, plus <code>api/errors.go</code> (ECODE classification)</li>
-          <li>no <code>models.List</code> matching logic needed</li>
-        </ul>
-        <h3 class="font-semibold mt-3 mb-1">Fit</h3>
-        <p>Uses the existing <code>APIError.ECODE</code> field (<code>errors.go:12</code>), which nothing branches on today. Requires error-driven control flow in a command, which the codebase does not do anywhere.</p>
-      </div>
-      <div>
-        <h3 class="font-semibold mb-1 text-success">Benefits</h3>
-        <ul class="list-disc pl-5 space-y-1">
-          <li>1 request on the happy path - fastest.</li>
-          <li>No race: the API is the single source of truth.</li>
-        </ul>
-        <h3 class="font-semibold mt-3 mb-1 text-error">Costs</h3>
-        <ul class="list-disc pl-5 space-y-1">
-          <li>Depends on an undocumented, unversioned ECODE string to recognise "invalid status" - silent breakage if ClickUp changes it.</li>
-          <li>Case/whitespace typos depend on API leniency; we cannot normalise to the canonical name.</li>
-          <li>No "already in that status" detection without an extra GET anyway.</li>
-          <li>Harder to test: the interesting path is the failure path.</li>
-        </ul>
-      </div>
+      <div class="rounded-box bg-success/10 p-3"><b>Gains</b><ul class="list-disc pl-5"><li>One call from the command, so any future caller (another command, a TUI) gets validation for free.</li><li>The error type carries data and the command decides how to show it.</li></ul></div>
+      <div class="rounded-box bg-error/10 p-3"><b>Costs</b><ul class="list-disc pl-5"><li>Breaks the current split, because <code>api</code> would gain domain rules. Today it is a thin wrapper and orchestration lives in commands (<code>tasks.go:117-124</code>).</li><li>Adds a second error type next to <code>APIError</code>, and callers must type-assert it.</li><li>Testing the validation means faking HTTP, because the rule sits behind network calls.</li><li>Adds the most new code for one caller.</li></ul></div>
     </div>
   </div>
 </section>
 
-<!-- Approach C -->
-<section id="approach-c" class="card card-border bg-base-100">
+<!-- C -->
+<section class="card bg-base-100 card-border" id="approach-c">
   <div class="card-body space-y-3">
-    <h2 class="card-title text-xl">C. API client owns the use case</h2>
-    <p>Same pre-validation as A, but packaged as one high-level method <code>Client.SetTaskStatus(taskID, teamID, status)</code> that internally does the three calls and returns a typed <code>*api.InvalidStatusError{Valid []models.Status}</code>. The command becomes a thin shell that formats the result.</p>
-    <svg class="fig" viewBox="0 0 760 200" role="img" aria-labelledby="fc-t">
+    <h2 class="card-title">C - Send the update first, explain only when it fails</h2>
+    <p>The command sends the PUT straight away. Only if ClickUp rejects it as an unknown status does the command fetch the task and its list and print the valid statuses. The happy path needs a single request.</p>
+    <svg class="fig" viewBox="0 0 760 150" role="img" aria-labelledby="fc-t">
       <title id="fc-t">Approach C components</title>
-      <defs><marker id="arrc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="currentColor" opacity=".65"/></marker></defs>
-      <g class="n-new" id="c-cmd"><title>tasksStatusCmd (new)</title><rect x="10" y="70" width="190" height="56" rx="8"/><text x="22" y="94">tasksStatusCmd</text><text class="lbl" x="22" y="112">thin shell</text></g>
-      <g class="n-mod" id="c-api"><title>api.Client (modified)</title><rect x="290" y="10" width="200" height="74" rx="8"/><text x="302" y="32">api.Client</text><text class="lbl" x="302" y="50">+ SetTaskStatus (orchestrates)</text><text class="lbl" x="302" y="66">+ GetList, UpdateTask, Put</text></g>
-      <g class="n-new" id="c-err"><title>api.InvalidStatusError (new)</title><rect x="290" y="120" width="200" height="56" rx="8"/><text x="302" y="144">InvalidStatusError</text><text class="lbl" x="302" y="162">Valid []models.Status</text></g>
-      <g class="n-old" id="c-http"><title>ClickUp API</title><rect x="580" y="20" width="170" height="54" rx="8"/><text x="592" y="44">ClickUp API</text><text class="lbl" x="592" y="62">GET task, GET list, PUT</text></g>
-      <path class="edge" d="M200,90 L288,52" marker-end="url(#arrc)"/>
-      <path class="edge-err" d="M288,146 L200,108" marker-end="url(#arrc)"/>
-      <path class="edge" d="M490,47 L578,47" marker-end="url(#arrc)"/>
+      <text class="lbl" x="10" y="16">commands</text><text class="lbl" x="290" y="16">api</text>
+      <g class="n-new" id="c-cmd"><title>tasksStatusCmd</title><rect x="10" y="40" width="210" height="50" rx="6"/><text x="22" y="62">tasksStatusCmd</text><text class="lbl" x="22" y="80">PUT, then explain on 4xx</text></g>
+      <g class="n-mod" id="c-client"><title>api.Client</title><rect x="290" y="28" width="250" height="104" rx="6"/><text x="302" y="50">api.Client</text><text class="lbl" x="302" y="72">+ UpdateTaskStatus</text><text class="lbl" x="302" y="90">+ GetList (error path only)</text><text class="lbl" x="302" y="108">+ Put, doRequest gets a body</text></g>
+      <path class="edge" d="M220,58 H288"/>
+      <path class="edge err" d="M288,100 H222"/><text class="lbl" x="226" y="118">APIError (400)</text>
     </svg>
     <div class="grid md:grid-cols-2 gap-4 text-sm">
-      <div>
-        <h3 class="font-semibold mb-1">Touches</h3>
-        <ul class="list-disc pl-5 space-y-1">
-          <li>same files as A, plus <code>api/errors.go</code> (new error type)</li>
-        </ul>
-        <h3 class="font-semibold mt-3 mb-1">Fit</h3>
-        <p>Deviates: every existing <code>Client</code> method maps to exactly one endpoint (<code>api/tasks.go:22,59</code>, <code>api/comments.go:13</code>), and multi-call orchestration lives in commands (<code>tasks.go:111-124</code>).</p>
-      </div>
-      <div>
-        <h3 class="font-semibold mb-1 text-success">Benefits</h3>
-        <ul class="list-disc pl-5 space-y-1">
-          <li>Use case reusable from any future caller (e.g. a bulk command).</li>
-          <li>Typed error lets the command render valid statuses however it likes.</li>
-        </ul>
-        <h3 class="font-semibold mt-3 mb-1 text-error">Costs</h3>
-        <ul class="list-disc pl-5 space-y-1">
-          <li>Mixes business rules into the transport package; it stops being a plain client.</li>
-          <li>Testing the rule requires an HTTP fake rather than a pure function.</li>
-          <li>Speculative reuse - there is no second caller today.</li>
-        </ul>
-      </div>
+      <div class="rounded-box bg-success/10 p-3"><b>Gains</b><ul class="list-disc pl-5"><li>Only 1 request on the happy path.</li><li>ClickUp stays the only source of truth, so there is no local matching rule to drift.</li></ul></div>
+      <div class="rounded-box bg-error/10 p-3"><b>Costs</b><ul class="list-disc pl-5"><li>Depends on telling an "unknown status" 400 apart from other 400s by ClickUp's <code>err</code>/<code>ECODE</code> text. That text is undocumented and <b>not verified</b>, and it can change without notice.</li><li>ClickUp's own matching (case, whitespace) decides what is accepted, so we cannot normalise input or show a hint before the write.</li><li>The task gets mutated before we know the input was good. That is harmless here, but it is the wrong order for a validating command.</li></ul></div>
     </div>
   </div>
 </section>
 
-<section id="recommendation" class="space-y-3">
-  <h2 class="text-xl font-semibold">Recommendation: A</h2>
-  <p class="text-sm">A follows the existing split exactly (commands orchestrate, the client wraps endpoints, models hold small pure helpers), gives the most robust validation and the best error message, and keeps the matching rule unit-testable. B's speed win is two GETs on a command a human runs by hand, and it buys that with a dependency on an undocumented error code. C is A with the orchestration moved into the wrong layer.</p>
-  <p class="text-sm opacity-80">Smaller choices (output format on success, same-status no-op, how the valid list is printed, whether <code>-o json</code> is supported) are settled on the next page as assumptions you can overturn.</p>
-</section>
-
-<section id="decide" class="card bg-base-200">
-  <div class="card-body">
-    <form data-lavish-question="approach" class="space-y-3"
-      onsubmit="event.preventDefault(); const fd = new FormData(event.currentTarget); const choice = fd.get('approach'); const notes = (fd.get('notes') || '').trim(); if (!choice) return; window.lavish.queuePrompt('Go with approach ' + choice + (notes ? '. Notes: ' + notes : ''), { tag: 'choice', text: 'Approach: ' + choice, element: event.currentTarget, data: { question: 'approach', answer: choice, notes } }); event.currentTarget.querySelector('[data-status]').textContent = 'Queued: approach ' + choice;">
-      <h2 class="card-title">Your decision</h2>
-      <label class="flex gap-2 items-start"><input type="radio" class="radio radio-primary" name="approach" value="A" checked> <span><strong>A</strong> - command orchestrates, validate up front</span></label>
-      <label class="flex gap-2 items-start"><input type="radio" class="radio" name="approach" value="B"> <span><strong>B</strong> - try the update, explain on rejection</span></label>
-      <label class="flex gap-2 items-start"><input type="radio" class="radio" name="approach" value="C"> <span><strong>C</strong> - API client owns the use case</span></label>
-      <textarea class="textarea w-full" name="notes" rows="3" placeholder="Rationale, or a mix (e.g. 'A, but ...')"></textarea>
-      <div class="flex items-center gap-3"><button class="btn btn-primary" type="submit">Queue this answer</button><span data-status class="text-sm opacity-70"></span></div>
+<section class="card bg-base-100 card-border" id="recommendation">
+  <div class="card-body space-y-3">
+    <h2 class="card-title">Recommendation: A</h2>
+    <p>A copies the split the codebase already uses: commands orchestrate, the API wraps endpoints, and models carry small helpers. The only real rule, matching a typed status against the list's statuses, ends up as a pure function that is easy to test. B pays for reuse that has no second caller. C swaps a stable flow for parsing undocumented ClickUp error text. The extra GET in A takes about 100-200 ms on an interactive command.</p>
+    <p class="text-sm opacity-70">Questions about the public surface (how multi-word statuses are passed, how strict matching is, what success prints) do not change which approach fits. They come as open questions on the implementation page.</p>
+    <form data-lavish-question="approach" class="space-y-3" onsubmit="event.preventDefault(); const fd = new FormData(event.currentTarget); const choice = fd.get('approach'); const notes = (fd.get('notes') || '').trim(); if (choice) window.lavish.queuePrompt('Use approach ' + choice + (notes ? '. Notes: ' + notes : ''), { tag: 'choice', text: 'Approach: ' + choice, element: event.currentTarget, data: { question: 'approach', answer: choice, notes } });">
+      <div class="flex flex-col gap-2">
+        <label class="flex items-center gap-2"><input type="radio" class="radio radio-primary" name="approach" value="A - command orchestrates" checked> A - Command orchestrates, thin API methods, matching on the model</label>
+        <label class="flex items-center gap-2"><input type="radio" class="radio" name="approach" value="B - API client owns the operation"> B - API client owns the whole operation</label>
+        <label class="flex items-center gap-2"><input type="radio" class="radio" name="approach" value="C - update first, explain on failure"> C - Send the update first, explain only when it fails</label>
+      </div>
+      <textarea name="notes" class="textarea w-full" rows="3" placeholder="Rationale, or how you want to mix approaches"></textarea>
+      <button type="submit" class="btn btn-primary">Queue this answer</button>
     </form>
   </div>
 </section>

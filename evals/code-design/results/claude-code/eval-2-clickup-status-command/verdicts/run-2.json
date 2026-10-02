@@ -2,31 +2,31 @@
   "scores": {
     "code-design": {
       "correctness": 9,
-      "completeness": 9,
+      "completeness": 8,
       "clarity": 9,
       "reviewability": 9,
-      "note": "Catches the real duplicate FormatComments build break, gives full signatures, numbered call chains for valid and invalid paths, and explicit assumptions plus review decisions."
-    },
-    "feature-dev": {
-      "correctness": 9,
-      "completeness": 9,
-      "clarity": 8,
-      "reviewability": 9,
-      "note": "Also catches the broken build, and additionally covers empty list ID, debug-to-stderr, SetBaseURL for tests, alternatives considered, commit sequence and risks, though the extra --output json flag adds scope."
+      "note": "Accurate unit signatures, numbered call chain with labeled error paths E0-E5, explicit assumptions list and test seams; misses that the repo currently fails to build."
     },
     "plain": {
-      "correctness": 6,
+      "correctness": 8,
       "completeness": 7,
       "clarity": 8,
       "reviewability": 7,
-      "note": "Clean, near-complete code and sensible native-ID PUT, but misses that go build/make check currently fail on the duplicate FormatComments and its 'verified' current state omits it."
+      "note": "Correct verified-current-state section and a smart native-ID PUT that avoids custom-ID params, but includes function bodies, has no error-path table, and misses the broken build."
+    },
+    "feature-dev": {
+      "correctness": 10,
+      "completeness": 10,
+      "clarity": 8,
+      "reviewability": 9,
+      "note": "Uniquely catches the real duplicate DetailFormatter.FormatComments that breaks go build, compares three approaches, covers json output, empty list ID and no-status lists, with a commit sequence; scope is broader (debug to stderr, SetBaseURL, cmd.OutOrStdout)."
     },
     "superpowers": {
-      "correctness": 6,
+      "correctness": 8,
       "completeness": 6,
-      "clarity": 7,
+      "clarity": 8,
       "reviewability": 6,
-      "note": "Concise table-driven plan with solid flow and error table, but misses the broken build, leaves the PUT call as a comment in pseudo-code, and has thin signatures and tests for the command."
+      "note": "Concise, accurate (debug Printf line numbers check out) and has a good error table, but the command snippet elides the PUT, it lacks signatures for several units, and it misses the broken build."
     }
   },
   "ranking": [
@@ -35,5 +35,5 @@
     "plain",
     "superpowers"
   ],
-  "reason": "X and W were the only plans to notice the repository does not currently compile (duplicate DetailFormatter.FormatComments in table.go, confirmed with go build), which any implementer would hit first. X edges ahead with considered alternatives, extra failure paths (task with no list, empty statuses), test seams and a commit order; W is nearly as strong with precise call chains. Y and Z are sound designs but miss the build break and are less detailed on the command and failure paths."
+  "reason": "Y verified the repository state most deeply and found a real blocker (go build fails because FormatComments is declared twice in internal/output/table.go), then designed the remaining edge cases (empty list ID, empty status list, json output on the already-in-status path) and an ordered commit plan. W is the cleanest and most reviewable design with explicit error paths and assumptions but did not notice the build failure, while X and Z are correct but thinner on failure paths and open decisions."
 }

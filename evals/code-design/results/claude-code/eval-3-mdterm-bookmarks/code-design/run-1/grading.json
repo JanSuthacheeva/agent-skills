@@ -1,49 +1,49 @@
 {
   "expectations": [
     {
-      "text": "grounded",
+      "text": "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
       "passed": true,
-      "evidence": "Checked: m toggles mouse at viewer.rs:1647 and help text at :3637; TaskItem.bracket_offset at style.rs:42; dirs crate in Cargo.toml and config.rs:42 uses dirs::config_dir; nav_history, switch_file, is_help_toggle before Help handling in handle_event, finalize_layout, make_state_with_lines all exist; README lacks m row; CLAUDE.md says Ten source files; 48 Line literals (~50 claimed). citations.json 16/16 valid."
+      "evidence": "Checked: m toggle at viewer.rs:1647 and help at 3637, handle_normal at 1606, TaskItem.bracket_offset in style.rs, dirs dep, Config::load swallow-errors pattern, ViewMode/accepts_text_input/finalize_layout/switch_file/ALL_MODES all exist as described. 33/33 citations valid."
     },
     {
-      "text": "conventions",
+      "text": "conventions: the design follows the repo's existing conventions (layering, naming, error handling, dependency wiring) and names any deviation with a reason",
       "passed": true,
-      "evidence": "Mirrors config.rs (dirs::*_dir()/mdterm/..., silent fallback), keeps renderer/viewer layering, ViewerOptions wiring from main, new module documented in CLAUDE.md; deviations (tempfile dev-dep, first disk writes in tests) are named."
+      "evidence": "Mirrors Config::load fallback, serde derive, dirs crate, ViewMode mode pattern, help_sections, ALL_MODES tests, toast errors, new module registered in main.rs; Default::default() literal style justified."
     },
     {
-      "text": "alternatives",
+      "text": "alternatives: at least one structurally different alternative is considered, with a concrete reason for rejecting it",
       "passed": true,
-      "evidence": "Approaches page compares A (scroll offset), B (heading-relative), C (source line) with concrete rejection reasons (drift at other widths, fallback when no headings)."
+      "evidence": "Approaches A (raw offset) and B (heading+delta) rejected with concrete reasons (width-dependent; heading rename/approximate); also sidecar file alternative offered."
     },
     {
-      "text": "preferences-honoured",
+      "text": "preferences-honoured: the final plan agrees with every user answer given in the conversation and contradicts none",
       "passed": true,
-      "evidence": "Regrade: M for mouse capture; a-z only per file (A-Z reserved); dirs::data_dir()/mdterm/marks.toml, not config.toml; marks store source_line (width-independent, so resize-safe) plus a trimmed-text fingerprint and Mark::resolve relocates to the nearest matching line on jump, covering edits between sessions. Matches all user answers."
+      "evidence": "M for mouse capture, a-z only, state_dir (data_dir fallback only where none) in marks.json, source line + text fingerprint resolved on jump survives resize and edits. All user answers reflected."
     },
     {
-      "text": "elicitation",
+      "text": "elicitation: each hidden preference that the plan's design depends on was either asked about or stated as an explicit assumption, never silently decided",
       "passed": true,
-      "evidence": "m/M, A-Z, and external edits were asked; storage location, per-set writes, stdin handling were stated as defaults before round 1 and listed in 18 explicit assumptions."
+      "evidence": "All four hidden prefs asked in turn 1 (conflict key, storage, scope, approach); further decisions listed as explicit assumptions 1-8 and open questions."
     },
     {
-      "text": "coverage",
+      "text": "coverage: every trigger the feature implies is designed end to end, including how failures are handled and what the user sees",
       "passed": true,
-      "evidence": "Set, jump, load/switch, and render stamping chains with error paths: empty doc, stdin, save failure, missing mark, NotFound, past-EOF, invalid second key, JSON view, slide mode, corrupt file; user-visible toasts specified."
+      "evidence": "Render, set, jump, open/switch file chains with failures and toasts (JSON, stdin, save error, corrupt store, unset mark, text gone, non-letter key)."
     },
     {
-      "text": "consistency",
+      "text": "consistency: unit, method and type names and signatures agree everywhere they appear across the plan",
       "passed": true,
-      "evidence": "Names/signatures (Mark, MarkTarget, FileMarks, MarkStore, handle_mark_key, set_mark, jump_to_mark, save_marks, source_line_at, offset_for_source_line) agree across md and call chains; no mismatches found."
+      "evidence": "Names/signatures (Mark, FileMarks, Resolution, MarkAction, handle_mark, set_mark, jump_to_mark, line_idx_for_source) agree across md and call chains; minor MarkFile vs MARK_FILE_VERSION usage consistent."
     },
     {
-      "text": "api-fit",
+      "text": "api-fit: new interfaces fit the code they plug into (existing types, call sites, layering), so the plan could be implemented without redesign",
       "passed": true,
-      "evidence": "Fits existing types: Line gains field copied in wrap/finalize_layout, ViewerOptions extended, intercept placed before is_help_toggle, nav_history reused, tests helper updated. Implementable without redesign."
+      "evidence": "Fits existing types: Line already derives Default, ViewerState.content and files exist, serde available, wrap_lines signature unchanged; implementable without redesign."
     },
     {
-      "text": "key-fact",
+      "text": "key-fact: notices that m is already bound to the mouse-capture toggle in src/viewer.rs",
       "passed": true,
-      "evidence": "Turn 1 states m is already the mouse-capture toggle at src/viewer.rs:1647 and help at :3637."
+      "evidence": "Transcript turn 1: 'm is already taken. It toggles mouse capture (src/viewer.rs:1647)'."
     }
   ],
   "summary": {
@@ -53,12 +53,7 @@
     "pass_rate": 1.0
   },
   "eval_feedback": {
-    "suggestions": [
-      {
-        "assertion": "preferences-honoured",
-        "reason": "'platform state directory' is ambiguous (dirs::state_dir is None on macOS); plan used data_dir and nothing forces the distinction to be examined."
-      }
-    ],
-    "overall": "Assertions are reasonable; elicitation and preferences checks are the discriminating ones."
+    "suggestions": [],
+    "overall": "Evals look solid; 'conventions' and 'api-fit' are somewhat easy to satisfy."
   }
 }

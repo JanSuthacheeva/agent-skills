@@ -3,66 +3,74 @@
     {
       "text": "grounded",
       "passed": true,
-      "evidence": "Checked: FormatComments declared twice at table.go:191 and :238; doRequest is GET-only with nil body (client.go:42-96); custom-ID block duplicated in GetTask and comments.go:16-20; getTask orchestration at tasks.go:111-124; tasksCmd Args MaximumNArgs(1), local --status flag; SilenceUsage/SilenceErrors at root.go:43-44; models.Status/ListInfo shapes. citations.json: 35/35 valid."
+      "evidence": "Verified: FormatComments declared at table.go:191 and :238 (go build fails); tasksCmd uses MaximumNArgs(1) and local (non-persistent) -o flag; getTask orchestrates multiple calls in commands; client doRequest sends nil body and only Get exists; Task.List is ListInfo (id/name only); isCustomTaskID duplicated in tasks.go:67 and comments.go:17; warnings to os.Stderr at tasks.go:120,128; Execute prints Error: and exits 1; no tests for api/commands. citations.json: 31/31 valid."
     },
     {
       "text": "conventions",
       "passed": true,
-      "evidence": "Plan has a conventions table mirroring init() registration, getTask orchestration, fmt.Errorf wrapping, one api file per domain, models helpers; deviations (io.Writer, first nested subcommand, UpdateTaskRequest naming) are named with reasons."
+      "evidence": "Mirrors command-orchestrates/thin-API layering, getAPIClient/getConfig wiring, fmt.Errorf wrap with %w, stderr warnings, output.GetFormatter. Deviations (io.Writer instead of os.Stdout, own -o var, addCustomTaskIDParams refactor, SetBaseURL) are named with reasons."
     },
     {
       "text": "alternatives",
       "passed": true,
-      "evidence": "Approaches B (PUT first, explain on rejection via ECODE) and C (orchestration in api.Client with typed error) are structurally different and rejected with concrete reasons."
+      "evidence": "Approach B (API client owns flow, InvalidStatusError) and C (update first, explain on failure) are structurally different and rejected with concrete reasons (business rules in API layer; depends on unverified ClickUp error text)."
     },
     {
-      "text": "preferences-honoured",
+      "text": "preferences",
       "passed": true,
-      "evidence": "User answers (approach A, delete stale FormatComments first, SetBaseURL yes, generic UpdateTask) all reflected. Hidden prefs: case-insensitive match with no fuzzy (assumption 1, 6), already-in-status notice exit 0 no write (assumption 3), board order via Orderindex (StatusNames), no confirmation prompt (flow has none). Trimming surrounding whitespace is a minor extra but not prefix/fuzzy matching."
+      "evidence": "All four preferences honoured: exact case-insensitive match via EqualFold, no prefix (test 'in' vs 'in progress'); already-set prints notice, no PUT, exit 0 (also with -o json after user feedback); OrderedStatuses sorts by Orderindex; no confirmation prompt. Transcript answers (join args, trim, one line + -o json, A) are reflected."
     },
     {
       "text": "elicitation",
-      "passed": false,
-      "evidence": "Matching, already-same-status, listing order and output format were stated as explicit assumptions, but the absence of a confirmation prompt is never asked about nor listed among the assumptions; it is only implicit in the call chain, i.e. silently decided."
+      "passed": true,
+      "evidence": "Matching, multi-word and output were asked up front; user volunteered already-set, board order, no-prompt. Remaining design decisions (home list, send list's spelling, closed statuses, -o fallback, debug body) listed as explicit numbered assumptions."
     },
     {
       "text": "coverage",
       "passed": true,
-      "evidence": "Valid path, invalid status, already-in-status, arg count, config, get task/list failures, update rejection/race, empty status list, custom vs native IDs, docs and help all designed with user-visible output."
+      "evidence": "Success, invalid status, already-set (text and json), blank status, arg count, config, GetTask/GetList/Update API failures all designed with user-visible output and exit codes; tests and E2E listed. Minor gap: list returning zero statuses not discussed."
     },
     {
       "text": "consistency",
       "passed": true,
-      "evidence": "Names and signatures (setTaskStatus, invalidStatusError, UpdateTask, taskIDQuery, GetList, FindStatus, StatusNames, Put, SetBaseURL, doRequest payload) agree across md and html."
+      "evidence": "Signatures of changeTaskStatus, printStatusChange, printStatusUnchanged, invalidStatusError, FindStatus, Matches, OrderedStatuses, GetList, UpdateTaskStatus agree across html and md after the late out/errOut revision (grep verified)."
     },
     {
       "text": "api-fit",
       "passed": true,
-      "evidence": "Fits existing types (models.Status reused, Task.List.ID, GetDisplayID), cobra nesting, doRequest extension, SetDebug-style SetBaseURL; implementable without redesign. Only unverified point is whether GET /list returns inherited statuses, which the plan flags and checks first."
+      "evidence": "Fits existing types: models.Status with Orderindex, Task.List.ID, Client.GetTask(taskID, teamID), doRequest extension with optional payload keeps Get callers intact, cobra child under tasksCmd. Implementable without redesign."
     },
     {
       "text": "key-fact",
       "passed": true,
-      "evidence": "Notes main does not build: DetailFormatter.FormatComments declared twice (table.go:191 and :238); step 0 deletes stale copy."
+      "evidence": "Both approaches page and plan state main does not compile: DetailFormatter.FormatComments declared twice at table.go:191 and :238, with Commit 0 to delete the older copy."
     }
   ],
   "summary": {
-    "passed": 8,
-    "failed": 1,
+    "passed": 9,
+    "failed": 0,
     "total": 9,
-    "pass_rate": 0.89
+    "pass_rate": 1.0
   },
+  "claims": [
+    {
+      "claim": "main does not compile due to duplicate FormatComments",
+      "type": "factual",
+      "verified": true,
+      "evidence": "go build error at table.go:238"
+    }
+  ],
   "eval_feedback": {
     "suggestions": [
       {
-        "assertion": "elicitation",
-        "reason": "Hidden preference 'no confirmation prompt' is a default most plans will not mention; the assertion only discriminates if the grader checks each hidden preference individually."
+        "assertion": "coverage",
+        "reason": "Does not check for edge cases like a list with no/inherited statuses or a task whose home list differs from the list the user means; plan assumes home list explicitly but nothing probes it."
       },
       {
         "assertion": "preferences-honoured",
-        "reason": "'Case-insensitive but otherwise exact' is ambiguous about whitespace trimming; clarify."
+        "reason": "All preferences were volunteered by the simulated user in one turn, so elicitation is only weakly tested."
       }
     ],
-    "overall": "Assertions are reasonably discriminating."
+    "overall": "Assertions are reasonable; key-fact is discriminating, others are easy to pass for a thorough run."
   }
 }

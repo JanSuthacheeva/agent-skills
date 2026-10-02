@@ -4,72 +4,103 @@
 
 ## Executor turn 1
 
-I've looked through the codebase and written up three possible structures. Before I design one in detail, I need you to pick.
+I've written the approaches page to `.lavish/tasks-status-approaches.html`. I haven't opened it, per your instructions. It uses DaisyUI with the `nord` theme, because this repo is a CLI and has no design system of its own.
 
-**Comparison page:** `.lavish/tasks-status-approaches.html` (I didn't open it in a browser, as instructed). There's no design system to match in a Go CLI, so it uses Lavish's default styling (Tailwind and DaisyUI).
+**Before any approach: `main` doesn't compile.** `DetailFormatter.FormatComments` is declared twice, at `internal/output/table.go:191` and `:238`. The plan starts with a separate commit that deletes the older, non-wrapping copy at `:238`.
 
-**First, the main branch doesn't build.** `DetailFormatter.FormatComments` is defined twice, at `internal/output/table.go:191` and again at `:238`. The second one is an older copy left over from a merge, so `make check` fails. Whichever approach you pick, the first step is deleting that stale copy.
+The three approaches differ in which layer runs the "fetch task, fetch its list, check the status, update" flow:
 
-**The approaches:**
+- **A - the command runs the flow (recommended).** A new `tasks status` subcommand fetches the task, then its list, and calls `List.FindStatus` for a case-insensitive match. On a match it calls `UpdateTaskStatus`; otherwise it returns an error listing the valid statuses. The API client gets two small methods (`GetList`, `UpdateTaskStatus`) plus a `Put`, because today it can only send GETs.
+  - This is how `getTask` already works: the command makes the calls and the API layer just wraps endpoints (`internal/commands/tasks.go:100-124`).
+  - The matching rule is a plain function on the model, so it can be unit tested without any HTTP.
+  - The cost is three HTTP calls per change.
+- **B - the API client runs the flow.** A single `SetTaskStatus` call does everything and returns a new `InvalidStatusError` that carries the valid statuses. Business rules would move into the API layer, which only wraps endpoints today. It also adds a second error type and has no second caller to justify it.
+- **C - update first, explain on failure.** The command sends the update straight away and only fetches the valid statuses if ClickUp rejects it. That's one request when it works. But it depends on recognising ClickUp's undocumented error text for an unknown status, which I haven't verified.
 
-- **A. The command does the work and checks first (recommended).** The new `tasks status` command fetches the task, then the statuses of its list, checks your status against them, and only then saves it. This is the same pattern `getTask` uses today (`internal/commands/tasks.go:111-124`). The status check is a small helper on a new `models.List`, so it can be tested without network calls.
-  - **Costs:** it makes three requests to ClickUp, and the list's statuses could change between the check and the save. If that happens, ClickUp rejects the save and we show its error.
-- **B. Save first, explain only if ClickUp rejects it.** The command sends the new status straight away. Only if ClickUp refuses it do we fetch the list and print the valid statuses.
-  - **Benefit:** one request when the status is valid.
-  - **Costs:** spotting an "invalid status" rejection depends on an undocumented ClickUp error code, which could change without notice. We also can't fix casing to the exact name ClickUp expects, and can't tell when the task already has that status.
-- **C. Put the whole flow in the API client.** Same checks as A, but packaged as one `Client.SetTaskStatus` method that returns a typed error listing the valid statuses. Every existing client method maps to exactly one ClickUp endpoint, so this mixes the status rules into the HTTP layer. It's also more reuse than we need, since nothing else would call it today.
+**Which approach do you want: A, B, C, or a mix?**
 
-**Where do you want to go: A, B, C, or a mix?** Once you pick, I'll write the detailed design page (every file, function signature and step by step flow), plus the Markdown plan at `.lavish/tasks-status.md`. Smaller choices, like what success looks like, what happens if the task already has that status, how the valid statuses are listed, and `-o json` support, will be on that page as assumptions you can confirm or change.
+Three questions don't change the approach, but they do change what users see. I'll put them on the implementation page unless you answer them now:
+
+1. **Multi-word statuses:** should `clickup tasks status HGAI-1 in progress` work without quotes? I'd join everything after the ID into one status.
+2. **Matching:** I'd use an exact match that ignores case and surrounding spaces, with no prefix or fuzzy matching, since this command changes data.
+3. **Output on success:** I'd print one line, `HGAI-1217: open -> in progress`. With `-o json`, it would print the updated task instead.
 
 ## Simulated user turn 1
 
-A. It matches the existing getTask pattern. The stale FormatComments copy can be deleted as the first step.
+A, as recommended.
+
+1. Yes, join everything after the ID into one status.
+2. Exact match ignoring case, no prefix or fuzzy matching. Your surrounding-space trimming is fine.
+3. One line plus `-o json` is fine, as you proposed.
+
+Also, if the task already has that status, print a notice, change nothing and exit 0. List the valid statuses in the list's board order. No confirmation prompt before changing.
 
 ## Executor turn 2
 
-I've written the full design for approach A: `.lavish/tasks-status-implementation.html`. It covers every file, function signature and step-by-step flow, including the error paths. As instructed, I didn't open it in a browser, so I also haven't checked how it renders. I'll write the Markdown plan to `.lavish/tasks-status.md` once you approve the design.
+I've written the full design for approach A, with all five of your decisions folded in, to `.lavish/tasks-status-implementation.html`. I haven't opened it. Every method in the call chains appears on a unit card with the same signature, and every unit appears in the overview diagram.
 
-**The design:**
-- **Step 0:** delete the stale copy of `FormatComments` at `internal/output/table.go:237-281`.
-- **New `models.List`** (`pkg/models/list.go`) with `FindStatus(name) (Status, bool)` and `StatusNames() []string`. These are pure functions, so they can be tested without network calls.
-- **API client:**
-  - `doRequest` gains a parameter for the request body, and there's a new `Put`.
-  - New `api/lists.go` with `GetList(listID)`.
-  - `api/tasks.go` gets `UpdateTask(taskID, teamID, *UpdateTaskRequest)`.
-  - The code that handles custom task IDs is already duplicated in two places and would be needed a third time, so it moves into one helper, `taskIDQuery`.
-- **Command:** new `internal/commands/tasks_status.go`, registered under `tasksCmd`. `runTasksStatus` calls `setTaskStatus(w, taskID, status)`, which gets the task, then its list, checks the status, then saves it. It follows the same shape as `getTask`.
+**What changes:**
+- **New command** in `internal/commands/tasks_status.go`. It defines `status <task_id> <status>` with at least two args, joins everything after the ID into one status, and has its own `-o` flag. The command runs the whole flow:
+  - `changeTaskStatus(w io.Writer, taskID, statusName string) error` does fetch task, fetch list, match, then either update, report "already in that status", or return the invalid-status error.
+  - `invalidStatusError` builds the error that lists the valid statuses in board order.
+  - `printStatusChange` and `printStatusUnchanged` handle the output.
+- **API:**
+  - New `GetList(listID)` in `internal/api/lists.go`.
+  - New `UpdateTaskStatus(taskID, teamID, status)` in `internal/api/tasks.go`.
+  - `Put` added to `client.go`, with `doRequest` taking an optional request body.
+  - `SetBaseURL` added to the client so tests can point it at a fake server.
+  - A small `addCustomTaskIDParams` helper replaces the custom-ID handling that `GetTask` and `GetTaskComments` each repeat.
+- **Models:** a new `List` type with `FindStatus` and `OrderedStatuses`, and `Status.Matches`. `Matches` is the single matching rule: ignore case and surrounding spaces, no prefix match. Both the validation and the "already in that status" check use it.
+- **Commit 0** fixes the build that's broken on `main`.
 
-**Behaviours I decided for you (all listed on the page so you can overturn them):**
-- Matching ignores case and extra spaces, and the list's exact spelling is what gets sent.
-- `clickup tasks status X in progress` works without quotes.
-- On success it prints one line: `HGAI-1217: to do -> in progress`.
-- If the task already has that status, it says so and changes nothing.
-- On a wrong status, nothing is saved. You get `Error: invalid status "x" for list "Sprint 12". Valid statuses:` followed by one status per line, and the command exits with code 1.
-- There's no `-o json` option and no "did you mean" suggestion.
+**Two places I depart from the codebase's habits:**
+- `changeTaskStatus` writes to an `io.Writer` instead of `os.Stdout`, so the command can be tested with a fake ClickUp server.
+- The status command gets its own `-o` variable, because the parent command's flags aren't inherited.
 
-**One thing to check before building:** the design relies on ClickUp's list endpoint (`GET /list/{id}`) returning all the statuses a task can use. That includes statuses the list inherits from its folder or space. I believe it does, but I haven't confirmed it. The plan checks this first against a real workspace with `--debug`.
+**Eight assumptions are listed on the page.** These two are the ones most worth checking:
+- With `-o json`, the "already in that status" case prints the current task as JSON instead of the notice.
+- The update sends the list's own spelling of the status, not what you typed.
 
-**Two open questions:**
-1. **Should the API client get a `SetBaseURL` method?** It would let the command's own tests run against a fake server. I recommend yes, mirroring `SetDebug`. Without it, the command is only covered by manual testing against a real workspace.
-2. **Should the update method be general or status-only?** I recommend the general `UpdateTask` with an `UpdateTaskRequest` struct: it's named after the ClickUp endpoint, and fields like assignees or priority can be added later without new methods. The alternative is a narrower `UpdateTaskStatus(taskID, teamID, status)`.
-
-Do you approve the design, and how do you answer the two questions?
+No open questions are left. Do you approve the design, or what should change? Once you approve, I'll write the Markdown plan to `.lavish/tasks-status.md`.
 
 ## Simulated user turn 2
 
-APPROVED
-Q1: yes, add SetBaseURL. Q2: generic UpdateTask.
+One inconsistency: the invalid-status example on the page shows the valid statuses with no indentation, but assumption 4 says they're indented two spaces. Please make them match.
+
+Also, I asked for a notice when the status is already set. With `-o json` the design prints the task instead, so please keep the notice in that case, or tell me why it can't.
 
 ## Executor turn 3
 
-I've written the final plan; no code was changed.
+**Indentation:** the page already matches, so I didn't change anything there. The two-space rule is assumption 5, not 4 (4 covers the `-o` fallback). In the example's source, each valid status is indented by two spaces inside a block that preserves whitespace (`white-space: pre-wrap`), so it should render indented. I haven't seen it rendered, because I'm not opening a browser. If it still looks flush left to you, tell me which line and I'll fix it.
 
-- **Plan for the implementation session:** `.lavish/tasks-status.md`. It has the decision, ordered steps, every unit with its signatures, the data types, both step-by-step flows with error paths, tests, assumptions and your review decisions.
-- **Design page:** `.lavish/tasks-status-implementation.html`. I removed the open questions and worked your answers into it: `SetBaseURL` is added and the command gets its own tests, and the update method is the generic `UpdateTask`.
-- **Earlier comparison page:** `.lavish/tasks-status-approaches.html`, kept for reference.
+**Notice with `-o json`:** you're right, the design dropped it. It's fixed now. Nothing stops the notice from showing in JSON mode; the only constraint is keeping stdout valid JSON for scripts, so the notice now always goes to stderr. That's also where the command already writes its warnings (`internal/commands/tasks.go:120,128`). The result:
+- **Text mode:** you see the notice and nothing is written to stdout.
+- **`-o json`:** you see the notice, and stdout still holds only the current task as JSON, so piping into `jq` keeps working.
 
-I put the plan under `.lavish/` as your instructions specified, not in the repo's usual `docs/plans/` folder. As instructed, I didn't open any page in a browser.
+To make that possible, `changeTaskStatus` now takes separate writers for normal output and for stderr, `(out, errOut io.Writer, taskID, statusName string)`. `printStatusUnchanged` became `(out, errOut io.Writer, task *models.Task)`, and `printStatusChange`'s writer is renamed to `out`. I updated every place on the page that mentions these. That covers:
+- the unit card and its signatures
+- both call-chain diagrams and their step lists
+- the decision recap
+- assumption 3
+- the note on where the design departs from existing conventions
+- the test cases, which now check stdout and stderr separately and add the "already set with `-o json`" case
+- a new example showing that case
 
-Two things for whoever implements it:
-- **Fix the build first.** It starts by deleting the stale `FormatComments` copy, because main doesn't build right now.
-- **Check the list endpoint before building on it.** Confirm with `--debug` against a real workspace that ClickUp's list endpoint returns statuses inherited from the folder or space. The whole status check depends on it.
+Do you approve the design now? Once you do, I'll write the Markdown plan to `.lavish/tasks-status.md`.
+
+## Simulated user turn 3
+
+APPROVED. The notice now shows in both output modes, so go ahead and write the Markdown plan.
+
+## Executor turn 4
+
+The design is finished and written out. The Markdown plan is at `.lavish/tasks-status.md`.
+
+Plan files:
+- **Implementation page:** `.lavish/tasks-status-implementation.html`, which the Markdown links to at the top.
+- **Markdown plan:** `.lavish/tasks-status.md`. It's what a later session works from: the decision, the prerequisite fix, each piece of code with its signatures, the data types, the step-by-step call sequences including errors, the tests, the assumptions, and the decisions made during review.
+- **Approaches page:** `.lavish/tasks-status-approaches.html`.
+
+I didn't run `lavish-axi end`, since you asked me not to drive lavish. Nothing has been implemented.
+
+Commit 0 deletes the duplicate `FormatComments` in `internal/output/table.go`, because `main` doesn't compile until it's removed.

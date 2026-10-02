@@ -2,10 +2,10 @@
   "expectations": [
     {
       "text": "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
-      "passed": true
+      "passed": false
     },
     {
-      "text": "conventions: the design follows the repo's existing conventions (layering, naming, error handling, dependency wiring) and names any deviation with a reason",
+      "text": "conventions: the design follows the repo's existing conventions and names any deviation with a reason",
       "passed": true
     },
     {
@@ -17,19 +17,19 @@
       "passed": true
     },
     {
-      "text": "elicitation: each hidden preference that the plan's design depends on was either asked about or stated as an explicit assumption, never silently decided",
+      "text": "elicitation: each hidden preference the design depends on was asked about or stated as explicit assumption",
       "passed": true
     },
     {
-      "text": "coverage: every trigger the feature implies is designed end to end, including how failures are handled and what the user sees",
+      "text": "coverage: every trigger the feature implies is designed end to end, including failures and what the user sees",
       "passed": true
     },
     {
-      "text": "consistency: unit, method and type names and signatures agree everywhere they appear across the plan",
+      "text": "consistency: unit, method and type names and signatures agree everywhere",
       "passed": true
     },
     {
-      "text": "api-fit: new interfaces fit the code they plug into (existing types, call sites, layering), so the plan could be implemented without redesign",
+      "text": "api-fit: new interfaces fit the code they plug into",
       "passed": true
     },
     {
@@ -38,9 +38,9 @@
     }
   ],
   "summary": {
-    "passed": 9,
-    "failed": 0,
+    "passed": 8,
+    "failed": 1,
     "total": 9,
-    "pass_rate": 1.0
+    "pass_rate": 0.89
   }
 }

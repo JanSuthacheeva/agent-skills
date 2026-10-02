@@ -1,25 +1,25 @@
 {
-  "total_tokens": 280089,
-  "output_tokens": 88561,
-  "cache_read_tokens": 2590493,
-  "cost_usd": 3.8213,
-  "executor_duration_ms": 830363,
-  "total_duration_seconds": 847.3,
-  "executor_turns": 3,
-  "executor_tool_turns": 35,
-  "user_tokens": 18772,
-  "user_cost_usd": 0.0795,
-  "main_tokens": 280089,
+  "total_tokens": 269951,
+  "main_tokens": 269951,
   "subagent_tokens": 0,
+  "output_tokens": 85723,
+  "cache_read_tokens": 2034464,
   "tokens_by_model": {
     "main": {
       "claude-opus-5-5": {
-        "input_tokens": 50,
-        "cache_creation_input_tokens": 191478,
-        "output_tokens": 88561,
-        "cache_read_input_tokens": 2590493
+        "input_tokens": 42,
+        "cache_creation_input_tokens": 184186,
+        "output_tokens": 85723,
+        "cache_read_input_tokens": 2034464
       }
     },
     "subagents": {}
-  }
+  },
+  "cost_usd": 3.595,
+  "executor_duration_ms": 774514,
+  "total_duration_seconds": 791.7,
+  "executor_turns": 3,
+  "executor_tool_turns": 23,
+  "user_tokens": 19940,
+  "user_cost_usd": 0.0845
 }

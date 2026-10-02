@@ -25,14 +25,13 @@ passed {{code_design_checks}} assertions, against {{feature_dev_judge}} and
 {{feature_dev_checks}} for `feature-dev`; the paired score difference to
 `feature-dev` ({{vs_feature_dev_diff}} points, p = {{vs_feature_dev_p}}) is
 not distinguishable from zero. Its lead over `superpowers`
-({{vs_superpowers_diff}}, p = {{vs_superpowers_p}}) is suggestive but not
-established, and its lead over planning without a skill
+({{vs_superpowers_diff}}, p = {{vs_superpowers_p}}) is significant at the
+5% level but not after correcting for the three comparisons, and its lead over planning without a skill
 ({{vs_plain_diff}}, p = {{vs_plain_p}}) is consistent across every
 comparison. `code-design` scored highest on clarity and reviewability, and
 cost {{code_design_cost}} USD per run against {{feature_dev_cost}} for
-`feature-dev` and {{plain_cost}} without a skill. At equal judged quality,
-`feature-dev` is therefore the more cost-effective of the two leading
-methods.
+`feature-dev` and {{plain_cost}} without a skill, so the two leading
+methods reach equal judged quality at about the same cost.
 
 ## 1 Question
 
@@ -92,6 +91,12 @@ installed for every method and `code-design` only for its own runs; only
 the method's own plugin is enabled. Every method receives the same
 appended instruction: deliver the final plan as a lavish HTML page and a
 Markdown file, ask when a decision is needed, and do not implement.
+
+Only `code-design` changed since the previous evaluation (v0.4, 1 October
+2026), so only its runs were repeated, on 2 October 2026 with Claude Code
+2.1.287. The runs of the other three methods are those of 1 October (Claude
+Code 2.1.286). All plans, old and new, were judged afresh in the same
+blind comparisons.
 
 ### 2.4 Simulated user
 
@@ -203,38 +208,47 @@ Among the planning methods, the profiles differ more than the totals.
 it is built for. Judges repeatedly cited the per-unit signatures, the
 numbered call chains with failure branches and the list of assumptions as
 what made individual decisions easy to challenge. It never failed the
-alternatives or key-fact assertions, which is consistent with its explicit
-investigation and approaches phases.
+alternatives assertion and failed the key-fact assertion once, which is
+consistent with its explicit investigation and approaches phases.
 
-Its weakness is concentrated in one scenario. In two of three
-`mdterm-bookmarks` runs it anchored marks to bare source line numbers, so
-marks drift after edits made between sessions, without asking how robust
-marks had to be; the third run anchored to line and text and passed. The
+**Changes since v0.4.** In v0.4, two of three `mdterm-bookmarks` runs
+anchored marks to bare source line numbers, so marks drift after edits
+made between sessions, without asking how robust they had to be; the
 assumptions list made the choice visible but did not turn it into a
-question. This accounts for most of its lower correctness and completeness
-and for its last place in one comparison. The skill would benefit from
-asking about the durability requirements of persisted state, not only
-listing them.
+question. v0.6 sorts every decision it would make for the user by its cost
+of reversal: what is stored and what stored data must survive, the public
+surface, and the behaviour of state-changing actions are asked, while
+cheap decisions stay on an assumptions list capped at about eight. All
+three v0.6 runs of `mdterm-bookmarks` asked about durability and honoured
+the preference. The rule did not reach the confirmation prompt of
+`clickup-status-command`, which two of three runs still decided without
+asking. Total assertions stayed at 77 of 81, as two single failures
+appeared that look like run-to-run variation: one run missed the broken
+build, and one `takumi-weekly-goals` run cited eight `file:line`
+references that do not resolve, although its claims about the code held.
+Cost fell from 3.18 to {{code_design_cost}} USD per run, mainly through
+shorter pages. An intermediate version that delegated investigation and
+the Markdown plan to subagents on a cheaper model raised the judge score
+by less than a point but cost 19% more and was discarded.
 
-`feature-dev` matched `code-design` on judged quality at lower cost: it
-was ranked first most often and scored highest on completeness, but its plans described call
-flow less precisely. `superpowers` produced the most thorough edge-case
+`feature-dev` matched `code-design` on judged quality at about the same
+cost: it was ranked first most often and scored highest on correctness
+and completeness, but its plans described call flow less precisely. `superpowers` produced the most thorough edge-case
 coverage in `mdterm-bookmarks`, but its plans often contained full
 implementation code, which lowered clarity, and it missed the broken build
 in every `clickup-status-command` run.
 
-`code-design` is the most expensive method, although `feature-dev` uses
-more tokens in total: in four of its nine runs `feature-dev` delegated
+`code-design` is the most expensive method by a small margin over
+`feature-dev`, although `feature-dev` uses more tokens in total: in four of its nine runs `feature-dev` delegated
 exploration and architecture to subagents on Claude Sonnet 5.5, a cheaper
 model, while `code-design` does all of its work in the main Claude Opus 5.5
-session. `code-design` also produces about 2.6 times the output tokens of
-`plain` and about 1.5 times those of `superpowers`, mainly because it
+session. `code-design` also produces about 2.5 times the output tokens of
+`plain` and about 1.4 times those of `superpowers`, mainly because it
 writes two review pages (an approaches page and an implementation page)
-and a more detailed design. Since its
-judged quality matches `feature-dev`, its additional cost buys a format
-that is easier to review rather than a better design; whether that is
-worth it depends on how much of the plan the user intends to review and
-correct before implementation.
+and a more detailed design. Since its judged quality and cost both match
+`feature-dev`, the choice between the two is one of format: `code-design`
+is easier to review and correct decision by decision, `feature-dev`
+slightly more complete.
 
 ## 5 Limitations
 
@@ -244,20 +258,27 @@ correct before implementation.
 - **Model as judge.** Each comparison was scored by a single judge model,
   of the same family as the methods under test, with no second judge or
   human rating. Blinding is partial: `code-design` is recognizable by its
-  two-page structure.
+  two-page structure. Re-judging the unchanged plans of the other methods
+  moved their mean scores by up to 0.9 points against the previous
+  evaluation, which bounds the differences a single evaluation can show.
 - **Simulated user.** One persona answers every method. Its hidden
   preferences were written together with the scenarios, it approves
   readily after one review, and it answers in text rather than through the
   lavish review page, so the browser review loop is not exercised.
 - **Scenario design.** The three scenarios were written in the same process
   in which the skill was revised, without a held-out set, and one scenario
-  uses a private repository that cannot be rerun independently.
+  uses a private repository that cannot be rerun independently. The v0.6
+  rule was written after seeing v0.4 fail in these scenarios, and two of
+  its categories correspond to hidden preferences of `mdterm-bookmarks`
+  and `clickup-status-command`, so its effect may not carry over to other
+  requests.
 - **Grading adjustments.** Two grading rules were made explicit after
   grading to keep runs consistent: a plan that openly deviates from a
   preference does not honour it, and for `mdterm-bookmarks` any per-user
   state or data directory satisfies the storage preference while marks
   must relocate after edits between sessions. The affected assertion was
-  re-graded for all runs of a scenario under the same rule.
+  re-graded for all runs of a scenario under the same rule; the v0.6 runs
+  were graded under these rules from the start.
 - **Invocation and environment.** Every method was invoked explicitly, so
   triggering is not measured, and runs used no user settings, hooks or
   instructions. Methods that rely on a user's environment may behave
@@ -284,6 +305,7 @@ repeated with:
 
 ```sh
 evals/code-design/run_iteration.sh <run-dir> {{runs}} 4
+# this evaluation: CONFIGS=code-design, with the other methods' runs linked in
 # grade every run with grader.md, then for each run index:
 evals/code-design/blind.py <run-dir> <run> <seed>
 evals/code-design/export_results.py export <run-dir> evals/code-design/results/claude-code --version {{version}} --model {{model}} --effort {{effort}}

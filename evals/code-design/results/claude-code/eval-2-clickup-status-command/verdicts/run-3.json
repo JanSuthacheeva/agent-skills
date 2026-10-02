@@ -1,39 +1,39 @@
 {
   "scores": {
+    "superpowers": {
+      "correctness": 7,
+      "completeness": 8,
+      "clarity": 8,
+      "reviewability": 8,
+      "note": "Strong design with a testable statusUpdater seam and debug-to-stderr fix, but misses that the repo does not compile (duplicate FormatComments), so its TDD and E2E steps would fail at the start."
+    },
+    "code-design": {
+      "correctness": 9,
+      "completeness": 8,
+      "clarity": 9,
+      "reviewability": 9,
+      "note": "Catches the duplicate FormatComments build break, gives a numbered call chain with per-step errors, a data table and explicit assumptions, though runTasksStatus is left untested."
+    },
     "feature-dev": {
       "correctness": 9,
       "completeness": 9,
       "clarity": 8,
-      "reviewability": 9,
-      "note": "Catches the duplicate FormatComments compile break, the nil-body doRequest and the duplicated custom-ID query, and designs a working test seam via package globals plus SetBaseURL, with the no-arg listing, JSON paths and no-op handled."
-    },
-    "superpowers": {
-      "correctness": 7,
-      "completeness": 8,
-      "clarity": 9,
       "reviewability": 8,
-      "note": "Accurate on doRequest, debug-on-stdout and the duplicated query, with a clean statusUpdater interface for testing, but misses that main does not compile, so its build-based E2E steps would fail."
+      "note": "Also catches the build break and adds SetBaseURL and command-level test seams, but adds unrequested scope (no-arg listing, JSON modes, output helpers) that makes the plan heavier."
     },
     "plain": {
-      "correctness": 7,
+      "correctness": 6,
       "completeness": 6,
       "clarity": 7,
       "reviewability": 6,
-      "note": "Correct on the client and Cobra routing facts and shows the core logic, but misses the compile break, leaves the command-test seam as an unspecified 'small seam', and has thinner error-path design."
-    },
-    "code-design": {
-      "correctness": 9,
-      "completeness": 7,
-      "clarity": 9,
-      "reviewability": 9,
-      "note": "Correctly flags the compile break and gives a precise unit list, data table and numbered call chain with error exits, but leaves the orchestration untested outside E2E and has no seam for the command flow."
+      "note": "Concise and mostly accurate, but misses the compile error, leaves the test seam for the commands package as an open hint, and has thinner failure-path design."
     }
   },
   "ranking": [
-    "feature-dev",
     "code-design",
+    "feature-dev",
     "superpowers",
     "plain"
   ],
-  "reason": "W combined verified repo facts (including the build break that blocks everything) with a concrete, workable test seam and the most complete behavior coverage including no-op and JSON paths. Z was nearly as accurate and the clearest to review, but its command flow is untestable by design, while X and Y missed the compile failure and Y left key seams and failure paths vague."
+  "reason": "X and Y alone found that the repository does not build (FormatComments declared twice in internal/output/table.go, confirmed with go build), which any implementation session would hit first; X wins by keeping scope to the request while laying out the call chain, per-step errors and assumptions precisely. Y is equally correct but broader than asked, W has the best test seam but ignores the build failure, and Z is the thinnest."
 }

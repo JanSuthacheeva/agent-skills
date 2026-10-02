@@ -1,39 +1,39 @@
 {
   "scores": {
-    "code-design": {
+    "superpowers": {
       "correctness": 9,
       "completeness": 9,
-      "clarity": 9,
-      "reviewability": 10,
-      "note": "Every checked claim holds (help-toggle ordering, Line literal counts, make_state_with_lines, Ten source files) and the numbered call chains with per-step error paths and 18 listed assumptions make each decision pointable."
+      "clarity": 8,
+      "reviewability": 9,
+      "note": "Every checked claim held (51 Line literals, help-toggle intercept ordering, slide/JSON early returns, toast always prefixing a check mark) and failure paths are tabulated, though the new warning-toast theme color is scope creep."
     },
-    "superpowers": {
+    "plain": {
+      "correctness": 6,
+      "completeness": 7,
+      "clarity": 8,
+      "reviewability": 7,
+      "note": "Pending-key check sits in handle_normal, which runs after is_help_toggle, so m then h or ? would open help instead of setting a mark; save also prunes missing files, contradicting its own tradeoffs."
+    },
+    "feature-dev": {
       "correctness": 8,
       "completeness": 9,
       "clarity": 8,
       "reviewability": 8,
-      "note": "Line references and the help-toggle ordering are verified and the versioned, read-only-aware store is thorough, but the lazy-flush justification cites a comment at markdown.rs:1101 that is about task markers (items actually flush at End(Item)), and the toast_warning/theme work is scope creep."
+      "note": "Correctly places the pending key before the help toggle and handles slide mode and a corrupt store, but falls back to ~/.local/state on macOS, splitting config and marks across trees."
     },
-    "plain": {
-      "correctness": 6,
-      "completeness": 6,
-      "clarity": 7,
-      "reviewability": 6,
-      "note": "Places the pending-key check inside handle_normal, so `m` then `h` or `?` is swallowed by is_help_toggle in handle_event first, and viewer-side units and signatures are only sketched in prose."
-    },
-    "feature-dev": {
-      "correctness": 7,
+    "code-design": {
+      "correctness": 8,
       "completeness": 8,
-      "clarity": 8,
-      "reviewability": 8,
-      "note": "Correctly puts the pending intercept in handle_event and covers slide mode and the status prompt, but mixes a 1-based stored hint with a 0-based capture/resolve, relies on a stale-prone block_line stamp, and falls back to ~/.local/state on macOS."
+      "clarity": 9,
+      "reviewability": 9,
+      "note": "Adding ViewMode::Mark and extending accepts_text_input neatly avoids the help-toggle conflict, with full signatures and numbered call chains, but slide mode behavior is left implicit."
     }
   },
   "ranking": [
-    "code-design",
     "superpowers",
+    "code-design",
     "feature-dev",
     "plain"
   ],
-  "reason": "W is the only plan whose claims all check out against the code and which gives per-step call chains with explicit error paths and a numbered assumption list, so each decision can be challenged individually. X is nearly as strong but has a wrong justification for its stamping rule and adds unrelated toast/theme changes. Z has a line-indexing inconsistency and a fragile stamping scheme, and Y misses that help toggles are handled before handle_normal."
+  "reason": "W's claims about the existing code all checked out and it designs the subtle interactions explicitly (help-toggle ordering, lazy list-item flush, slide/JSON/stdin disabling, healing, corrupt and newer-version store), leaving few surprises for the implementer. Z is the best structured and most reviewable via signatures and call chains, and Y is close behind, while X misses the is_help_toggle interception, a real bug in its key flow."
 }

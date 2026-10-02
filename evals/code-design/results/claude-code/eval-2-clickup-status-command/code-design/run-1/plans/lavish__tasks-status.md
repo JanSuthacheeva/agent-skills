@@ -1,49 +1,95 @@
-# Plan: `clickup tasks status <id> <status>`
+# `clickup tasks status <id> <status>` - code design
 
-Design review page: [tasks-status-implementation.html](tasks-status-implementation.html)
+Review page: [.lavish/tasks-status-implementation.html](tasks-status-implementation.html)
 
 ## Decision
 
-- Approach A: a new `status` subcommand of `tasks` orchestrates thin API calls like `getTask` does - get task, get its list, match the status with a pure helper on a new `models.List`, then update.
-- Nothing is written if the status is not in the list; the valid statuses are printed instead.
-- Step 0: delete the stale duplicate `DetailFormatter.FormatComments` in `internal/output/table.go:237-281` (main does not build).
-- Review: add `Client.SetBaseURL` for command tests (Q1); use generic `UpdateTask` + `UpdateTaskRequest` (Q2).
+Approach A: a new `tasks status` Cobra subcommand orchestrates fetch task -> fetch its list -> match -> update. The API client gets thin endpoint methods; the matching rule lives on the models.
 
-## Steps
+- Everything after the task ID is joined into one status (`clickup tasks status HGAI-1217 in progress` works unquoted).
+- Matching: exact, case-insensitive, surrounding whitespace trimmed. No prefix or fuzzy matching.
+- Success: one line `HGAI-1217: open -> in progress`; with `-o json` the updated task as JSON.
+- Already in that status: notice on stderr in every output mode, no write, exit 0. With `-o json`, stdout additionally gets the current task as JSON.
+- Invalid status: error listing the valid statuses in board order, exit 1, no write.
+- No confirmation prompt.
 
-0. Delete the second `func (f *DetailFormatter) FormatComments` (`internal/output/table.go:237-281`, the copy without `wrapText`). `make check` must be green before continuing.
-1. E2E check with `--debug` against a real workspace: `GET /list/{id}` returns the effective statuses, including statuses inherited from folder/space. If it does not, stop and revisit the design.
-2. `pkg/models/list.go` + tests.
-3. `internal/api/client.go` (payload, `Put`, `SetBaseURL`) + tests.
-4. `internal/api/tasks.go` (`taskIDQuery`, `UpdateTask`), `internal/api/comments.go` (use `taskIDQuery`), `internal/api/lists.go` + tests.
-5. `internal/commands/tasks_status.go` + tests.
-6. Help text and docs: `root.go:33-36` "Get started", `tasksCmd.Long` example (`tasks.go:30-36`), `README.md` Tasks section, `skills/SKILL.md` commands and trigger phrases ("change status", "move task to ...").
-7. `make check`, E2E with the built binary, `make build-all`.
+## Commit 0 - prerequisite
+
+`main` does not compile: `DetailFormatter.FormatComments` is declared twice. Delete the older, non-wrapping copy at `internal/output/table.go:238-279`; keep the one at `:191`. Commit separately.
 
 ## Units
 
-### `pkg/models/list.go` (new)
+### `internal/commands/tasks_status.go` (new)
 
 ```go
-package models
+var statusOutputFormat string
 
-// List represents a ClickUp list with its effective statuses
-type List struct {
-	ID       string   `json:"id"`
-	Name     string   `json:"name"`
-	Statuses []Status `json:"statuses"`
+var tasksStatusCmd = &cobra.Command{
+	Use:   "status <task_id> <status>",
+	Short: "Change a task's status",
+	Long: `Change a task's status. The status must exist in the task's list.
+
+Examples:
+  clickup tasks status HGAI-1217 in progress    Move task to "in progress"
+  clickup tasks status HGAI-1217 done -o json   Print the updated task as JSON`,
+	Args: cobra.MinimumNArgs(2),
+	RunE: runTasksStatus,
 }
 
-// FindStatus returns the status matching name, ignoring case and surrounding whitespace
-func (l *List) FindStatus(name string) (Status, bool) { ... }
+func init() {
+	tasksCmd.AddCommand(tasksStatusCmd)
 
-// StatusNames returns the status names in board order (sorted by Orderindex)
-func (l *List) StatusNames() []string { ... }
+	tasksStatusCmd.Flags().StringVarP(&statusOutputFormat, "output", "o", "", "output format (table, json)")
+}
+
+// runTasksStatus joins all args after the task ID into one status name
+func runTasksStatus(cmd *cobra.Command, args []string) error { ... }
+
+// changeTaskStatus validates statusName against the task's list and updates the task
+func changeTaskStatus(out io.Writer, errOut io.Writer, taskID string, statusName string) error { ... }
+
+// invalidStatusError lists the list's valid statuses in board order
+func invalidStatusError(statusName string, list *models.List) error { ... }
+
+// printStatusChange prints "ID: from -> to", or the updated task as JSON
+func printStatusChange(out io.Writer, task *models.Task, from string) error { ... }
+
+// printStatusUnchanged writes the already-set notice to errOut, plus the task as JSON to out with -o json
+func printStatusUnchanged(out io.Writer, errOut io.Writer, task *models.Task) error { ... }
 ```
 
-### `internal/api/client.go` (modified)
+- `runTasksStatus`: `args[0]` is the ID; `strings.TrimSpace(strings.Join(args[1:], " "))` is the status; blank -> `status must not be empty`. Calls `changeTaskStatus(cmd.OutOrStdout(), cmd.ErrOrStderr(), ...)`.
+- `printStatusChange` / `printStatusUnchanged`: JSON via `output.GetFormatter(output.FormatJSON).FormatTask`; any non-`json` value of `-o` prints text.
 
-`doRequest` encodes `payload` as a JSON body when non-nil (and prints it in debug mode). `Get` passes `nil`.
+### `internal/api/tasks.go` (modified)
+
+```go
+// updateTaskRequest is the request body for updating a task
+type updateTaskRequest struct {
+	Status string `json:"status"`
+}
+
+// UpdateTaskStatus sets a task's status and returns the updated task
+// teamID is required when using custom task IDs (e.g., HGAI-1217)
+func (c *Client) UpdateTaskStatus(taskID string, teamID string, status string) (*models.Task, error) { ... }
+
+// addCustomTaskIDParams adds the query params ClickUp needs to resolve custom task IDs
+func addCustomTaskIDParams(query url.Values, taskID string, teamID string) { ... }
+```
+
+- `UpdateTaskStatus`: `PUT /task/{id}` with `updateTaskRequest`, decodes response into `models.Task`.
+- `GetTask` (`:66-70`) and `GetTaskComments` (`comments.go:17-20`) switch to `addCustomTaskIDParams`; behaviour unchanged.
+
+### `internal/api/lists.go` (new)
+
+```go
+// GetList gets a list, including the statuses available to its tasks
+func (c *Client) GetList(listID string) (*models.List, error) { ... }
+```
+
+`GET /list/{id}`; returns effective statuses (including inherited ones).
+
+### `internal/api/client.go` (modified)
 
 ```go
 // doRequest performs an HTTP request, sending payload as a JSON body when non-nil
@@ -59,149 +105,114 @@ func (c *Client) Put(path string, query url.Values, payload interface{}) ([]byte
 func (c *Client) SetBaseURL(baseURL string) { ... }
 ```
 
-### `internal/api/tasks.go` (modified)
+`Get` passes `nil` payload. `--debug` also prints the request body.
 
-`GetTask` starts from `taskIDQuery` and adds its `include_*` params; behaviour unchanged.
-
-```go
-// UpdateTaskRequest contains the task fields to change
-type UpdateTaskRequest struct {
-	Status string `json:"status,omitempty"`
-}
-
-// UpdateTask updates a task and returns the updated task
-// teamID is required when using custom task IDs (e.g., HGAI-1217)
-func (c *Client) UpdateTask(taskID string, teamID string, req *UpdateTaskRequest) (*models.Task, error) { ... }
-
-// taskIDQuery returns the query needed to address a task by native or custom ID
-// (empty for native IDs, custom_task_ids + team_id for custom IDs)
-func taskIDQuery(taskID string, teamID string) url.Values { ... }
-```
-
-### `internal/api/comments.go` (modified)
-
-`GetTaskComments` replaces its inline custom-ID block (`comments.go:16-20`) with `query := taskIDQuery(taskID, teamID)`. Signature unchanged.
-
-### `internal/api/lists.go` (new)
+### `pkg/models/list.go` (new)
 
 ```go
-package api
+// List represents a ClickUp list with the statuses its tasks can have
+type List struct {
+	ID       string   `json:"id"`
+	Name     string   `json:"name"`
+	Statuses []Status `json:"statuses"`
+}
 
-// GetList gets a list including its statuses (GET /list/{list_id})
-func (c *Client) GetList(listID string) (*models.List, error) { ... }
+// FindStatus returns the status matching name, or nil if the list has none
+func (l *List) FindStatus(name string) *Status { ... }
+
+// OrderedStatuses returns the statuses sorted by board order
+func (l *List) OrderedStatuses() []Status { ... }
 ```
 
-### `internal/commands/tasks_status.go` (new)
+`OrderedStatuses` sorts a copy by `Orderindex`; does not mutate the receiver.
+
+### `pkg/models/task.go` - `Status` (modified)
 
 ```go
-package commands
-
-var tasksStatusCmd = &cobra.Command{
-	Use:   "status <task_id> <status>",
-	Short: "Change a task's status",
-	Long: `Change the status of a task. The status must exist in the task's list;
-otherwise the valid statuses are shown.
-
-Examples:
-  clickup tasks status HGAI-1217 "in progress"
-  clickup tasks status HGAI-1217 in progress
-  clickup tasks status 86a3xyzw complete`,
-	Args: cobra.MinimumNArgs(2),
-	RunE: runTasksStatus,
-}
-
-func init() {
-	tasksCmd.AddCommand(tasksStatusCmd)
-}
-
-// joins args[1:] with single spaces, calls setTaskStatus(cmd.OutOrStdout(), args[0], status)
-func runTasksStatus(cmd *cobra.Command, args []string) error { ... }
-
-// setTaskStatus validates status against the task's list and updates the task
-func setTaskStatus(w io.Writer, taskID string, status string) error { ... }
-
-// invalidStatusError lists the valid statuses of the list
-func invalidStatusError(status string, list *models.List) error { ... }
+// Matches reports whether name refers to this status, ignoring case and surrounding whitespace
+func (s Status) Matches(name string) bool { ... }
 ```
+
+`strings.EqualFold` after `strings.TrimSpace` on both sides. Single rule used by `FindStatus` and the already-set check.
+
+### Small edits
+
+- `internal/commands/tasks.go`: add `clickup tasks status HGAI-1217 in progress` to `Long` examples.
+- `internal/commands/root.go`: add `clickup tasks status <ID> <status>` to "Get started".
+- `skills/SKILL.md`, `README.md`: "Change Task Status" section; add "change status" / "move task to" to the skill `description` triggers.
 
 ## Data
 
-| Type | Status | Fields | Boundary |
-|---|---|---|---|
-| `models.List` | new | `ID string`, `Name string`, `Statuses []Status` | ClickUp JSON (`GET /list/{id}`) -> `api.GetList` -> command |
-| `api.UpdateTaskRequest` | new | `Status string \`json:"status,omitempty"\`` | command -> `api.UpdateTask` -> JSON body of `PUT /task/{id}` |
-| `models.Status` | existing | `ID, Status, Color, Type string`, `Orderindex int` | element of `List.Statuses`, `Task.Status` |
-| `models.Task` | existing | uses `List.ID`, `Status.Status`, `GetDisplayID()` | returned by `GetTask`, `UpdateTask` |
+| Type | Fields | Crosses |
+|---|---|---|
+| `models.List` (new) | `ID string`, `Name string`, `Statuses []Status` | ClickUp JSON -> api -> commands |
+| `models.Status` (+`Matches`) | unchanged | inside Task and List |
+| `api.updateTaskRequest` (new, unexported) | `Status string` json `status` | api -> ClickUp PUT body |
+| `models.Task` | unchanged; PUT response decodes into it | ClickUp -> api -> commands -> JSON output |
 
 ## Call chains
 
-### A. Valid status: `clickup tasks status HGAI-1217 In Progress`
+### Status changes: `clickup tasks status HGAI-1217 in progress`
 
-1. `cobra -> runTasksStatus(cmd, ["HGAI-1217", "In", "Progress"]): error`
-2. `runTasksStatus -> setTaskStatus(cmd.OutOrStdout(), "HGAI-1217", "In Progress"): error`
-3. `setTaskStatus -> getAPIClient(): (*api.Client, error)`
-4. `setTaskStatus -> getConfig(): (*config.Config, error)`
-5. `setTaskStatus -> Client::GetTask("HGAI-1217", cfg.WorkspaceID): (*models.Task, error)` - `GET /task/HGAI-1217?custom_task_ids=true&team_id=...`
-6. `setTaskStatus -> Client::GetList(task.List.ID): (*models.List, error)` - `GET /list/{list_id}`
-7. `setTaskStatus -> List::FindStatus("In Progress"): (models.Status, bool)` - `{Status: "in progress"}, true`
-8. If `strings.EqualFold(task.Status.Status, match.Status)`: print `HGAI-1217 is already "in progress"` to `w`, return `nil` (no PUT).
-9. `setTaskStatus -> Client::UpdateTask("HGAI-1217", cfg.WorkspaceID, &api.UpdateTaskRequest{Status: "in progress"}): (*models.Task, error)`
-   1. `UpdateTask -> taskIDQuery("HGAI-1217", teamID): url.Values`
-   2. `UpdateTask -> Client::Put("/task/HGAI-1217", query, req): ([]byte, error)` -> `doRequest(http.MethodPut, path, query, req)`, body `{"status":"in progress"}`
-   3. Decode body into `models.Task`.
-10. `setTaskStatus -> fmt.Fprintf(w, "%s: %s -> %s\n", updated.GetDisplayID(), task.Status.Status, updated.Status.Status)` - prints `HGAI-1217: to do -> in progress`; return `nil`, exit 0.
+1. cobra -> runTasksStatus(cmd, ["HGAI-1217", "in", "progress"]): error
+2. runTasksStatus -> changeTaskStatus(cmd.OutOrStdout(), cmd.ErrOrStderr(), "HGAI-1217", "in progress"): error
+3. changeTaskStatus -> getAPIClient(): (*api.Client, error); getConfig(): (*config.Config, error)
+4. changeTaskStatus -> Client::GetTask("HGAI-1217", cfg.WorkspaceID): (*models.Task, error)
+5. changeTaskStatus -> Client::GetList(task.List.ID): (*models.List, error)
+6. changeTaskStatus -> List::FindStatus("in progress"): *models.Status
+7. changeTaskStatus -> Status::Matches(match.Status) on task.Status: bool (false)
+8. changeTaskStatus -> Client::UpdateTaskStatus("HGAI-1217", cfg.WorkspaceID, match.Status): (*models.Task, error) -> Client::Put("/task/HGAI-1217", query, updateTaskRequest{Status}): ([]byte, error) -> Client::doRequest("PUT", path, query, payload): ([]byte, error)
+9. changeTaskStatus -> printStatusChange(out, updated, task.Status.Status): error -> `HGAI-1217: open -> in progress` or updated task JSON. Exit 0.
 
-Error paths (returned to `Execute`, printed to stderr as `Error: ...`, exit 1, nothing written):
+### Invalid status
 
-- Fewer than 2 args: cobra `MinimumNArgs(2)` -> `requires at least 2 arg(s), only received 1` (usage silenced).
-- Steps 3-4: config load error, returned unwrapped (as in `getTask`).
-- Step 5: `failed to get task: %w` (wraps `*api.APIError` or network error).
-- Step 6: `failed to get list: %w`.
-- Step 7 no match: chain B.
-- Step 9: `failed to update task status: %w` (e.g. statuses changed after step 6). No retry.
-
-### B. Invalid status: `clickup tasks status HGAI-1217 inprogress`
-
-1. Steps 1-6 as in A.
-2. `setTaskStatus -> List::FindStatus("inprogress"): (models.Status, bool)` - `Status{}, false`
-3. `setTaskStatus -> invalidStatusError("inprogress", list): error` -> `List::StatusNames(): []string`; returned. No `UpdateTask` call.
-4. `Execute` prints to stderr, exit 1:
+1-6. As above; FindStatus returns nil.
+7. changeTaskStatus -> invalidStatusError("in progres", list): error -> List::OrderedStatuses(): []models.Status
+8. Execute prints to stderr, exit 1, no PUT:
 
 ```
-Error: invalid status "inprogress" for list "Sprint 12". Valid statuses:
-  to do
+Error: status "in progres" does not exist in list "Sprint 12". Valid statuses:
+  open
   in progress
   review
-  complete
+  done
 ```
 
-If the list has no statuses, `invalidStatusError` returns `list "Sprint 12" has no statuses`.
+### Already in that status
+
+1-6. As above.
+7. changeTaskStatus -> Status::Matches(match.Status) on task.Status: bool (true)
+8. changeTaskStatus -> printStatusUnchanged(out, errOut, task): error -> errOut: `HGAI-1217 is already in progress, nothing changed`; with `-o json` also current task JSON on out. Exit 0, no PUT.
+
+### Error paths (stderr via Execute, exit 1)
+
+| Fails at | Returned | User sees |
+|---|---|---|
+| cobra args (< 2) | cobra error | `Error: requires at least 2 arg(s), only received 1` |
+| runTasksStatus, blank status | `fmt.Errorf` | `Error: status must not be empty` |
+| step 3 config | config error, passed through | same as `clickup tasks` today |
+| step 4 GetTask | `failed to get task: %w` (`*APIError`) | `Error: failed to get task: API error (status 404): ...` |
+| step 5 GetList | `failed to get list statuses: %w` | `Error: failed to get list statuses: API error (...)` |
+| step 8 UpdateTaskStatus | `failed to update task status: %w` | `Error: failed to update task status: API error (...)` |
 
 ## Test seams
 
-- `pkg/models/list_test.go` - pure: `FindStatus` exact / case / surrounding whitespace / missing; `StatusNames` sorted by `Orderindex`.
-- `internal/api/tasks_test.go` - `httptest.Server`: `UpdateTask` sends PUT with `{"status":"..."}` body and custom-ID query, decodes task; `taskIDQuery` native vs custom.
-- `internal/api/lists_test.go` - `httptest.Server`: `GetList` path, `statuses` decoding, 4xx -> `*APIError`.
-- `internal/commands/tasks_status_test.go` - `httptest.Server` faking task/list/update; set globals `apiClient` (built with `SetBaseURL(server.URL)`) and `cfg`; output in `bytes.Buffer`: happy path, invalid status (assert no PUT), already-in-status (assert no PUT).
-- `internal/output/table_test.go` - existing tests cover step 0.
-- E2E with the built binary on a real workspace: valid, wrong case, unquoted multi-word, invalid, already-in-status, native and custom ID, `--debug` to inspect the PUT body.
+- `pkg/models/list_test.go`: table tests for `Status.Matches` (case, whitespace, "in" does not match "in progress"), `FindStatus` (hit and nil), `OrderedStatuses` (sorted, receiver unchanged); decode a `GET /list` JSON fixture.
+- `internal/api/tasks_test.go`, `lists_test.go`: `httptest.Server` + `SetBaseURL`; assert method, path, custom-ID query params, PUT JSON body, 4xx -> `*APIError`.
+- `internal/commands/tasks_status_test.go`: fake ClickUp `httptest.Server`; set/reset globals `cfg`, `apiClient`, `statusOutputFormat`; call `changeTaskStatus` with separate `bytes.Buffer`s for out/errOut. Cases: change; invalid (no PUT, message and order); unchanged (no PUT, notice in errOut); unchanged + `-o json` (notice in errOut, only valid JSON in out); change + `-o json`.
+- E2E before committing: `make run ARGS="tasks status <sandbox task> ..."` against a real ClickUp list for all three outcomes and a custom ID.
 
 ## Assumptions
 
-1. Matching ignores case and surrounding whitespace; the list's exact spelling is sent.
-2. Multi-word statuses work with or without quotes (args after the ID joined with single spaces).
-3. Already in that status: prints `HGAI-1217 is already "in progress"`, exit 0, no write.
-4. Success prints one line to stdout: `HGAI-1217: to do -> in progress`. No `-o/--output` on this subcommand.
-5. Invalid status: nothing written; stderr lists all valid statuses in board order, one per line; exit 1.
-6. No "did you mean" suggestion.
-7. Closed/done-type statuses are allowed like any other.
-8. `GET /list/{id}` returns effective statuses (verified in step 1).
-9. A list with no statuses is an error, never "skip validation".
-10. Native and custom IDs both work; `--workspace` override honoured via `getConfig`.
-11. Status changes between check and update surface as `failed to update task status: ...`; no retry.
-12. Docs updated and `bin/` binaries rebuilt with `make build-all`.
+1. Valid statuses come from the task's home list (`task.List.ID`), even if the task also appears in other lists.
+2. The PUT sends the list's own spelling of the status (`match.Status`), not the typed input.
+3. The already-set notice always goes to stderr (like existing warnings); with `-o json` the current task also goes to stdout.
+4. `-o` on `status` only switches on `json`; any other value prints the one-line text.
+5. Invalid-status error lists one status per line, two-space indent, board order, names only.
+6. Closed/done statuses are valid targets, no extra warning.
+7. `--debug` also prints the PUT request body.
+8. On ship, `make build-all` refreshes the pre-built binaries in `bin/`.
 
 ## Decisions made during review
 
-- Q1: add `Client.SetBaseURL`; command-level tests use `httptest`.
-- Q2: generic `UpdateTask(taskID, teamID, *UpdateTaskRequest)`.
+- Already-set notice is shown in every output mode, on stderr, so `-o json` stdout stays valid JSON. This required `changeTaskStatus` and `printStatusUnchanged` to take separate `out` and `errOut` writers.

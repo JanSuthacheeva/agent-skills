@@ -1,17 +1,23 @@
 # mdterm bookmarks - implementation plan
 
-Review page: [.lavish/bookmarks-implementation.html](bookmarks-implementation.html) (approaches: [bookmarks-approaches.html](bookmarks-approaches.html))
+Design page: [.lavish/bookmarks-implementation.html](bookmarks-implementation.html) (approved 2026-10-02)
 
 ## Decision
 
-- Approach B: source-anchored marks. Every rendered `Line` carries the 0-based source line of the block it renders; a mark stores that source line, so it survives resizes, width/theme/line-number changes and sessions. Edits above a mark shift it (vim-like).
-- New `src/marks.rs` owns per-file marks and persists them as JSON at `dirs::data_dir()/mdterm/marks.json`.
-- `m` + letter sets a mark, `'` + letter jumps. Mouse capture moves from `m` to `M`.
-- Review decisions: letters are `a-z` only, all per file. Entries for files that no longer exist are kept in v1 (no pruning).
+- **Approach A, source-anchored marks.** The markdown renderer stamps each `Line` with the 0-based source line of the block it came from. `wrap_lines` copies the stamp onto every wrapped row. A mark stores `(line, row, text)`, and a jump maps it back onto the current `wrapped`.
+- **Keys.** `m` + `a-z` sets a mark and `'` + `a-z` jumps to it. The mouse-capture toggle moves from `m` to `M`.
+- **Names.** Marks are `a-z` only, per file. No uppercase or global marks.
+- **Storage.** One `marks.json` in `dirs::data_dir()/mdterm/`, keyed by canonical absolute path. It is not part of `config.toml`.
+  - macOS: `~/Library/Application Support/mdterm/marks.json`
+  - Linux: `~/.local/share/mdterm/marks.json`
+- **Edits.** A mark is re-found by its stored trimmed line text. If the text is gone, it falls back to the stored line number, clamped to EOF.
+- **Back navigation** (decided in review). A mark jump pushes `(current_file_idx, offset)` onto `nav_history`, so Backspace returns. There is no `''`.
 
 ## Units
 
-### `src/marks.rs` (new) - owns the per-document mark set and persists file-backed marks
+### `src/marks.rs` (new)
+
+Owns what a mark is and how one document's marks are read from and written to `marks.json`.
 
 ```rust
 use serde::{Deserialize, Serialize};
@@ -19,56 +25,61 @@ use std::collections::BTreeMap;
 use std::io;
 use std::path::{Path, PathBuf};
 
-/// Mark letter -> 0-based source line of the marked block.
-pub type FileMarks = BTreeMap<char, usize>;
-
-/// The document a mark belongs to.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum MarkTarget {
-    /// Canonical path of a file on disk; persisted.
-    File(PathBuf),
-    /// Content piped on stdin; kept for this session only.
-    Stdin,
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Mark {
+    pub line: usize,   // 0-based source line of the block's first line
+    pub row: usize,    // wrapped rows below the block's first row
+    pub text: String,  // trimmed text of `line` at set time
 }
 
-pub struct MarkStore {
-    path: Option<PathBuf>,
-    files: BTreeMap<String, FileMarks>,
-    stdin: FileMarks,
-}
+pub type FileMarks = BTreeMap<char, Mark>;
 
-impl MarkStore {
-    pub fn load() -> Self;
-    pub fn load_from(path: Option<PathBuf>) -> Self;
-    pub fn get(&self, target: &MarkTarget, letter: char) -> Option<usize>;
-    pub fn set(&mut self, target: &MarkTarget, letter: char, source_line: usize) -> io::Result<()>;
-}
+const FORMAT_VERSION: u32 = 1;
 
-pub fn is_mark_letter(c: char) -> bool;
-
-#[derive(Serialize, Deserialize)]
+#[derive(Default, Serialize, Deserialize)]
 struct MarksFile {
     version: u32,
     files: BTreeMap<String, FileMarks>,
 }
 
-impl Default for MarksFile { fn default() -> Self; } // version: 1, empty files
+pub struct MarkStore {
+    path: Option<PathBuf>,
+}
 
-fn marks_path() -> Option<PathBuf>;
-fn read_marks_file(path: &Path) -> io::Result<MarksFile>;
-fn write_marks_file(path: &Path, file: &MarksFile) -> io::Result<()>;
-fn target_key(path: &Path) -> String;
+impl MarkStore {
+    pub fn open() -> Self;                                            // dirs::data_dir()/mdterm/marks.json, None if no data dir
+    pub fn at(path: PathBuf) -> Self;                                 // explicit path (tests)
+    pub fn load(&self, doc: &Path) -> FileMarks;                      // never fails; missing/corrupt/newer/no path -> empty
+    pub fn save(&self, doc: &Path, marks: &FileMarks) -> io::Result<()>;
+}
+
+impl Mark {
+    pub fn relocate(&self, source: &str) -> usize;
+}
+
+pub fn is_mark_name(c: char) -> bool;                                 // 'a'..='z'
+
+fn marks_path() -> Option<PathBuf>;                                   // mirrors config::config_path
+fn doc_key(doc: &Path) -> io::Result<String>;                         // canonicalize -> String
+fn read_marks_file(path: &Path) -> io::Result<MarksFile>;             // NotFound -> default; parse error or version > 1 -> InvalidData
 ```
 
-- `load()` - `load_from(marks_path())`. Never fails; missing/unreadable file gives an empty store (keeps `path`).
-- `load_from(path)` - `None` means never persist (no data dir; tests).
-- `get` - reads from memory.
-- `set` - updates memory first; for `File` targets with a path: `read_marks_file`, merge this entry, `write_marks_file`. Returns `Err` on read/parse/write failure, mark stays in memory. `Stdin` or `path: None` -> `Ok(())`, no I/O.
-- `is_mark_letter` - ASCII `a-z` only.
-- `marks_path` - `dirs::data_dir()/mdterm/marks.json`.
-- `read_marks_file` - `NotFound` -> `Ok(MarksFile::default())`; bad JSON or unknown `version` -> `Err(InvalidData)` (so the file is never overwritten).
-- `write_marks_file` - `create_dir_all`, write `marks.json.tmp`, rename over `marks.json`.
-- `target_key` - `path.to_string_lossy()`.
+`save` works in this order:
+
+1. Read the existing file with `read_marks_file`.
+2. Replace this document's entry, or remove it if `marks` is empty.
+3. Set `version = FORMAT_VERSION`.
+4. `create_dir_all` the parent directory.
+5. Write `marks.json.tmp` and `rename` it over `marks.json`.
+
+It returns an error in these cases:
+- `InvalidData` if the existing file is corrupt or has a newer version. The file is never overwritten.
+- `NotFound` if there is no path or `doc` cannot be canonicalized.
+
+`relocate` checks three things in order:
+1. If the trimmed text of `source.lines()[line]` equals `text`, it returns `line`.
+2. Otherwise, if `text` is non-empty, it returns the nearest line with equal trimmed text. On a tie it picks the one above.
+3. Otherwise it returns `line.min(last_line)`.
 
 ### `src/style.rs` (modified)
 
@@ -77,232 +88,249 @@ fn target_key(path: &Path) -> String;
 pub struct Line {
     pub spans: Vec<StyledSpan>,
     pub meta: LineMeta,
-    /// 0-based line in the markdown source of the block this line renders.
-    /// `None` for content without a source position (JSON views).
-    pub source_line: Option<usize>,
-}
-
-impl Line {
-    pub fn empty() -> Self; // source_line: None
+    pub source_line: Option<usize>,   // new: 0-based source line of the markdown block
 }
 
 pub fn wrap_lines(lines: &[Line], width: usize) -> Vec<Line>; // unchanged signature
 ```
 
-- All `Line { .. }` literals add `source_line`.
-- `wrap_lines` copies `source_line` onto every fragment on both the blockquote path and the plain path (unlike `meta`). `word_wrap` unchanged (emits `None`, caller fills in).
+- `wrap_lines` makes every produced row inherit `line.source_line`, on all three branches (as-is, blockquote, word_wrap).
+- `Line::empty()` sets `source_line: None`.
+- All existing `Line { spans, meta }` literals gain `..Default::default()`. That is about 50 sites across json.rs (20), markdown.rs (15), style.rs (13) and viewer.rs (3).
 
-### `src/markdown.rs` (modified) - Renderer stamps lines with their source line
+### `src/markdown.rs` (modified)
 
 ```rust
 struct Renderer<'a> {
-    // ...existing fields...
-    source_line_starts: Vec<usize>, // byte offset of each source line start
-    open_block_start: usize,        // byte offset of the most recent Event::Start
-    stamped_lines: usize,           // lines in self.lines already stamped
+    // ...existing...
+    line_starts: Vec<usize>,   // byte offset of each source line, built in Renderer::new
 }
 
 impl<'a> Renderer<'a> {
-    fn source_owner(&mut self, event: &Event, range: &std::ops::Range<usize>) -> usize;
-    fn stamp_new_lines(&mut self, owner_byte: usize);
-    fn source_line_of(&self, byte: usize) -> usize;
+    fn stamp_source_lines(&mut self, from: usize, byte_offset: usize); // sets source_line on lines[from..] that are None
 }
+
+fn source_line_at(line_starts: &[usize], byte_offset: usize) -> usize;  // binary search; past EOF -> last line
 
 pub fn render_with(input: &str, width: usize, theme: &Theme, line_numbers: bool, syntect_res: &SyntectRes)
     -> (Vec<Line>, DocumentInfo); // unchanged signature
 ```
 
-- `source_owner` - `End` events -> `range.start`; other events -> `open_block_start`. On `Start`, afterwards records `range.start` as `open_block_start`.
-- `stamp_new_lines` - sets `Some(source_line_of(owner_byte))` on `lines[stamped_lines..]`, advances `stamped_lines`.
-- `source_line_of` - `partition_point` over `source_line_starts`.
-- `Renderer::new` builds `source_line_starts`.
-- `render_with` loop: `owner = source_owner(&event, &range); process(event, range); stamp_new_lines(owner);`, after loop `flush_line(); stamp_new_lines(open_block_start)`. Existing push sites only add `source_line: None` to literals.
-
-### `src/json.rs` (modified)
-
-- All `Line { .. }` literals add `source_line: None`. No behaviour change.
-
-### `src/viewer.rs` (modified) - state, modes, helpers
+The `into_offset_iter` loop changes to the following, and the final `flush_line()` is stamped with the last event's `range.start`:
 
 ```rust
-use crate::marks::{MarkStore, MarkTarget};
+let from = renderer.lines.len();
+renderer.process(event, range.clone());
+renderer.stamp_source_lines(from, range.start);
+```
+
+### `src/viewer.rs` (modified)
+
+```rust
+use crate::marks::{FileMarks, Mark, MarkStore};
 
 pub struct ViewerOptions {
-    // ...existing fields...
-    pub marks: MarkStore,
+    // ...existing...
+    pub mark_store: MarkStore,
 }
 
-#[derive(PartialEq, Copy, Clone, Debug)]
 enum ViewMode {
-    Normal, Search, Toc, LinkPicker, FuzzyHeading, Help,
-    /// Waiting for the letter after `m` or `'`.
-    MarkPending(MarkAction),
+    // ...existing...
+    MarkSet,
+    MarkJump,
 }
 
-#[derive(PartialEq, Copy, Clone, Debug)]
-enum MarkAction { Set, Jump }
+impl ViewMode {
+    /// Modes where the user is typing free-form text or a key argument;
+    /// single-letter bindings like `?` or `h` must be passed through as input.
+    fn accepts_text_input(self) -> bool; // + MarkSet | MarkJump
+}
 
 struct ViewerState {
-    // ...existing fields...
-    marks: MarkStore,
+    // ...existing...
+    // Marks for the current file, persisted through `mark_store`
+    mark_store: MarkStore,
+    marks: FileMarks,
 }
 
 impl ViewerState {
-    fn mark_target(&self) -> MarkTarget;
-    fn source_line_at_offset(&self) -> Option<usize>;
-    fn offset_for_source_line(&self, source_line: usize) -> usize;
+    fn load_marks(&mut self);                                     // marks = store.load(path) or empty for stdin
+    fn current_path(&self) -> Option<&std::path::Path>;           // files[current_file_idx], None for stdin
+    fn mark_at_offset(&self) -> Option<Mark>;                     // from wrapped[offset]; None if no source_line
+    fn set_mark(&mut self, name: char);
+    fn jump_to_mark(&mut self, name: char);
+    fn wrapped_idx_for_source(&self, line: usize, row: usize) -> usize;
 }
+
+fn handle_mark_key(state: &mut ViewerState, code: KeyCode);
 ```
 
-- `ViewerState::new` moves `opts.marks` into `state.marks`.
-- `mark_target` - `Stdin` if `files` is empty, else `File(canonicalize(files[current_file_idx]))`, fallback `std::path::absolute`.
-- `source_line_at_offset` - `source_line` of the first non-blank row at/below `offset`; `None` if none.
-- `offset_for_source_line` - first wrapped row with `source_line >= target`, clamped to `max_offset()`; none -> `max_offset()`.
-- `finalize_layout` - rebuilt image rows copy `source_line` from the placeholder.
-- `accepts_text_input` unchanged (`?`/F1 while pending open help, cancelling the pending mark).
+What the new functions do:
+- `mark_at_offset`:
+  - `line` comes from `wrapped[offset].source_line`.
+  - `row` is `offset` minus the index of the first wrapped row with the same `source_line`.
+  - `text` is the trimmed line `content.lines()[line]`.
+- `wrapped_idx_for_source` finds the block with the greatest `source_line <= line` and returns its first row plus `row`, clamped to the block's last row. It returns 0 if no row has a source line.
+- `handle_mark_key`:
+  1. Read the current mode, then set `mode = Normal`.
+  2. `Char(c)` where `is_mark_name(c)` calls `set_mark(c)` in `MarkSet` or `jump_to_mark(c)` in `MarkJump`.
+  3. `Esc` does nothing.
+  4. Anything else shows the toast "Marks are a-z".
 
-### `src/viewer.rs` (modified) - key handling
+Changes to existing functions (signatures unchanged):
 
-```rust
-fn handle_mark_pending(state: &mut ViewerState, action: MarkAction, code: KeyCode);
-fn set_mark(state: &mut ViewerState, letter: char);
-fn jump_to_mark(state: &mut ViewerState, letter: char);
-```
-
-- `handle_normal`: `Char('m')` -> `mode = MarkPending(Set)`; `Char('\'')` -> `mode = MarkPending(Jump)`; `Char('M')` -> existing mouse-capture toggle (moved from `m`).
-- `handle_event`: new arm `ViewMode::MarkPending(action) => { state.dirty = true; handle_mark_pending(state, action, ke.code); }`.
-- `handle_mark_pending` - sets `mode = Normal`; letter -> `set_mark`/`jump_to_mark`; anything else (incl. Esc) cancels silently.
-- `set_mark` / `jump_to_mark` - see call chains.
-- Slide mode: not bound (`handle_slide_keys` returns first).
-
-### `src/viewer.rs` (modified) - status bar and help
-
-- `render_status_bar`: early branch before the search-results branch, same style: `╰─ m_ set mark · Esc cancel ──── pos ─╯` / `' _ jump to mark`.
-- `help_sections`: Navigation adds `("m + letter", "Set mark at current position")`, `("' + letter", "Jump to mark")`; Actions changes `("m", ...)` to `("M", "Toggle mouse capture (for text select)")`.
+- **`ViewerState::new`**: stores `opts.mark_store`, then calls `load_marks()`.
+- **`handle_event`**: adds the arm `ViewMode::MarkSet | ViewMode::MarkJump => { state.dirty = true; handle_mark_key(state, ke.code); }`.
+- **`handle_normal`**:
+  - `Char('m')` sets `mode = MarkSet`.
+  - `Char('\'')` sets `mode = MarkJump`.
+  - The mouse-capture toggle body moves to `Char('M')`.
+- **`switch_file`**: calls `self.load_marks()` after `rebuild()`.
+- **`finalize_layout`**: rebuilt image rows copy the placeholder's `source_line`.
+- **`render_status_bar`**: new branch, after the Search branch, that draws the prompt ` m█ ` (MarkSet) or ` '█ ` (MarkJump) in `theme.search_prompt`, in the same layout as the search prompt.
+- **`render_frame`**: `suppress_images` no longer suppresses in `MarkSet | MarkJump`, so images don't flicker.
+- **`help_sections`**:
+  - Navigation gets `("m a-z", "Set mark")` and `("' a-z", "Jump to mark")`.
+  - Backspace's text becomes "Go back (after a link or mark jump)".
+  - Actions: `("M", "Toggle mouse capture (for text select)")` replaces the `m` entry.
 
 ### `src/main.rs` (modified)
 
 ```rust
 mod marks;
 
-// interactive branch
 let opts = viewer::ViewerOptions {
-    // ...existing fields...
-    marks: marks::MarkStore::load(),
+    // ...existing...
+    mark_store: marks::MarkStore::open(),
 };
 ```
 
-### Docs (modified)
+### `README.md` (modified)
 
-- README controls table: `m` + letter, `'` + letter, `M` mouse capture (previously undocumented), note on where marks are stored.
-- CLAUDE.md: "Ten source files" -> eleven, add `marks.rs` bullet.
+- Navigation table: add `m` + `a-z` (set mark) and `'` + `a-z` (jump to mark). Change Backspace to "Go back (after a local file link or mark jump)".
+- Features table: add `M` (toggle mouse capture). It was previously undocumented.
+- Add a note on where `marks.json` lives, next to the config file section.
 
 ## Data
 
-| Type | Fields | Boundary |
-|---|---|---|
-| `Line.source_line` | `Option<usize>`, 0-based source line | markdown.rs -> style::wrap_lines -> viewer.rs |
-| `MarkTarget` (pub) | `File(PathBuf)` \| `Stdin` | viewer.rs -> marks.rs |
-| `FileMarks` (pub alias) | `BTreeMap<char, usize>` | marks.rs, file format |
-| `MarksFile` (private) | `version: u32` (=1), `files: BTreeMap<String, FileMarks>` | marks.rs <-> disk |
-| `ViewMode::MarkPending` | `MarkAction` | viewer.rs internal |
-| `MarkAction` | `Set` \| `Jump` | viewer.rs internal |
+`Mark`, `FileMarks` (`BTreeMap<char, Mark>`) and `MarksFile { version: u32, files: BTreeMap<String, FileMarks> }` are defined above.
+
+On disk (`marks.json`):
 
 ```json
 {
   "version": 1,
   "files": {
-    "/Users/jan/notes/rust.md": { "a": 42, "b": 7 }
+    "/Users/jan/notes/setup.md": {
+      "a": { "line": 41, "row": 0, "text": "## Installing on macOS" }
+    }
   }
 }
 ```
 
+`Line.source_line: Option<usize>`:
+- `Some` for every line the markdown renderer emits. Spacer and rule lines take the line of the event that pushed them, and End events carry the block's range, so a block's lines get the block's first line.
+- `None` for JSON output.
+
 ## Call chains
 
-### Startup
+### Set a mark (`m`, `a`)
 
-1. `main -> MarkStore::load(): MarkStore`
-2. `MarkStore::load -> marks_path(): Option<PathBuf>`
-3. `MarkStore::load -> MarkStore::load_from(path): MarkStore`
-4. `MarkStore::load_from -> read_marks_file(&path): io::Result<MarksFile>`
-5. Error: no data dir or `Err` from `read_marks_file` -> empty store, `path` kept; user sees nothing; the next `set` surfaces the error in its toast.
-6. `main -> viewer::run(ViewerOptions { marks, .. })` -> `ViewerState::new` moves store into `state.marks`.
+1. `handle_event -> handle_normal(state, KeyCode::Char('m'), mods): bool`, which sets `state.mode = ViewMode::MarkSet`. The status bar shows ` m█ `.
+2. `handle_event -> handle_mark_key(state, KeyCode::Char('a'))`, which sets `mode = Normal` and checks `is_mark_name('a'): true`.
+3. `handle_mark_key -> ViewerState::set_mark('a')`
+4. `ViewerState::set_mark -> ViewerState::mark_at_offset(): Option<Mark>`
+5. `ViewerState::set_mark -> FileMarks::insert('a', mark)`
+6. `ViewerState::set_mark -> ViewerState::current_path(): Option<&Path>`
+7. If the path is `Some`: `ViewerState::set_mark -> MarkStore::save(path, &marks): io::Result<()>`. This reads marks.json, merges this document's entry, writes the tmp file and renames it.
+8. `ViewerState::set_mark -> ViewerState::set_toast("Mark 'a' set")`
 
-### `m` + `a` (set)
+Error paths:
+- The key is not a-z: `handle_mark_key` shows the toast "Marks are a-z" and the mode is Normal.
+- `Esc`: the mode is Normal and there is no toast.
+- `mark_at_offset` returns `None` (JSON view): `set_mark` shows "Marks unavailable in this view" and stores nothing.
+- `save` returns `Err(e)` (unwritable dir, corrupt or newer file, path not canonicalizable): the mark is kept in memory and `set_mark` shows "Mark 'a' set, not saved: {e}".
+- stdin (`current_path` returns `None`): save is skipped, the toast is "Mark 'a' set", and the mark lasts for the session only.
 
-1. `run -> handle_event(state, Key('m')) -> handle_normal(state, Char('m'), mods): bool` -> `mode = MarkPending(Set)`, returns `false`.
-2. `run -> render_frame -> render_status_bar(..)` draws `m_ set mark · Esc cancel`.
-3. `run -> handle_event(state, Key('a')) -> handle_mark_pending(state, Set, Char('a'))` -> `mode = Normal`.
-4. `handle_mark_pending -> is_mark_letter('a'): bool`
-5. Error: not a letter (incl. Esc, uppercase) -> return, no toast.
-6. `handle_mark_pending -> set_mark(state, 'a')`
-7. Error: `state.json_view.is_some()` -> `set_toast("Marks are not available for JSON")`, return.
-8. `set_mark -> ViewerState::source_line_at_offset(): Option<usize>`
-9. Error: `None` -> `set_toast("Nothing to mark")`, return.
-10. `set_mark -> ViewerState::mark_target(): MarkTarget`
-11. `set_mark -> MarkStore::set(&target, 'a', line): io::Result<()>` (memory updated)
-12. `MarkStore::set -> read_marks_file(&path): io::Result<MarksFile>`, merge entry
-13. `MarkStore::set -> write_marks_file(&path, &file): io::Result<()>` (tmp + rename)
-14. Error: either returns `Err(e)` -> `set` returns it; mark kept in memory; `set_mark` -> `set_toast("Mark 'a' set (not saved: e)")`.
-15. `set_mark -> set_toast("Mark 'a' set")`
+### Jump to a mark (`'`, `a`)
 
-### `'` + `a` (jump)
+1. `handle_event -> handle_normal(state, KeyCode::Char('\''), mods): bool`, which sets `state.mode = ViewMode::MarkJump`. The status bar shows ` '█ `.
+2. `handle_event -> handle_mark_key(state, KeyCode::Char('a'))`, which sets `mode = Normal`.
+3. `handle_mark_key -> ViewerState::jump_to_mark('a')`
+4. `ViewerState::jump_to_mark -> FileMarks::get(&'a'): Option<&Mark>`
+5. `ViewerState::jump_to_mark -> Mark::relocate(&self.content): usize`
+6. `ViewerState::jump_to_mark -> ViewerState::wrapped_idx_for_source(line, mark.row): usize`
+7. `ViewerState::jump_to_mark -> nav_history.push((current_file_idx, offset))`, then `offset = idx.min(max_offset())`
+8. `ViewerState::jump_to_mark -> ViewerState::set_toast("Jumped to mark 'a'")`
+9. Later, Backspace pops `nav_history` (existing code, src/viewer.rs:1765) and returns to the position from before the jump.
 
-1. `run -> handle_event(state, Key('\'')) -> handle_normal(..)` -> `mode = MarkPending(Jump)`; status bar draws `'_ jump to mark`.
-2. `run -> handle_event(state, Key('a')) -> handle_mark_pending(state, Jump, Char('a'))` -> `mode = Normal`, `is_mark_letter` (cancel as above).
-3. `handle_mark_pending -> jump_to_mark(state, 'a')`
-4. Error: JSON view -> `set_toast("Marks are not available for JSON")`, return.
-5. `jump_to_mark -> ViewerState::mark_target(): MarkTarget`
-6. `jump_to_mark -> MarkStore::get(&target, 'a'): Option<usize>`
-7. Error: `None` -> `set_toast("Mark 'a' not set")`, return.
-8. `jump_to_mark -> ViewerState::offset_for_source_line(line): usize`
-9. `jump_to_mark` pushes `(current_file_idx, offset)` onto `nav_history`, sets `state.offset`, `set_toast("Mark 'a'")`.
-10. Later `Backspace` pops `nav_history` (existing code) and returns.
+Error paths:
+- The mark is not set: the toast is "Mark 'a' not set" and the offset is unchanged.
+- The marked text was deleted: `relocate` falls back to the stored line, clamped to EOF. It does not fail.
+- No stamped rows (JSON): unreachable, because `set_mark` can't store a mark there. `wrapped_idx_for_source` returns 0.
 
-### Rebuild (startup, resize, reload, theme, `l`)
+### Load marks (startup, file switch)
 
-1. `ViewerState::rebuild -> markdown::render_with(content, cw, theme, line_numbers, res): (Vec<Line>, DocumentInfo)`
-2. `render_with -> Renderer::new(..)` builds `source_line_starts`.
-3. Per `(event, range)`: `render_with -> Renderer::source_owner(&event, &range): usize`
-4. `render_with -> Renderer::process(event, range)` (unchanged)
-5. `render_with -> Renderer::stamp_new_lines(owner) -> source_line_of(owner): usize`
-6. After loop: `flush_line()`, `stamp_new_lines(open_block_start)`.
-7. `ViewerState::rebuild -> style::wrap_lines(&lines, cw): Vec<Line>` copies `source_line` to all fragments.
-8. `ViewerState::rebuild -> finalize_layout()` keeps `source_line` on resized image rows.
-9. No error path. JSON views produce `None` everywhere.
+1. `main -> marks::MarkStore::open(): MarkStore`, passed as `ViewerOptions.mark_store`
+2. `viewer::run -> ViewerState::new(opts, cols, rows) -> ViewerState::load_marks()`
+3. `ViewerState::load_marks -> ViewerState::current_path(): Option<&Path>`. For `None`, `marks = FileMarks::new()`.
+4. `ViewerState::load_marks -> MarkStore::load(path): FileMarks`
+5. On Tab, Shift+Tab, a local link or Backspace: `ViewerState::switch_file(idx) -> rebuild() -> load_marks()`
+
+Error paths:
+- marks.json is missing, unreadable, corrupt or a newer version: `load` silently returns an empty map. The next `save` returns `InvalidData` and the user sees the "not saved" toast.
+- The platform has no data dir: the store's path is `None`, `load` returns an empty map, and `save` returns `NotFound`.
+
+### Rendering (source line stamping)
+
+1. `ViewerState::rebuild -> markdown::render_with(content, cw, theme, line_numbers, syntect_res): (Vec<Line>, DocumentInfo)`
+2. `render_with -> Renderer::new(..)`, which builds `line_starts`
+3. For each `(event, range)`: `from = renderer.lines.len()`, then `Renderer::process(event, range.clone())`, then `Renderer::stamp_source_lines(from, range.start)`
+4. `Renderer::stamp_source_lines -> source_line_at(&self.line_starts, byte_offset): usize`
+5. `render_with -> Renderer::flush_line()`, then `Renderer::stamp_source_lines(from, last_start)`
+6. `ViewerState::rebuild -> style::wrap_lines(&lines, cw): Vec<Line>`, where every row inherits `source_line`
+7. `ViewerState::rebuild -> ViewerState::finalize_layout()`, where rebuilt image rows keep `source_line`
+
+Error paths: none. Stamping is total, and JSON rendering leaves `None`.
 
 ## Test seams
 
-- `marks.rs`: unit tests on `MarkStore::load_from(Some(tmp))` with a unique path under `std::env::temp_dir()` (no new dev-dependency). Round trip; `set` merges with another writer's entries; corrupt file untouched + `set` returns `Err` while `get` still works; `load_from(None)` and `Stdin` never touch disk; char keys survive JSON; `is_mark_letter` rejects uppercase.
-- `markdown.rs`: `render_test` asserts `source_line` on headings, paragraphs, code blocks, tables, consecutive list items (incl. items flushed by the next `Start`).
-- `style.rs`: `wrap_lines` copies `source_line` to every fragment, plain and blockquote paths.
-- `viewer.rs`: `make_state_with_lines` gets `marks: MarkStore::load_from(None)`. Key-sequence tests via `handle_event`: `m a`, scroll, `' a` restores offset; `m Esc` does not quit; `M` toggles mouse; after rebuild at different width the mark lands on the same source line. Existing help tests cover the help table.
-- E2E: in tmux, `cargo run -- test.md` at 80 cols, `m a`, quit; relaunch at 120 cols, `' a` lands on the same heading; `marks.json` has the entry.
+- **`MarkStore`**: unit tests using `MarkStore::at(std::env::temp_dir().join(<unique>))`. Cover:
+  - loading a missing file
+  - a save/load round trip
+  - a save that keeps other documents' entries
+  - refusing to overwrite a corrupt file or a newer version
+  - removing an emptied document's entry
+- **`Mark::relocate`**: pure tests for:
+  - unchanged line
+  - text moved down or up
+  - a tie between two matches
+  - text deleted
+  - empty text
+  - a line past EOF
+- **`source_line_at` / `render_with`**:
+  - a heading on line 3 gives `Some(2)`
+  - code block and table lines get the block's start line
+  - JSON lines are `None`
+- **`wrap_lines`**: a wrapped paragraph gives every row the same `source_line`, including in a blockquote.
+- **`ViewerState` mark methods**: use a `make_state_with_lines`-style helper with a temp `MarkStore`. Cover:
+  - set then jump round-trips
+  - a mark survives a rebuild at a different width
+  - `wrapped_idx_for_source` clamps `row`
+  - a jump pushes `nav_history` and Backspace returns
+- **`handle_mark_key` / `is_help_toggle`**:
+  - `?` in `MarkSet` does not open help
+  - a non-letter returns to Normal with a toast
+  - `help_sections_no_duplicate_keys` still passes
+- **End-to-end** (manual, real terminal): set marks, resize, quit, reopen and jump. Then edit the file above a mark with auto-reload on and jump again.
 
 ## Assumptions
 
-1. Marked position = first non-blank row at the top of the viewport.
-2. Marks resolve to block start (paragraph, heading, code block, list item, table); inside a long paragraph a jump lands on its first row.
-3. Jump puts the marked row at the top of the viewport, clamped near EOF.
-4. A mark past EOF after edits jumps to the end.
-5. Re-setting a letter overwrites silently; toast "Mark 'a' set".
-6. After `m`/`'`, any non-letter key (incl. Esc, uppercase) cancels without a toast; Esc does not quit while pending.
-7. Status bar shows the pending hint until the letter arrives.
-8. Jumping pushes onto `nav_history`; Backspace returns.
-9. Not available in slide mode.
-10. JSON view: both keys toast "Marks are not available for JSON".
-11. Stdin content gets session-only marks.
-12. Files keyed by canonical absolute path; rename/move loses marks; symlinks share with their target.
-13. Concurrent instances: `set` re-reads and merges; marks set elsewhere after startup are seen only after restart.
-14. Unreadable or newer-version `marks.json` is never overwritten; marks work in-session with a "not saved" toast.
-15. No data directory: in-session only, silently.
-16. Entries for missing files are kept (no pruning in v1).
-17. Out of scope for v1: listing marks, deleting marks, `''`/backtick jump-back, gutter indicators, global/uppercase marks.
-18. Moving mouse capture to `M` is a breaking keybinding change, documented in README and help, no alias.
-
-## Decisions made in review
-
-- Approach B (source-anchored marks).
-- Mouse capture moves to `M`.
-- Mark letters: `a-z` only, per file.
-- Stale entries for missing files: kept in v1.
+1. "Current position" means the top visible row (`state.offset`).
+2. Slide mode has no marks, because `handle_slide_keys` owns every key there. In JSON views, `m` shows "Marks unavailable in this view".
+3. Marks on stdin input last for the session only and are never written.
+4. Setting a letter that is already used overwrites it. There is no delete command or marks list in this iteration.
+5. Precision is per block plus a row offset. After a resize, `row` is clamped to the block's length.
+6. Relocation happens only at jump time. The stored `line` is never rewritten.
+7. There is no locking between instances: each save re-reads and merges, and the last writer wins only for the same document.
+8. On-disk line numbers are 0-based, and toasts do not show line numbers.

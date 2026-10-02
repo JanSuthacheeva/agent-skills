@@ -3,62 +3,62 @@
     {
       "text": "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
       "passed": true,
-      "evidence": "citations.json 26/26 valid. Verified the duplicate FormatComments, no body support in doRequest, getTask multi-call flow, concrete *api.Client with private baseURL. Minor: deletion range stated as 237-281 but the copy ends at 279 (281 is the 'Helper functions' comment)."
+      "evidence": "30/30 citations valid; verified doRequest passes nil body (client.go:42-96), GetTask wraps 'failed to get task: %w', Status struct fields, Execute prints 'Error: %v' and exits 1, FormatComments at table.go:191 and :238."
     },
     {
       "text": "conventions: the design follows the repo's existing conventions (layering, naming, error handling, dependency wiring) and names any deviation with a reason",
       "passed": true,
-      "evidence": "Follows getTask pattern (fmt.Printf, no writer injection), 'failed to X: %w', Cobra subcommand in init(); notes docs/plans vs .lavish deviation; flags accepted subcommand-shadow edge case."
+      "evidence": "Command layer coordinates like getTask, wraps errors with 'failed to ...: %w', uses getAPIClient/getConfig, api methods on Client; deviation (new write path in doRequest/Put) named with reason."
     },
     {
       "text": "alternatives: at least one structurally different alternative is considered, with a concrete reason for rejecting it",
       "passed": true,
-      "evidence": "B (internal/tasks StatusChanger package behind interface) and C (optimistic update) each with concrete rejection reasons."
+      "evidence": "Approach B (service layer + typed error) and C (send first, validate on rejection) are structurally different, each rejected with a concrete reason."
     },
     {
       "text": "preferences-honoured: the final plan agrees with every user answer given in the conversation and contradicts none",
       "passed": true,
-      "evidence": "Plan agrees with answers (A, one-line output, join args) and prefs: case-insensitive exact FindStatus, already-set no PUT exit 0, no confirmation prompt (#5). Valid statuses 'in list order' relies on API array order rather than sorting by Orderindex, but doesn't contradict board order."
+      "evidence": "Plan matches all three user answers (one-line output, skip PUT + notice + exit 0, ExactArgs(2)); case-insensitive no-prefix, board order via Orderindex, no confirmation prompt all consistent. Whitespace trim is a minor leniency but not prefix/fuzzy."
     },
     {
       "text": "elicitation: each hidden preference that the plan's design depends on was either asked about or stated as an explicit assumption, never silently decided",
-      "passed": true,
-      "evidence": "Assumptions section covers matching, ordering, already-set, no confirmation prompt, subtasks, json."
+      "passed": false,
+      "evidence": "Matching and board order were stated as explicit assumptions and already-status was asked, but whether to confirm before changing was never asked nor stated as an assumption; only an incidental 'no confirmation prompt' absence in the design."
     },
     {
       "text": "coverage: every trigger the feature implies is designed end to end, including how failures are handled and what the user sees",
       "passed": true,
-      "evidence": "Error steps E1-E4, invalid status output, already-set, arg-count, subtask, custom/native ID covered."
+      "evidence": "Invalid status, already-set, API errors at each step (task, list, update), arg count, config error all covered with what the user sees and exit codes."
     },
     {
       "text": "consistency: unit, method and type names and signatures agree everywhere they appear across the plan",
       "passed": true,
-      "evidence": "Names (changeTaskStatus, invalidStatusError, FindStatus, UpdateTaskStatus, setCustomTaskIDParams, GetList, updateTaskStatusRequest) consistent."
+      "evidence": "Names/signatures (FindStatus, StatusNames, GetList, UpdateTaskStatus, Put, invalidStatusError, runTasksStatus) consistent across md, html and transcript."
     },
     {
       "text": "api-fit: new interfaces fit the code they plug into (existing types, call sites, layering), so the plan could be implemented without redesign",
       "passed": true,
-      "evidence": "Fits existing client, models.Status, Cobra routing. Weak spot: command flow only E2E-tested since no client seam, but that is a declared consequence of choosing A."
+      "evidence": "Fits existing types (task.List.ID via ListInfo, models.Status, APIError, custom-ID query helper); doRequest body param and Put are needed and designed; implementable without redesign."
     },
     {
       "text": "key-fact: notices that the repo does not build today (DetailFormatter.FormatComments declared twice in internal/output/table.go)",
       "passed": true,
-      "evidence": "Turn 1 flags duplicate FormatComments at table.go:191/238 as merge breakage from 7411557; first commit deletes it."
+      "evidence": "Flagged in turn 1 and in plan Step 0: duplicate FormatComments at table.go:191 and :238, verified in repo."
     }
   ],
   "summary": {
-    "passed": 9,
-    "failed": 0,
+    "passed": 8,
+    "failed": 1,
     "total": 9,
-    "pass_rate": 1.0
+    "pass_rate": 0.89
   },
   "eval_feedback": {
     "suggestions": [
       {
-        "assertion": "preferences-honoured",
-        "reason": "'board order' is ambiguous in run output; a plan relying on API array order passes. Consider requiring explicit Orderindex handling or an assumption."
+        "assertion": "elicitation",
+        "reason": "'No confirmation prompt' is a negative preference; a plan that simply omits a prompt cannot be distinguished from one that considered it. Consider requiring an explicit mention."
       }
     ],
-    "overall": "Evals look reasonable."
+    "overall": "Solid; key-fact assertion is discriminating."
   }
 }

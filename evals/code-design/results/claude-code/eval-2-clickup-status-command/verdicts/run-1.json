@@ -1,32 +1,32 @@
 {
   "scores": {
+    "code-design": {
+      "correctness": 9,
+      "completeness": 9,
+      "clarity": 9,
+      "reviewability": 9,
+      "note": "Catches the real duplicate FormatComments compile break, gives full signatures, numbered call chains, an error table and explicit assumptions, but leaves --debug printing to stdout so --debug -o json can still corrupt JSON."
+    },
+    "superpowers": {
+      "correctness": 7,
+      "completeness": 7,
+      "clarity": 7,
+      "reviewability": 7,
+      "note": "Accurate on Get-only client, local -o flag and stdout debug output, and has a good statusUpdater test seam, but misses the broken build on main while requiring make check to pass, and its single writer conflicts with the stderr notice."
+    },
     "feature-dev": {
       "correctness": 9,
       "completeness": 9,
-      "clarity": 8,
-      "reviewability": 9,
-      "note": "Spots the real build break (duplicate FormatComments at table.go:238), debug-to-stdout corrupting JSON, and the duplicated custom-ID query, and lays out compared architecture options with decisions and risks."
-    },
-    "code-design": {
-      "correctness": 9,
-      "completeness": 8,
       "clarity": 9,
-      "reviewability": 9,
-      "note": "Precisely identifies the build break and which duplicate to delete, with full signatures, data table and numbered call chains including error paths, but offers no JSON output and leaves debug-on-stdout alone."
+      "reviewability": 10,
+      "note": "Catches the compile break (with the merge commit), the stdout debug issue and the duplicated custom-ID logic, compares three architecture options, and covers zero-status and race edge cases, with only a minor unused teamID parameter."
     },
     "plain": {
       "correctness": 6,
       "completeness": 6,
       "clarity": 7,
       "reviewability": 6,
-      "note": "Sound layering and a verified cobra routing check, but asserts make check passes when the repo does not compile and gives only bullet-level unit descriptions with no signatures or call chain."
-    },
-    "superpowers": {
-      "correctness": 7,
-      "completeness": 8,
-      "clarity": 7,
-      "reviewability": 7,
-      "note": "Good design touches (debug to stderr, statusUpdater interface, JSON mode) but misses that main does not build and claims make check passes, and is thin on call-level detail."
+      "note": "Short and mostly accurate (cobra routing verified), but misses the compile break, has no testable seam for the command flow, ignores -o json and debug stdout, and has the thinnest failure-path design."
     }
   },
   "ranking": [
@@ -35,5 +35,5 @@
     "superpowers",
     "plain"
   ],
-  "reason": "W and X were the only plans that discovered the repository does not compile (duplicate DetailFormatter.FormatComments), a fact that changes the first step of any implementation, and they presented concrete decisions that can be challenged individually. W edges X by weighing alternative architectures and covering JSON output, stdout/stderr hygiene and risks, while Z and Y both state that make check passes, which is false, and give less reviewable detail."
+  "reason": "Y and W were the only plans to find that main does not compile (duplicate DetailFormatter.FormatComments, confirmed by go vet), which would break their own make check step, while X and Z missed it. Y edged W by also fixing debug output on stdout, adding a zero-statuses guard and comparing architecture options so the layering decision is visible and challengeable; X and Z were thinner on failure paths and testability."
 }

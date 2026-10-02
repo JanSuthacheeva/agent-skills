@@ -5,696 +5,691 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>mdterm bookmarks - implementation design</title>
 <style>
-  /* Palette mirrors mdterm's own themes (src/theme.rs:97) */
+  /* Palette: mdterm's own dark/light themes (src/theme.rs, Catppuccin Mocha / Latte) */
   :root {
-    --bg: #1e1e2e; --bg2: #181825; --surface: #313244; --surface2: #45475a;
-    --fg: #cdd6f4; --muted: #9399b2; --dim: #6c7086;
-    --blue: #89b4fa; --mauve: #cba6f7; --green: #a6e3a1; --peach: #fab387;
-    --red: #f38ba8; --yellow: #f9e2af; --teal: #94e2d5;
+    --bg: #1e1e2e; --panel: #181825; --surface: #313244; --border: #45475a;
+    --text: #cdd6f4; --sub: #a6adc8; --muted: #7f849c;
+    --new: #a6e3a1; --mod: #f9e2af; --old: #7f849c;
+    --accent: #89b4fa; --mauve: #cba6f7; --red: #f38ba8; --peach: #fab387;
     color-scheme: dark;
   }
   @media (prefers-color-scheme: light) {
     :root {
-      --bg: #eff1f5; --bg2: #e6e9ef; --surface: #ccd0da; --surface2: #bcc0cc;
-      --fg: #4c4f69; --muted: #6c6f85; --dim: #8c8fa1;
-      --blue: #1e66f5; --mauve: #8839ef; --green: #40a02b; --peach: #fe640b;
-      --red: #d20f39; --yellow: #df8e1d; --teal: #179299;
+      --bg: #eff1f5; --panel: #e6e9ef; --surface: #ccd0da; --border: #bcc0cc;
+      --text: #4c4f69; --sub: #5c5f77; --muted: #8c8fa1;
+      --new: #40a02b; --mod: #df8e1d; --old: #8c8fa1;
+      --accent: #1e66f5; --mauve: #8839ef; --red: #d20f39; --peach: #fe640b;
       color-scheme: light;
     }
   }
   *, *::before, *::after { box-sizing: border-box; }
-  html { background: var(--bg); color: var(--fg); }
-  body { margin: 0; font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
-  main { max-width: 1080px; margin: 0 auto; padding: 40px 24px 90px; }
-  h1 { font-size: 28px; margin: 0 0 6px; letter-spacing: -0.01em; }
-  h2 { font-size: 21px; margin: 52px 0 14px; color: var(--blue); }
-  h2 .num { color: var(--dim); font-weight: 500; margin-right: 6px; }
-  h3 { font-size: 16px; margin: 26px 0 8px; color: var(--mauve); }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1080px; margin: 0 auto; padding: 32px 20px 90px; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  h2 { font-size: 20px; margin: 44px 0 12px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+  h2 .num { color: var(--muted); font-weight: 500; margin-right: 6px; }
+  h3 { font-size: 16px; margin: 0; }
   p, li, td { overflow-wrap: anywhere; }
-  code, kbd, .mono { font-family: ui-monospace, "JetBrains Mono", Menlo, monospace; font-size: 0.88em; }
-  code { background: var(--surface); padding: 1px 5px; border-radius: 4px; }
-  kbd { border: 1px solid var(--surface2); border-bottom-width: 2px; padding: 0 5px; border-radius: 4px; background: var(--bg2); }
-  .lede { color: var(--muted); max-width: 800px; margin: 0; }
-  .cite { color: var(--dim); font-size: 12.5px; font-family: ui-monospace, Menlo, monospace; }
-  nav.toc { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 18px 0 0; font-size: 13.5px; }
-  nav.toc a { color: var(--muted); text-decoration: none; }
-  nav.toc a:hover { color: var(--blue); }
-  .recap { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 14px; }
-  .recap > * { min-width: 0; }
-  @media (max-width: 800px) { .recap { grid-template-columns: minmax(0, 1fr); } }
-  .box { background: var(--bg2); border: 1px solid var(--surface); border-radius: 10px; padding: 16px 18px; }
-  .box ul { margin: 6px 0 0; padding-left: 18px; }
-  figure { margin: 8px 0 12px; background: var(--bg2); border: 1px solid var(--surface); border-radius: 10px; padding: 12px; }
-  figcaption { color: var(--dim); font-size: 12.5px; margin-top: 6px; }
+  .lede { color: var(--sub); margin: 0 0 8px; }
+  code, kbd { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.88em;
+    background: var(--surface); padding: 1px 5px; border-radius: 4px; }
+  kbd { border: 1px solid var(--border); }
+  .cite { color: var(--muted); font-family: ui-monospace, Menlo, monospace; font-size: 12px; white-space: nowrap; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; margin: 0 0 14px; min-width: 0; }
+  .card.new { border-left: 4px solid var(--new); }
+  .card.mod { border-left: 4px solid var(--mod); }
+  .meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--sub); margin: 4px 0 8px; }
+  .badge { display: inline-block; font-size: 11.5px; font-weight: 700; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; }
+  .badge.new { color: var(--new); } .badge.mod { color: var(--mod); } .badge.old { color: var(--old); }
+  .resp { margin: 4px 0 10px; }
+  .card ul { margin: 6px 0 10px; padding-left: 18px; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--sub); margin: 6px 0 12px; }
+  .sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; border: 2px solid; vertical-align: -1px; margin-right: 5px; }
+  figure { margin: 8px 0 6px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 10px; }
   svg { width: 100%; height: auto; display: block; }
-  .n rect { stroke-width: 1.6; }
-  .n text { font: 12.5px ui-monospace, Menlo, monospace; fill: var(--fg); }
-  .n .sub { font-size: 11px; fill: var(--muted); }
-  .new rect { fill: color-mix(in srgb, var(--green) 14%, var(--bg)); stroke: var(--green); }
-  .mod rect { fill: color-mix(in srgb, var(--peach) 12%, var(--bg)); stroke: var(--peach); stroke-dasharray: 5 3; }
-  .old rect { fill: var(--bg); stroke: var(--surface2); }
-  .layer { font: 600 11.5px ui-sans-serif, system-ui, sans-serif; fill: var(--dim); letter-spacing: 0.08em; }
-  .e { stroke: var(--muted); stroke-width: 1.4; fill: none; marker-end: url(#arr); }
-  .el { font: 11px ui-sans-serif, system-ui, sans-serif; fill: var(--dim); }
-  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
-  .sw { display: inline-block; width: 14px; height: 10px; border-radius: 3px; vertical-align: -1px; margin-right: 5px; }
-  /* sequence diagrams */
-  .sq-part rect { fill: var(--surface); stroke: var(--surface2); }
-  .sq-part text { font: 12px ui-monospace, Menlo, monospace; fill: var(--fg); }
-  .sq-life { stroke: var(--surface2); stroke-dasharray: 3 4; }
-  .sq-call { stroke: var(--blue); stroke-width: 1.5; fill: none; marker-end: url(#arr-call); }
-  .sq-ret { stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 5 4; fill: none; marker-end: url(#arr-ret); }
-  .sq-err { stroke: var(--red); stroke-width: 1.1; stroke-dasharray: 2 3; fill: none; opacity: 0.75; marker-end: url(#arr-err); }
-  .sq-lbl { font: 11.5px ui-monospace, Menlo, monospace; fill: var(--fg); }
-  .sq-lbl-err { font: 11px ui-monospace, Menlo, monospace; fill: var(--red); opacity: 0.85; }
-  .sq-note { font: italic 11.5px ui-sans-serif, system-ui, sans-serif; fill: var(--yellow); }
-  /* unit cards */
-  .unit { border: 1px solid var(--surface); border-radius: 12px; background: var(--bg2); margin: 16px 0; overflow: hidden; }
-  .unit-h { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: baseline; padding: 14px 18px 10px; border-bottom: 1px solid var(--surface); }
-  .unit-h .path { font: 600 14.5px ui-monospace, Menlo, monospace; }
-  .badge { font-size: 11.5px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--surface2); color: var(--muted); }
-  .badge.new { color: var(--green); border-color: var(--green); }
-  .badge.mod { color: var(--peach); border-color: var(--peach); }
-  .unit-b { padding: 12px 18px 16px; }
-  .unit-b p { margin: 4px 0; }
-  .meta { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 2px 14px; font-size: 14px; margin: 0 0 10px; }
-  .meta dt { color: var(--dim); }
-  .meta dd { margin: 0; }
-  .code { margin: 8px 0 4px; border-radius: 8px; overflow: hidden; border: 1px solid var(--surface); }
-  .code pre.fallback { margin: 0; padding: 12px 14px; background: var(--bg); font: 12.5px/1.5 ui-monospace, Menlo, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
-  .changes { margin: 10px 0 0; padding-left: 18px; font-size: 14px; }
-  .changes li { margin: 3px 0; }
-  ol.steps { font: 13px/1.6 ui-monospace, Menlo, monospace; padding-left: 26px; margin: 8px 0; }
-  ol.steps li { margin: 2px 0; }
-  ol.steps .err { color: var(--red); }
-  ol.steps .note { color: var(--muted); font-family: ui-sans-serif, system-ui, sans-serif; }
+  svg text { font: 12.5px ui-monospace, Menlo, monospace; fill: var(--text); }
+  svg .lbl { font-size: 11px; fill: var(--muted); }
+  svg .grp { font-size: 11px; fill: var(--sub); letter-spacing: .06em; }
+  svg .n-new rect { stroke: var(--new); fill: color-mix(in srgb, var(--new) 12%, transparent); }
+  svg .n-mod rect { stroke: var(--mod); fill: color-mix(in srgb, var(--mod) 12%, transparent); }
+  svg .n-old rect { stroke: var(--old); fill: transparent; stroke-dasharray: 4 3; }
+  svg rect.box { stroke-width: 2; }
+  svg rect.zone { fill: color-mix(in srgb, var(--surface) 35%, transparent); stroke: var(--border); stroke-width: 1; }
+  svg .edge { stroke: var(--sub); stroke-width: 1.5; fill: none; }
+  svg .life { stroke: var(--border); stroke-dasharray: 3 4; }
+  svg .call { stroke: var(--text); stroke-width: 1.4; fill: none; }
+  svg .ret { stroke: var(--sub); stroke-width: 1.2; stroke-dasharray: 5 4; fill: none; }
+  svg .err { stroke: var(--red); stroke-width: 1; stroke-dasharray: 3 3; fill: none; opacity: .8; }
+  svg .errt { fill: var(--red); font-size: 10.5px; opacity: .9; }
+  svg .pbox { fill: var(--surface); stroke: var(--border); }
+  ol.steps { margin: 8px 0 4px; padding-left: 24px; font-size: 14px; }
+  ol.steps li { margin: 3px 0; }
+  ol.steps code { font-size: 12.5px; }
+  .errs { margin: 6px 0 0; padding: 10px 14px; border-left: 3px solid var(--red); background: var(--panel); border-radius: 6px; font-size: 14px; }
+  .errs ul { margin: 4px 0 0; padding-left: 18px; }
   table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--surface); vertical-align: top; }
-  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
-  .tablewrap { overflow-x: auto; border: 1px solid var(--surface); border-radius: 10px; background: var(--bg2); }
-  .dev { color: var(--yellow); font-weight: 600; }
-  .q { background: var(--bg2); border: 1px solid var(--blue); border-radius: 12px; padding: 16px 20px; margin: 14px 0; }
-  .q h4 { margin: 0 0 4px; font-size: 15.5px; }
-  .q p { margin: 0 0 8px; color: var(--muted); font-size: 14px; }
-  .opt { display: flex; gap: 10px; align-items: flex-start; padding: 6px 8px; border-radius: 8px; cursor: pointer; }
-  .opt:hover { background: var(--surface); }
-  .opt input { margin-top: 4px; accent-color: var(--blue); }
-  textarea { width: 100%; background: var(--bg); color: var(--fg); border: 1px solid var(--surface2); border-radius: 8px; padding: 9px; font: inherit; margin-top: 6px; }
-  button { background: var(--blue); color: var(--bg); border: 0; border-radius: 8px; padding: 8px 16px; font: inherit; font-weight: 600; cursor: pointer; margin-top: 8px; }
-  button.ghost { background: transparent; color: var(--blue); border: 1px solid var(--blue); }
-  .status { color: var(--green); font-size: 13px; margin-left: 10px; }
-  .rec { color: var(--green); font-size: 12px; margin-left: 6px; }
-  ul.assume { padding-left: 0; list-style: none; counter-reset: a; margin: 0; }
-  ul.assume li { counter-increment: a; padding: 7px 10px 7px 46px; position: relative; border-bottom: 1px solid var(--surface); }
-  ul.assume li::before { content: "A" counter(a); position: absolute; left: 10px; color: var(--dim); font: 12px ui-monospace, Menlo, monospace; top: 9px; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--sub); font-weight: 600; }
+  .scroll { overflow-x: auto; }
+  .code { margin: 8px 0 4px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+  .note { color: var(--sub); font-size: 13.5px; margin: 6px 0 0; }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 14px; }
+  .grid2 > * { min-width: 0; }
+  form fieldset { border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px 14px; margin: 0 0 14px; min-width: 0; }
+  form legend { font-weight: 600; padding: 0 6px; }
+  form .why { color: var(--sub); font-size: 14px; margin: 0 0 6px; }
+  form label.opt { display: flex; gap: 10px; align-items: flex-start; padding: 5px 4px; cursor: pointer; }
+  form label.opt input { margin-top: 4px; }
+  textarea { width: 100%; min-height: 80px; background: var(--bg); color: var(--text); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px; font: inherit; }
+  button { background: var(--accent); color: var(--bg); border: 0; border-radius: 8px; padding: 10px 18px;
+    font: 600 15px system-ui, sans-serif; cursor: pointer; }
+  .status { margin-left: 12px; color: var(--sub); font-size: 14px; }
+  nav.toc { font-size: 13.5px; color: var(--sub); display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 10px 0 0; }
+  nav.toc a { color: var(--accent); text-decoration: none; }
 </style>
 </head>
 <body>
-<svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill: var(--muted)"/></marker>
-    <marker id="arr-call" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill: var(--blue)"/></marker>
-    <marker id="arr-ret" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10" style="fill: none; stroke: var(--muted); stroke-width: 1.5"/></marker>
-    <marker id="arr-err" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill: var(--red)"/></marker>
-  </defs>
-</svg>
 <main>
 
-<header>
-  <h1>Bookmarks - implementation design</h1>
-  <p class="lede">Approach B: marks anchor to the markdown source line. Signatures only, no bodies. Every name is a proposal, so annotate anything that reads wrong.</p>
-  <nav class="toc">
-    <a href="#recap">1 Decision</a><a href="#overview">2 Structure</a><a href="#units">3 Units</a><a href="#data">4 Data</a>
-    <a href="#chains">5 Call chains</a><a href="#conventions">6 Conventions</a><a href="#tests">7 Test seams</a>
-    <a href="#assumptions">8 Assumptions</a><a href="#questions">9 Approve</a>
-  </nav>
-</header>
+<h1>Bookmarks in mdterm - implementation design</h1>
+<p class="lede">Approach B: source-anchored marks. Signatures only - no bodies. Every name is a proposal; annotate anything you would call or split differently.</p>
+<nav class="toc">
+  <a href="#recap">1 Recap</a><a href="#overview">2 Structure</a><a href="#units">3 Units</a><a href="#data">4 Data</a>
+  <a href="#chains">5 Call chains</a><a href="#conventions">6 Conventions</a><a href="#tests">7 Test seams</a>
+  <a href="#assumptions">8 Assumptions</a><a href="#questions">9 Review decisions</a>
+</nav>
 
 <!-- 1 -->
 <h2 id="recap"><span class="num">1</span>Decision recap</h2>
-<div class="recap">
-  <div class="box">
-    <p style="margin:0">Every rendered <code>Line</code> carries the 0-based source line it came from. A mark saves the source line of the top visible row, and a jump scrolls to the first row rendered from that line or later. Marks persist per file in <code>marks.json</code> under the platform data dir, handled by a new <code>src/marks.rs</code>.</p>
-  </div>
-  <div class="box">
-    <b>Decided in phase 2</b>
-    <ul>
-      <li>Approach <b>B</b> (source line), not raw offset or heading anchor.</li>
-      <li>Mouse capture toggle moves from <kbd>m</kbd> to <kbd>M</kbd>.</li>
-      <li>Shared: a <code>MarkStore</code> module, a pending-prefix field rather than a new <code>ViewMode</code>, and jumps that push onto <code>nav_history</code>.</li>
-    </ul>
-    <b>Decided in review</b>
-    <ul>
-      <li>Marks are <code>a-z</code> only, per file. <code>A-Z</code> cancel like any other key.</li>
-      <li>Resize drift is fixed with the same anchor, as its own commit.</li>
-      <li>JSON view: no marks, shown with a toast.</li>
-    </ul>
-  </div>
+<div class="card">
+  <p style="margin:0 0 8px">The markdown renderer stamps each <code>Line</code> with the 1-based source line it came from, <code>wrap_lines</code> carries it through,
+  and a new <code>marks.rs</code> turns "viewport top" into a <code>Mark</code> (source line + row + text fingerprint) and back, and owns persistence.
+  <code>viewer.rs</code> only handles the two-key sequence and feedback.</p>
+  <ul style="margin:0">
+    <li><strong>Approach B</strong> - source-anchored marks (decided).</li>
+    <li><strong>Mouse capture moves from <kbd>m</kbd> to <kbd>M</kbd></strong> (decided).</li>
+    <li><strong>Storage:</strong> one <code>marks.toml</code> in the platform state dir, keyed by canonical file path (decided).</li>
+    <li><strong>README:</strong> fix the macOS config path while updating the controls tables (decided).</li>
+    <li><strong>Review:</strong> marks are <kbd>a</kbd>-<kbd>z</kbd> only; line + text fingerprint with nearest-match re-anchoring; reusing a letter overwrites silently; missing paths pruned on every save. Names and splits approved.</li>
+  </ul>
 </div>
 
 <!-- 2 -->
 <h2 id="overview"><span class="num">2</span>Structure overview</h2>
-<figure>
-  <svg viewBox="0 0 910 320" role="img" aria-labelledby="ov-t">
-    <title id="ov-t">Units involved, by layer</title>
-    <text class="layer" x="20" y="36">ENTRY</text>
-    <text class="layer" x="210" y="36">VIEWER - viewer.rs</text>
-    <text class="layer" x="470" y="36">RENDERING</text>
-    <text class="layer" x="700" y="36">PERSISTENCE - marks.rs</text>
-
-    <g class="n mod" id="ov-main"><title>main.rs (modified)</title><rect x="20" y="44" width="150" height="50" rx="7"/><text x="32" y="65">main</text><text class="sub" x="32" y="82">mod marks; load()</text></g>
-
-    <g class="n mod" id="ov-handle"><title>handle_event / handle_normal (modified)</title><rect x="210" y="44" width="220" height="50" rx="7"/><text x="222" y="65">handle_event</text><text class="sub" x="222" y="82">handle_normal: m ' M</text></g>
-    <g class="n new" id="ov-markkey"><title>handle_mark_key, MarkPrefix (new)</title><rect x="210" y="114" width="220" height="50" rx="7"/><text x="222" y="135">handle_mark_key</text><text class="sub" x="222" y="152">MarkPrefix</text></g>
-    <g class="n mod" id="ov-state"><title>ViewerState (modified)</title><rect x="210" y="184" width="220" height="50" rx="7"/><text x="222" y="205">ViewerState</text><text class="sub" x="222" y="222">marks, mark_doc, pending_mark</text></g>
-    <g class="n mod" id="ov-status"><title>render_status_bar, help_sections (modified)</title><rect x="210" y="254" width="220" height="50" rx="7"/><text x="222" y="275">render_status_bar</text><text class="sub" x="222" y="292">help_sections</text></g>
-
-    <g class="n mod" id="ov-renderer"><title>Renderer (modified)</title><rect x="470" y="44" width="190" height="50" rx="7"/><text x="482" y="65">Renderer</text><text class="sub" x="482" y="82">markdown.rs</text></g>
-    <g class="n mod" id="ov-line"><title>Line.source_line, wrap_lines (modified)</title><rect x="470" y="114" width="190" height="50" rx="7"/><text x="482" y="135">Line.source_line</text><text class="sub" x="482" y="152">style.rs + wrap_lines</text></g>
-    <g class="n mod" id="ov-json"><title>json.rs (modified, mechanical)</title><rect x="470" y="254" width="190" height="50" rx="7"/><text x="482" y="275">json.rs</text><text class="sub" x="482" y="292">source_line: None</text></g>
-
-    <g class="n new" id="ov-dockey"><title>DocKey, Mark (new)</title><rect x="700" y="114" width="180" height="50" rx="7"/><text x="712" y="135">DocKey, Mark</text><text class="sub" x="712" y="152">value types</text></g>
-    <g class="n new" id="ov-store"><title>MarkStore (new)</title><rect x="700" y="184" width="180" height="50" rx="7"/><text x="712" y="205">MarkStore</text><text class="sub" x="712" y="222">load / get / set</text></g>
-    <g class="n new" id="ov-file"><title>marks.json (new)</title><rect x="700" y="254" width="180" height="50" rx="7"/><text x="712" y="275">marks.json</text><text class="sub" x="712" y="292">data_dir/mdterm</text></g>
-
-    <path class="e" d="M110,44 V16 H896 V209 H884"/><text class="el" x="430" y="12">MarkStore::load()</text>
-    <path class="e" d="M60,94 V209 H206"/><text class="el" x="68" y="200">ViewerOptions.marks</text>
-    <path class="e" d="M320,94 V110"/>
-    <path class="e" d="M320,164 V180"/>
-    <path class="e" d="M320,254 V238"/>
-    <path class="e" d="M430,209 H696"/><text class="el" x="560" y="203">get / set</text>
-    <path class="e" d="M430,192 H448 V139 H466"/><text class="el" x="436" y="178">reads</text>
-    <path class="e" d="M565,94 V110"/>
-    <path class="e" d="M610,254 V168"/>
-    <path class="e" d="M790,184 V168"/>
-    <path class="e" d="M790,234 V250"/>
-  </svg>
-  <figcaption>Arrows point from user to dependency. <code>json.rs</code> only gets <code>source_line: None</code> on its <code>Line</code> literals.</figcaption>
-</figure>
 <div class="legend">
-  <span><span class="sw" style="background:color-mix(in srgb, var(--green) 14%, var(--bg)); border:1.5px solid var(--green)"></span>new</span>
-  <span><span class="sw" style="background:color-mix(in srgb, var(--peach) 12%, var(--bg)); border:1.5px dashed var(--peach)"></span>modified</span>
+  <span><span class="sw" style="border-color:var(--new)"></span>new</span>
+  <span><span class="sw" style="border-color:var(--mod)"></span>modified</span>
+  <span><span class="sw" style="border-color:var(--old);border-style:dashed"></span>existing, unchanged</span>
+  <span>arrow = "depends on / calls"</span>
 </div>
+<figure>
+  <svg viewBox="0 0 900 400" role="img" aria-label="Structure overview">
+    <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--sub)"/></marker></defs>
+    <!-- zones -->
+    <rect class="zone" x="10" y="10" width="200" height="380" rx="10"/><text class="grp" x="24" y="32">ENTRY</text>
+    <rect class="zone" x="230" y="10" width="250" height="380" rx="10"/><text class="grp" x="244" y="32">VIEWER</text>
+    <rect class="zone" x="500" y="10" width="200" height="380" rx="10"/><text class="grp" x="514" y="32">RENDERING</text>
+    <rect class="zone" x="720" y="10" width="170" height="380" rx="10"/><text class="grp" x="734" y="32">BOOKMARKS</text>
+
+    <g class="n-mod" id="ov-main"><title>main.rs - loads MarkStore, passes it in ViewerOptions</title><rect class="box" x="30" y="60" width="160" height="58" rx="7"/><text x="44" y="84">main.rs</text><text class="lbl" x="44" y="103">MarkStore::load()</text></g>
+    <g class="n-mod" id="ov-docs"><title>README.md, CLAUDE.md - controls, config path, module list</title><rect class="box" x="30" y="300" width="160" height="58" rx="7"/><text x="44" y="324">README / CLAUDE.md</text><text class="lbl" x="44" y="343">keys, paths, modules</text></g>
+
+    <g class="n-mod" id="ov-viewer"><title>viewer.rs - PendingMark, set_mark, jump_to_mark, M rebind</title><rect class="box" x="250" y="60" width="210" height="96" rx="7"/><text x="264" y="84">viewer.rs</text><text class="lbl" x="264" y="104">PendingMark · handle_mark_key</text><text class="lbl" x="264" y="121">set_mark · jump_to_mark</text><text class="lbl" x="264" y="138">top_line · scroll_to_line</text></g>
+    <g class="n-old" id="ov-nav"><title>nav_history - Backspace returns after a jump</title><rect class="box" x="250" y="200" width="210" height="44" rx="7"/><text x="264" y="227">nav_history</text></g>
+
+    <g class="n-mod" id="ov-md"><title>markdown.rs - stamps source_line via SourceLines</title><rect class="box" x="520" y="60" width="160" height="58" rx="7"/><text x="534" y="84">markdown.rs</text><text class="lbl" x="534" y="103">stamp_source_line</text></g>
+    <g class="n-mod" id="ov-style"><title>style.rs - Line.source_line, Line::new, wrap_lines propagates</title><rect class="box" x="520" y="170" width="160" height="58" rx="7"/><text x="534" y="194">style.rs</text><text class="lbl" x="534" y="213">Line.source_line</text></g>
+    <g class="n-mod" id="ov-json"><title>json.rs - Line literals become Line::new (source_line None)</title><rect class="box" x="520" y="280" width="160" height="58" rx="7"/><text x="534" y="304">json.rs</text><text class="lbl" x="534" y="323">Line::new only</text></g>
+
+    <g class="n-new" id="ov-marks"><title>marks.rs - MarkStore, Mark, anchor_at, resolve</title><rect class="box" x="735" y="60" width="140" height="96" rx="7"/><text x="749" y="84">marks.rs</text><text class="lbl" x="749" y="104">MarkStore</text><text class="lbl" x="749" y="121">anchor_at</text><text class="lbl" x="749" y="138">resolve</text></g>
+    <g class="n-new" id="ov-disk"><title>marks.toml in dirs::state_dir() or data_local_dir()</title><rect class="box" x="735" y="280" width="140" height="58" rx="7"/><text x="749" y="304">marks.toml</text><text class="lbl" x="749" y="323">state dir</text></g>
+
+    <path class="edge" marker-end="url(#arr)" d="M190 88 H246"><title>main passes ViewerOptions { marks }</title></path>
+    <path class="edge" marker-end="url(#arr)" d="M150 60 V40 H805 V56"><title>main calls MarkStore::load</title></path>
+    <path class="edge" marker-end="url(#arr)" d="M460 80 H516"><title>viewer calls render_with</title></path>
+    <path class="edge" marker-end="url(#arr)" d="M460 130 Q600 140 731 120"><title>viewer calls anchor_at / resolve / get / set</title></path>
+    <path class="edge" marker-end="url(#arr)" d="M355 156 V196"><title>jump pushes nav_history</title></path>
+    <path class="edge" marker-end="url(#arr)" d="M600 118 V166"><title>markdown builds Line</title></path>
+    <path class="edge" marker-end="url(#arr)" d="M600 280 V232"><title>json builds Line</title></path>
+    <path class="edge" marker-end="url(#arr)" d="M760 156 Q720 200 684 200"><title>marks reads Line.source_line</title></path>
+    <path class="edge" marker-end="url(#arr)" d="M805 156 V276"><title>MarkStore reads/writes marks.toml</title></path>
+  </svg>
+</figure>
+<p class="note">Rule of the layering: the renderer records facts (<code>source_line</code>), <code>marks.rs</code> owns persistence and position mapping, <code>viewer.rs</code> owns keys, scrolling and toasts. <code>marks.rs</code> never touches <code>ViewerState</code>; it only sees <code>&amp;[Line]</code> and <code>&amp;str</code>.</p>
 
 <!-- 3 -->
 <h2 id="units"><span class="num">3</span>Units</h2>
 
-<section class="unit" id="u-marks">
-  <div class="unit-h"><span class="path">src/marks.rs</span><span class="badge new">new</span><span class="badge">persistence</span></div>
-  <div class="unit-b">
-    <dl class="meta">
-      <dt>Responsibility</dt><dd>Store per-document marks and persist them to <code>marks.json</code>.</dd>
-      <dt>Collaborators</dt><dd><code>dirs::data_dir</code>, <code>serde_json</code>, <code>std::fs</code>. No dependency on viewer types.</dd>
-    </dl>
-    <div class="code" data-name="src/marks.rs" data-src="src-marks"></div>
-    <script type="text/plain" id="src-marks">use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
-use std::io;
-use std::path::{Path, PathBuf};
+<div class="card new" id="unit-marks">
+  <h3>marks.rs</h3>
+  <div class="meta"><span class="badge new">NEW</span><span><code>src/marks.rs</code></span><span>layer: bookmarks (pure logic + persistence)</span></div>
+  <p class="resp">Owns bookmark persistence and the mapping between a layout position and a source-anchored <code>Mark</code>.</p>
+  <p class="note"><strong>Collaborators:</strong> <code>crate::style::Line</code> (reads <code>source_line</code>), <code>dirs</code>, <code>toml</code>, <code>serde</code>. No dependency on the viewer.</p>
+  <ul>
+    <li><code>MarkStore::load()</code> - store backed by <code>marks_path()</code>; a missing or unreadable file yields an empty store (never fails).</li>
+    <li><code>MarkStore::load_from(path)</code> - same with an explicit path; <code>None</code> gives a session-only store (tests, no state dir).</li>
+    <li><code>MarkStore::get(file, letter)</code> - in-memory lookup; returns <code>None</code> if unset.</li>
+    <li><code>MarkStore::set(file, letter, mark)</code> - updates memory first, then re-reads the file, merges, prunes paths that no longer exist, and writes atomically (tmp + rename). Returns <code>MarkStoreError</code> if it could not persist; the mark still works this session.</li>
+    <li><code>anchor_at(wrapped, top, source)</code> - builds the mark for the viewport top; <code>None</code> if no line in the layout has a source line (empty doc, JSON).</li>
+    <li><code>resolve(mark, wrapped, source)</code> - where the mark lands now; re-anchors by text after edits; <code>None</code> only if the layout is empty.</li>
+  </ul>
+  <div class="code" data-code="marks"></div>
+</div>
 
-/// Identity of a document across sessions: its canonical absolute path.
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-#[serde(transparent)]
-pub struct DocKey(String);
+<div class="card mod" id="unit-style">
+  <h3>style.rs</h3>
+  <div class="meta"><span class="badge mod">MODIFIED</span><span><code>src/style.rs</code></span><span>layer: rendering data types</span></div>
+  <p class="resp"><code>Line</code> gains its source position, and wrapping preserves it.</p>
+  <ul>
+    <li><code>Line.source_line</code> - new field, 1-based, <code>None</code> for content without markdown source.</li>
+    <li><code>Line::new(spans, meta)</code> - new constructor; the ~50 <code>Line { .. }</code> literals in <code>markdown.rs</code>, <code>json.rs</code>, <code>style.rs</code>, <code>viewer.rs</code> move to it so future fields do not touch every site again.</li>
+    <li><code>wrap_lines</code> - signature unchanged; every output line copies <code>source_line</code> from its input line in both the blockquote and plain branches (<span class="cite">style.rs:111-141</span>).</li>
+  </ul>
+  <div class="code" data-code="style"></div>
+</div>
 
-impl DocKey {
-    /// `None` for `<stdin>` or a path that cannot be canonicalized.
-    pub fn for_file(path: &str) -> Option<DocKey> { ... }
-}
+<div class="card mod" id="unit-markdown">
+  <h3>markdown.rs</h3>
+  <div class="meta"><span class="badge mod">MODIFIED</span><span><code>src/markdown.rs</code></span><span>layer: rendering</span></div>
+  <p class="resp">Stamps the source line onto every line it emits, in one place: the <code>into_offset_iter</code> loop.</p>
+  <ul>
+    <li><code>render_with</code> - signature unchanged. Around each <code>renderer.process(event, range)</code> it records <code>lines.len()</code> before, then stamps the new lines with <code>SourceLines::line_of(range.start)</code>. Lines pushed on a block's <code>End</code> event get the block's start line. The final <code>flush_line</code> is stamped with the last source line.</li>
+    <li><code>Renderer</code> itself is untouched.</li>
+  </ul>
+  <div class="code" data-code="markdown"></div>
+</div>
 
-/// A saved position, anchored to a 0-based line of the markdown source.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Mark {
-    pub source_line: usize,
-}
+<div class="card mod" id="unit-viewer">
+  <h3>viewer.rs</h3>
+  <div class="meta"><span class="badge mod">MODIFIED</span><span><code>src/viewer.rs</code></span><span>layer: interactive TUI</span></div>
+  <p class="resp">Handles the <kbd>m</kbd>/<kbd>'</kbd> + letter sequence and turns mark results into scrolling and toasts.</p>
+  <p class="note"><strong>Collaborators:</strong> <code>MarkStore</code> injected through <code>ViewerOptions</code>, <code>marks::anchor_at</code>, <code>marks::resolve</code>.</p>
+  <ul>
+    <li><code>ViewerOptions.marks</code> / <code>ViewerState.marks</code> - injected store; <code>ViewerState.pending_mark</code> - the half-typed sequence.</li>
+    <li><code>markable_file()</code> - canonical path of the current file; <code>None</code> for stdin or JSON.</li>
+    <li><code>top_line()</code> - <code>offset</code>, or the current slide's first line in slide mode.</li>
+    <li><code>scroll_to_line(idx)</code> - <code>offset = idx.min(max_offset())</code>, or selects the slide containing <code>idx</code>.</li>
+    <li><code>set_mark(letter)</code> / <code>jump_to_mark(letter)</code> - the two actions; feedback via <code>set_toast</code>, no return value.</li>
+    <li><code>handle_mark_key</code> - completes a sequence; a lowercase <kbd>a</kbd>-<kbd>z</kbd> dispatches; anything else, including uppercase, cancels silently.</li>
+    <li><strong>Changed:</strong> <code>handle_event</code> consumes <code>pending_mark</code> right after the Ctrl+C check and <em>before</em> <code>is_help_toggle</code> (<span class="cite">viewer.rs:996-1015</span>), so <kbd>m</kbd> <kbd>h</kbd> sets mark <code>h</code>. <code>handle_normal</code>: <kbd>m</kbd>/<kbd>'</kbd> start a sequence, mouse capture moves to <kbd>M</kbd> (<span class="cite">viewer.rs:1647</span>). <code>handle_slide_keys</code> gets the same two bindings. <code>finalize_layout</code> copies <code>source_line</code> to expanded image rows (<span class="cite">viewer.rs:638-647</span>). <code>render_status_bar</code> shows <code> m█ </code> / <code> '█ </code> while pending, like the search prompt (<span class="cite">viewer.rs:2819</span>). <code>help_sections</code> gets the new entries.</li>
+  </ul>
+  <div class="code" data-code="viewer"></div>
+</div>
 
-#[derive(Default, Serialize, Deserialize)]
-struct MarksFile {
-    #[serde(default)]
-    files: BTreeMap<DocKey, BTreeMap<char, Mark>>,
-}
-
-pub struct MarkStore {
-    path: Option<PathBuf>,
-    marks: MarksFile,
-}
-
-impl MarkStore {
-    /// Loads marks.json; a missing, unreadable or corrupt file yields an empty store.
-    pub fn load() -> Self { ... }
-
-    /// A store that never touches disk.
-    #[cfg(test)]
-    pub fn in_memory() -> Self { ... }
-
-    fn open(path: Option<PathBuf>) -> Self { ... }
-
-    pub fn get(&self, doc: &DocKey, name: char) -> Option<Mark> { ... }
-
-    /// Records the mark in memory, then merges it into the file on disk.
-    /// The in-memory mark survives a failed save.
-    pub fn set(&mut self, doc: &DocKey, name: char, mark: Mark) -> io::Result<()> { ... }
-}
-
-/// `Ok(MarksFile::default())` if the file does not exist, `InvalidData` if it does not parse.
-fn read_marks_file(path: &Path) -> io::Result<MarksFile> { ... }
-
-/// Writes a sibling temp file and renames it over `path`, creating the parent dir.
-fn write_marks_file(path: &Path, marks: &MarksFile) -> io::Result<()> { ... }
-
-/// `dirs::data_dir()/mdterm/marks.json`
-fn marks_path() -> Option<PathBuf> { ... }</script>
+<div class="grid2">
+  <div class="card mod" id="unit-main">
+    <h3>main.rs</h3>
+    <div class="meta"><span class="badge mod">MODIFIED</span><span><code>src/main.rs</code></span><span>layer: entry</span></div>
+    <p class="resp">Loads the mark store and injects it into the viewer.</p>
+    <div class="code" data-code="main"></div>
   </div>
-</section>
-
-<section class="unit" id="u-style">
-  <div class="unit-h"><span class="path">src/style.rs</span><span class="badge mod">modified</span><span class="badge">data types</span></div>
-  <div class="unit-b">
-    <dl class="meta">
-      <dt>Responsibility</dt><dd>Unchanged: line data types and wrapping. <code>Line</code> gains its source position.</dd>
-    </dl>
-    <div class="code" data-name="src/style.rs" data-src="src-style"></div>
-    <script type="text/plain" id="src-style">#[derive(Clone, Debug, Default)]
-pub struct Line {
-    pub spans: Vec<StyledSpan>,
-    pub meta: LineMeta,
-    /// 0-based markdown source line this row was rendered from; `None` for JSON rows.
-    pub source_line: Option<usize>,
-}
-
-impl Line {
-    pub fn empty() -> Self { ... } // source_line: None
-}
-
-pub fn wrap_lines(lines: &[Line], width: usize) -> Vec<Line> { ... } // signature unchanged</script>
-    <ul class="changes">
-      <li><code>wrap_lines</code> and <code>word_wrap</code> copy <code>source_line</code> to <b>every</b> fragment, unlike <code>meta</code>, which only goes to all fragments for clickable kinds <span class="cite">style.rs:126-130</span>.</li>
-      <li>All 11 <code>Line { .. }</code> literals in style.rs get the field.</li>
-    </ul>
+  <div class="card mod" id="unit-json">
+    <h3>json.rs</h3>
+    <div class="meta"><span class="badge mod">MODIFIED</span><span><code>src/json.rs</code></span><span>layer: rendering</span></div>
+    <p class="resp">Mechanical: its 20 <code>Line { .. }</code> literals become <code>Line::new(..)</code>; lines keep <code>source_line: None</code>. No behaviour change.</p>
   </div>
-</section>
-
-<section class="unit" id="u-markdown">
-  <div class="unit-h"><span class="path">src/markdown.rs</span><span class="badge mod">modified</span><span class="badge">rendering</span></div>
-  <div class="unit-b">
-    <dl class="meta">
-      <dt>Responsibility</dt><dd>Unchanged: turn pulldown-cmark events into lines. Now also stamps each line with its source line.</dd>
-      <dt>Collaborators</dt><dd>Byte ranges from <code>into_offset_iter()</code> <span class="cite">markdown.rs:1585</span>; no new dependencies.</dd>
-    </dl>
-    <div class="code" data-name="src/markdown.rs" data-src="src-markdown"></div>
-    <script type="text/plain" id="src-markdown">struct Renderer<'a> {
-    // ...existing fields
-
-    // Source mapping
-    line_starts: Vec<usize>,
-    code_block_first_line: usize,
-}
-
-impl<'a> Renderer<'a> {
-    /// 0-based source line containing `byte_offset` (binary search over `line_starts`).
-    fn source_line_at(&self, byte_offset: usize) -> usize { ... }
-
-    /// Sets the source line of `byte_offset` on every line pushed since index `from`
-    /// that does not have one yet.
-    fn stamp_source_lines(&mut self, from: usize, byte_offset: usize) { ... }
-}
-
-/// Byte offset of the start of every source line.
-fn line_starts(source: &str) -> Vec<usize> { ... }
-
-pub fn render_with(
-    input: &str,
-    width: usize,
-    theme: &Theme,
-    line_numbers: bool,
-    syntect_res: &SyntectRes,
-) -> (Vec<Line>, DocumentInfo) { ... } // signature unchanged</script>
-    <ul class="changes">
-      <li><code>render_with</code> loop: remember <code>lines.len()</code>, call <code>process</code>, then <code>stamp_source_lines(from, range.start)</code>. The same happens after the final <code>flush_line()</code>, using the last source line. End events carry the whole block's range, so lines flushed at block end get the block's first line.</li>
-      <li><code>process</code>: <code>Start(Tag::CodeBlock(kind))</code> sets <code>code_block_first_line</code>. For fenced blocks this is the fence line + 1, for indented blocks the start line.</li>
-      <li><code>emit_code_block</code>: content row <code>i</code> gets <code>code_block_first_line + i</code> directly, so marks inside long code blocks are exact. Borders, tables, diagrams and images fall back to the block start.</li>
-      <li>All 15 <code>Line { .. }</code> literals get <code>source_line: None</code>. The stamp fills them in.</li>
-    </ul>
+  <div class="card mod" id="unit-docs">
+    <h3>README.md, CLAUDE.md</h3>
+    <div class="meta"><span class="badge mod">MODIFIED</span><span>docs</span></div>
+    <p class="resp">README: <kbd>m</kbd>/<kbd>'</kbd> and <kbd>M</kbd> in the controls tables, a short "Bookmarks" note with the marks file location, and the config path corrected for macOS (<code>dirs::config_dir()</code> is <code>~/Library/Application Support</code> there, not <code>~/.config</code>). CLAUDE.md: "Ten source files" becomes eleven, with a <code>marks.rs</code> entry.</p>
   </div>
-</section>
-
-<section class="unit" id="u-json">
-  <div class="unit-h"><span class="path">src/json.rs</span><span class="badge mod">modified</span><span class="badge">rendering</span></div>
-  <div class="unit-b">
-    <p>Mechanical only: its 20 <code>Line { .. }</code> literals get <code>source_line: None</code>. No source mapping for JSON rows, so marks are unavailable in the JSON view (A11).</p>
-  </div>
-</section>
-
-<section class="unit" id="u-state">
-  <div class="unit-h"><span class="path">src/viewer.rs - ViewerState</span><span class="badge mod">modified</span><span class="badge">viewer</span></div>
-  <div class="unit-b">
-    <dl class="meta">
-      <dt>Responsibility</dt><dd>Unchanged: viewer state. Gains mark resolution between source lines and scroll offsets.</dd>
-      <dt>Injected</dt><dd><code>MarkStore</code> via <code>ViewerOptions</code>, like <code>theme</code>.</dd>
-    </dl>
-    <div class="code" data-name="src/viewer.rs" data-src="src-state"></div>
-    <script type="text/plain" id="src-state">use crate::marks::{DocKey, Mark, MarkStore};
-
-pub struct ViewerOptions {
-    // ...existing fields
-    pub marks: MarkStore,
-}
-
-struct ViewerState {
-    // ...existing fields
-
-    // Marks
-    marks: MarkStore,
-    mark_doc: Option<DocKey>,
-    pending_mark: Option<MarkPrefix>,
-}
-
-impl ViewerState {
-    /// Source line of the top visible row, or of the first stamped row below it.
-    fn top_source_line(&self) -> Option<usize> { ... }
-
-    /// Offset of the first row rendered from `source_line` or later, clamped to `max_offset()`.
-    fn offset_for_source_line(&self, source_line: usize) -> usize { ... }
-
-    /// Saves mark `name` at the top visible source line and toasts the outcome.
-    fn set_mark(&mut self, name: char) { ... }
-
-    /// Pushes the current position onto `nav_history` and scrolls to mark `name`, or toasts why not.
-    fn jump_to_mark(&mut self, name: char) { ... }
-}</script>
-    <ul class="changes">
-      <li><code>new()</code>: <code>mark_doc = DocKey::for_file(&amp;opts.filename)</code>, <code>pending_mark = None</code>.</li>
-      <li><code>rebuild()</code> <b>(own commit, fixes resize drift)</b>: capture <code>top_source_line()</code> before re-rendering and restore it with <code>offset_for_source_line()</code> afterwards. This replaces the <code>saved_offset</code> restore <span class="cite">viewer.rs:491, 598</span>, which stays as the fallback when there is no source line (JSON view).</li>
-      <li><code>switch_file()</code>: refreshes <code>mark_doc</code> for the new path and clears <code>pending_mark</code>.</li>
-      <li><code>finalize_layout()</code>: expanded image rows copy the placeholder's <code>source_line</code> <span class="cite">viewer.rs:638-647</span>.</li>
-      <li>3 <code>Line { .. }</code> literals (incl. test helper <code>line()</code>) get the field; <code>make_state_with_lines</code> passes <code>MarkStore::in_memory()</code> <span class="cite">viewer.rs:4249</span>.</li>
-    </ul>
-  </div>
-</section>
-
-<section class="unit" id="u-keys">
-  <div class="unit-h"><span class="path">src/viewer.rs - key handling</span><span class="badge mod">modified</span><span class="badge new">+ new fn</span><span class="badge">viewer</span></div>
-  <div class="unit-b">
-    <dl class="meta">
-      <dt>Responsibility</dt><dd>Turn the two-key <kbd>m</kbd>/<kbd>'</kbd> + letter sequence into <code>set_mark</code> / <code>jump_to_mark</code> calls.</dd>
-    </dl>
-    <div class="code" data-name="src/viewer.rs" data-src="src-keys"></div>
-    <script type="text/plain" id="src-keys">/// First key of a two-key mark command, waiting for the mark letter.
-#[derive(PartialEq, Copy, Clone, Debug)]
-enum MarkPrefix {
-    Set,
-    Jump,
-}
-
-/// Completes a pending `m` / `'`: `a-z` sets or jumps, any other key (including `A-Z`) cancels.
-fn handle_mark_key(state: &mut ViewerState, prefix: MarkPrefix, code: KeyCode) { ... }
-
-fn handle_event(state: &mut ViewerState, ev: Event) -> bool { ... }                       // signature unchanged
-fn handle_normal(state: &mut ViewerState, code: KeyCode, mods: KeyModifiers) -> bool { ... } // signature unchanged</script>
-    <ul class="changes">
-      <li><code>handle_event</code>: right after the Ctrl+c check and <b>before</b> <code>is_help_toggle</code>, if <code>mode == Normal</code> and <code>pending_mark.take()</code> is <code>Some</code>, call <code>handle_mark_key</code>, mark dirty and return. Without this, <kbd>m</kbd><kbd>h</kbd> would open help <span class="cite">viewer.rs:999</span>.</li>
-      <li><code>handle_normal</code>: <code>Char('m')</code> sets <code>pending_mark = Some(Set)</code>, <code>Char('\'')</code> sets <code>Some(Jump)</code>. The existing mouse-toggle body moves unchanged to a <code>Char('M')</code> arm <span class="cite">viewer.rs:1647-1663</span>. The new arms sit after the slide-mode early return, so slides are unaffected.</li>
-      <li><code>handle_mark_key</code> accepts <code>KeyCode::Char(c) if c.is_ascii_lowercase()</code>. Everything else, <code>A-Z</code> included, falls through to cancel.</li>
-    </ul>
-  </div>
-</section>
-
-<section class="unit" id="u-ui">
-  <div class="unit-h"><span class="path">src/viewer.rs - status bar and help</span><span class="badge mod">modified</span><span class="badge">viewer</span></div>
-  <div class="unit-b">
-    <ul class="changes" style="margin-top:0">
-      <li><code>render_status_bar</code>: while <code>pending_mark</code> is set, show <code>" m█ "</code> or <code>" '█ "</code> in <code>theme.search_prompt</code>, in an early-return branch that mirrors the search-input label <span class="cite">viewer.rs:2819-2837</span>.</li>
-      <li><code>help_sections</code>: Navigation gains <code>("m a-z", "Set mark")</code> and <code>("' a-z", "Jump to mark")</code>. In Actions, <code>("m", "Toggle mouse capture ...")</code> becomes <code>("M", ...)</code> <span class="cite">viewer.rs:3637</span>. The existing duplicate-key test covers it <span class="cite">viewer.rs:3976</span>.</li>
-    </ul>
-  </div>
-</section>
-
-<section class="unit" id="u-main">
-  <div class="unit-h"><span class="path">src/main.rs</span><span class="badge mod">modified</span><span class="badge">entry</span></div>
-  <div class="unit-b">
-    <div class="code" data-name="src/main.rs" data-src="src-main"></div>
-    <script type="text/plain" id="src-main">mod marks;
-
-// interactive branch only (export and piped output never load marks)
-let opts = viewer::ViewerOptions {
-    // ...existing fields
-    marks: marks::MarkStore::load(),
-};</script>
-  </div>
-</section>
-
-<section class="unit" id="u-docs">
-  <div class="unit-h"><span class="path">README.md, CLAUDE.md</span><span class="badge mod">modified</span><span class="badge">docs</span></div>
-  <div class="unit-b">
-    <ul class="changes" style="margin-top:0">
-      <li>README key table: add <code>m</code> + letter, <code>'</code> + letter, and <code>M</code> for mouse capture. The current <code>m</code> binding is missing from the README entirely <span class="cite">README.md:96-110</span>.</li>
-      <li>CLAUDE.md: "Ten source files" becomes eleven, plus a <code>marks.rs</code> bullet.</li>
-    </ul>
-  </div>
-</section>
+</div>
 
 <!-- 4 -->
 <h2 id="data"><span class="num">4</span>Data</h2>
-<div class="tablewrap">
+<div class="scroll">
 <table>
-  <thead><tr><th>Type</th><th>Fields</th><th>Boundary crossed</th></tr></thead>
+  <thead><tr><th>Type</th><th>Where</th><th>Fields</th><th>Crosses</th></tr></thead>
   <tbody>
-    <tr><td><code>Line.source_line</code> <span class="badge mod">field</span></td><td><code>Option&lt;usize&gt;</code>, 0-based</td><td>markdown.rs / json.rs to style.rs (wrap) to viewer.rs</td></tr>
-    <tr><td><code>Mark</code> <span class="badge new">new</span></td><td><code>source_line: usize</code></td><td>viewer.rs to marks.rs; marks.rs to disk</td></tr>
-    <tr><td><code>DocKey</code> <span class="badge new">new</span></td><td>newtype over canonical path <code>String</code></td><td>viewer.rs to marks.rs; disk map key</td></tr>
-    <tr><td><code>MarksFile</code> <span class="badge new">private</span></td><td><code>files: BTreeMap&lt;DocKey, BTreeMap&lt;char, Mark&gt;&gt;</code></td><td>marks.rs to disk only</td></tr>
-    <tr><td><code>MarkPrefix</code> <span class="badge new">private</span></td><td><code>Set | Jump</code></td><td>inside viewer.rs</td></tr>
-    <tr><td><code>ViewerOptions.marks</code> <span class="badge mod">field</span></td><td><code>MarkStore</code></td><td>main.rs to viewer.rs</td></tr>
+    <tr><td><code>Line.source_line</code></td><td>style.rs</td><td><code>Option&lt;usize&gt;</code>, 1-based</td><td>markdown.rs &rarr; wrap_lines &rarr; viewer &rarr; marks.rs</td></tr>
+    <tr><td><code>Mark</code></td><td>marks.rs</td><td><code>line: usize</code>, <code>row: usize</code>, <code>text: String</code></td><td>marks.rs &harr; disk; marks.rs &rarr; viewer (opaque, passed back)</td></tr>
+    <tr><td><code>MarkTarget</code></td><td>marks.rs</td><td><code>line_idx: usize</code>, <code>exact: bool</code></td><td>marks.rs &rarr; viewer</td></tr>
+    <tr><td><code>MarkStoreError</code></td><td>marks.rs</td><td><code>NoStateDir</code> · <code>Corrupt(PathBuf)</code> · <code>NewerVersion(u32)</code> · <code>Io(io::Error)</code></td><td>marks.rs &rarr; viewer (toast text via <code>Display</code>)</td></tr>
+    <tr><td><code>MarksFile</code></td><td>marks.rs (private)</td><td><code>version: u32</code>, <code>files: BTreeMap&lt;String, BTreeMap&lt;String, Mark&gt;&gt;</code></td><td>marks.rs &harr; <code>marks.toml</code> only</td></tr>
+    <tr><td><code>PendingMark</code></td><td>viewer.rs (private)</td><td><code>Set</code> · <code>Jump</code></td><td>inside viewer.rs</td></tr>
   </tbody>
 </table>
 </div>
-<h3>marks.json on disk</h3>
-<div class="code" data-name="~/Library/Application Support/mdterm/marks.json" data-src="src-json"></div>
-<script type="text/plain" id="src-json">{
-  "files": {
-    "/Users/jan/notes/rust.md": {
-      "a": { "source_line": 141 },
-      "b": { "source_line": 7 }
-    }
-  }
-}</script>
-<p class="cite">No migration: the file is new. A missing <code>files</code> key deserializes to empty.</p>
+<div class="grid2" style="margin-top:12px">
+  <div><div class="code" data-code="data"></div></div>
+  <div>
+    <div class="code" data-code="toml"></div>
+    <p class="note">Location: <code>dirs::state_dir()</code> (Linux: <code>~/.local/state/mdterm/marks.toml</code>), else <code>dirs::data_local_dir()</code> (macOS: <code>~/Library/Application Support/mdterm/marks.toml</code>). Letter keys are strings because TOML keys must be. <code>version</code> lets a future format change migrate instead of discarding marks; a missing <code>version</code> reads as 1.</p>
+  </div>
+</div>
 
 <!-- 5 -->
 <h2 id="chains"><span class="num">5</span>Call chains</h2>
-<div class="legend" style="margin-bottom:6px">
-  <span><svg width="34" height="10" style="display:inline;width:34px;vertical-align:middle"><path d="M0,5 H30" class="sq-call"/></svg> call</span>
-  <span><svg width="34" height="10" style="display:inline;width:34px;vertical-align:middle"><path d="M0,5 H30" class="sq-ret"/></svg> return</span>
-  <span><svg width="34" height="10" style="display:inline;width:34px;vertical-align:middle"><path d="M0,5 H30" class="sq-err"/></svg> error path</span>
+<div class="legend">
+  <span><svg width="34" height="10" style="display:inline;width:34px;vertical-align:middle"><line x1="0" y1="5" x2="34" y2="5" class="call"/></svg> call</span>
+  <span><svg width="34" height="10" style="display:inline;width:34px;vertical-align:middle"><line x1="0" y1="5" x2="34" y2="5" class="ret"/></svg> return</span>
+  <span><svg width="34" height="10" style="display:inline;width:34px;vertical-align:middle"><line x1="0" y1="5" x2="34" y2="5" class="err"/></svg> error path</span>
 </div>
 
-<h3 id="chain-set">Set a mark: <kbd>m</kbd> <kbd>a</kbd></h3>
-<figure><svg id="seq-set" viewBox="0 0 920 596" role="img" aria-label="seq-set sequence"><title>seq-set sequence diagram</title><g class="sq-part"><title>handle_event</title><rect x="14.400000000000006" y="8" width="111.19999999999999" height="30" rx="6"/><text x="70.0" y="28" text-anchor="middle">handle_event</text></g><line class="sq-life" x1="70.0" y1="38" x2="70.0" y2="592"/><g class="sq-part"><title>handle_mark_key</title><rect x="198.0" y="8" width="134.0" height="30" rx="6"/><text x="265.0" y="28" text-anchor="middle">handle_mark_key</text></g><line class="sq-life" x1="265.0" y1="38" x2="265.0" y2="592"/><g class="sq-part"><title>ViewerState</title><rect x="408.2" y="8" width="103.6" height="30" rx="6"/><text x="460.0" y="28" text-anchor="middle">ViewerState</text></g><line class="sq-life" x1="460.0" y1="38" x2="460.0" y2="592"/><g class="sq-part"><title>MarkStore</title><rect x="607.0" y="8" width="96" height="30" rx="6"/><text x="655.0" y="28" text-anchor="middle">MarkStore</text></g><line class="sq-life" x1="655.0" y1="38" x2="655.0" y2="592"/><g class="sq-part"><title>marks.json</title><rect x="802.0" y="8" width="96" height="30" rx="6"/><text x="850.0" y="28" text-anchor="middle">marks.json</text></g><line class="sq-life" x1="850.0" y1="38" x2="850.0" y2="592"/><text class="sq-note" x="20" y="68">key m</text><path class="sq-call" d="M70.0,90 H456.0"/><text class="sq-lbl" x="78.0" y="84">handle_normal: pending_mark = Some(Set)</text><text class="sq-note" x="20" y="124">key a</text><path class="sq-call" d="M70.0,146 H456.0"/><text class="sq-lbl" x="78.0" y="140">pending_mark.take()</text><path class="sq-ret" d="M460.0,176 H74.0"/><text class="sq-lbl" x="452.0" y="170" text-anchor="end">Some(MarkPrefix::Set)</text><path class="sq-call" d="M70.0,206 H261.0"/><text class="sq-lbl" x="78.0" y="200">handle_mark_key(state, Set, Char(&#x27;a&#x27;))</text><path class="sq-err" d="M265.0,236 h26 v14 h-22"/><text class="sq-lbl-err" x="297.0" y="247">not a-z -&gt; cancel, key swallowed</text><path class="sq-call" d="M265.0,270 H456.0"/><text class="sq-lbl" x="273.0" y="264">set_mark(&#x27;a&#x27;)</text><path class="sq-err" d="M460.0,300 h26 v14 h-22"/><text class="sq-lbl-err" x="492.0" y="311">mark_doc None -&gt; toast</text><path class="sq-call" d="M460.0,334 h26 v14 h-22"/><text class="sq-lbl" x="492.0" y="345">top_source_line(): Option&lt;usize&gt;</text><path class="sq-err" d="M460.0,368 h26 v14 h-22"/><text class="sq-lbl-err" x="492.0" y="379">None (JSON view) -&gt; toast</text><path class="sq-call" d="M460.0,402 H651.0"/><text class="sq-lbl" x="468.0" y="396">set(&amp;doc, &#x27;a&#x27;, Mark { source_line })</text><path class="sq-call" d="M655.0,432 H846.0"/><text class="sq-lbl" x="663.0" y="426">read, merge, write (tmp + rename)</text><path class="sq-ret" d="M850.0,462 H659.0"/><text class="sq-lbl" x="842.0" y="456" text-anchor="end">io::Result&lt;()&gt;</text><path class="sq-ret" d="M655.0,492 H464.0"/><text class="sq-lbl" x="647.0" y="486" text-anchor="end">Ok(())</text><path class="sq-err" d="M655.0,522 H464.0"/><text class="sq-lbl-err" x="647.0" y="516" text-anchor="end">Err(e): kept in memory</text><path class="sq-call" d="M460.0,552 h26 v14 h-22"/><text class="sq-lbl" x="492.0" y="563">set_toast(&quot;Mark a set&quot;)</text></svg></figure>
+<h3 style="margin-top:18px">5.1 Startup and render: source lines get stamped</h3>
+<figure><div id="seq-startup"></div></figure>
 <ol class="steps">
-  <li>handle_event -&gt; handle_normal(state, Char('m'), mods): false  <span class="note">sets state.pending_mark = Some(MarkPrefix::Set)</span></li>
-  <li>render_status_bar shows " m█ "</li>
-  <li>handle_event -&gt; state.pending_mark.take(): Some(MarkPrefix::Set)  <span class="note">before is_help_toggle</span></li>
-  <li>handle_event -&gt; handle_mark_key(state, MarkPrefix::Set, Char('a'))</li>
-  <li class="err">any key other than a-z (A-Z included): prefix dropped, key swallowed, no toast</li>
-  <li>handle_mark_key -&gt; ViewerState::set_mark('a')</li>
-  <li class="err">mark_doc is None (stdin): set_toast("Marks need a file on disk"), return</li>
-  <li>ViewerState::set_mark -&gt; ViewerState::top_source_line(): Option&lt;usize&gt;</li>
-  <li class="err">None (JSON view): set_toast("Marks are not available in JSON view"), return</li>
-  <li>ViewerState::set_mark -&gt; MarkStore::set(&amp;doc, 'a', Mark { source_line }): io::Result&lt;()&gt;</li>
-  <li>MarkStore::set -&gt; read_marks_file(&amp;path): io::Result&lt;MarksFile&gt;  <span class="note">fresh read, merges other instances' marks</span></li>
-  <li>MarkStore::set -&gt; write_marks_file(&amp;path, &amp;merged): io::Result&lt;()&gt;  <span class="note">temp file + rename</span></li>
-  <li class="err">read InvalidData (corrupt file) or any write error: Err(e) returned, file left untouched, mark kept in memory; set_mark toasts "Mark a set, not saved: {e}"</li>
-  <li>ViewerState::set_mark -&gt; set_toast("Mark a set")</li>
+  <li><code>main -> MarkStore::load(): MarkStore</code> (calls <code>marks_path(): Option&lt;PathBuf&gt;</code>, then <code>MarkStore::load_from(path)</code>)</li>
+  <li><code>MarkStore::load_from -> read_marks_file(&amp;path): Result&lt;MarksFile, MarkStoreError&gt;</code> - any <code>Err</code> becomes an empty in-memory store</li>
+  <li><code>main -> viewer::run(ViewerOptions { marks, .. }): io::Result&lt;()&gt;</code> &rarr; <code>ViewerState::new(opts, cols, rows)</code> moves the store into state</li>
+  <li><code>ViewerState::rebuild -> markdown::render_with(&amp;content, cw, &amp;theme, line_numbers, &amp;syntect_res): (Vec&lt;Line&gt;, DocumentInfo)</code></li>
+  <li><code>render_with -> stamp_source_line(&amp;mut lines[before..], source_lines.line_of(range.start))</code> per parser event</li>
+  <li><code>ViewerState::rebuild -> wrap_lines(&amp;lines, cw): Vec&lt;Line&gt;</code> - wrapped rows inherit <code>source_line</code></li>
+  <li><code>ViewerState::rebuild -> finalize_layout()</code> - expanded image rows copy the placeholder's <code>source_line</code></li>
 </ol>
+<div class="errs"><strong>Error paths</strong><ul>
+  <li>No state dir: <code>marks_path()</code> is <code>None</code> &rarr; session-only store. User sees nothing until a set, which toasts "not saved".</li>
+  <li>Unreadable / corrupt / newer-version file &rarr; empty store, file left untouched. The error reappears on the next <code>set</code> (it re-reads), which refuses to write.</li>
+</ul></div>
 
-<h3 id="chain-jump">Jump to a mark: <kbd>'</kbd> <kbd>a</kbd></h3>
-<figure><svg id="seq-jump" viewBox="0 0 920 412" role="img" aria-label="seq-jump sequence"><title>seq-jump sequence diagram</title><g class="sq-part"><title>handle_event</title><rect x="14.400000000000006" y="8" width="111.19999999999999" height="30" rx="6"/><text x="70.0" y="28" text-anchor="middle">handle_event</text></g><line class="sq-life" x1="70.0" y1="38" x2="70.0" y2="408"/><g class="sq-part"><title>handle_mark_key</title><rect x="263.0" y="8" width="134.0" height="30" rx="6"/><text x="330.0" y="28" text-anchor="middle">handle_mark_key</text></g><line class="sq-life" x1="330.0" y1="38" x2="330.0" y2="408"/><g class="sq-part"><title>ViewerState</title><rect x="538.2" y="8" width="103.6" height="30" rx="6"/><text x="590.0" y="28" text-anchor="middle">ViewerState</text></g><line class="sq-life" x1="590.0" y1="38" x2="590.0" y2="408"/><g class="sq-part"><title>MarkStore</title><rect x="802.0" y="8" width="96" height="30" rx="6"/><text x="850.0" y="28" text-anchor="middle">MarkStore</text></g><line class="sq-life" x1="850.0" y1="38" x2="850.0" y2="408"/><text class="sq-note" x="20" y="68">key &#x27;  (handle_normal: pending_mark = Some(Jump))</text><text class="sq-note" x="20" y="94">key a</text><path class="sq-call" d="M70.0,116 H326.0"/><text class="sq-lbl" x="78.0" y="110">handle_mark_key(state, Jump, Char(&#x27;a&#x27;))</text><path class="sq-call" d="M330.0,146 H586.0"/><text class="sq-lbl" x="338.0" y="140">jump_to_mark(&#x27;a&#x27;)</text><path class="sq-err" d="M590.0,176 h26 v14 h-22"/><text class="sq-lbl-err" x="582.0" y="187" text-anchor="end">mark_doc None -&gt; toast</text><path class="sq-call" d="M590.0,210 H846.0"/><text class="sq-lbl" x="598.0" y="204">get(&amp;doc, &#x27;a&#x27;)</text><path class="sq-ret" d="M850.0,240 H594.0"/><text class="sq-lbl" x="842.0" y="234" text-anchor="end">Some(Mark)</text><path class="sq-err" d="M850.0,270 H594.0"/><text class="sq-lbl-err" x="842.0" y="264" text-anchor="end">None -&gt; toast &quot;Mark a not set&quot;</text><path class="sq-call" d="M590.0,300 h26 v14 h-22"/><text class="sq-lbl" x="582.0" y="311" text-anchor="end">offset_for_source_line(mark.source_line)</text><path class="sq-call" d="M590.0,334 h26 v14 h-22"/><text class="sq-lbl" x="582.0" y="345" text-anchor="end">nav_history.push((file_idx, offset))</text><path class="sq-call" d="M590.0,368 h26 v14 h-22"/><text class="sq-lbl" x="582.0" y="379" text-anchor="end">offset = target; set_toast(..)</text></svg></figure>
+<h3 style="margin-top:26px">5.2 <kbd>m</kbd> + letter: set a mark</h3>
+<figure><div id="seq-set"></div></figure>
 <ol class="steps">
-  <li>handle_event -&gt; handle_normal(state, Char('\''), mods): false  <span class="note">pending_mark = Some(MarkPrefix::Jump)</span></li>
-  <li>handle_event -&gt; handle_mark_key(state, MarkPrefix::Jump, Char('a'))</li>
-  <li>handle_mark_key -&gt; ViewerState::jump_to_mark('a')</li>
-  <li class="err">mark_doc is None: set_toast("Marks need a file on disk"), return</li>
-  <li>ViewerState::jump_to_mark -&gt; MarkStore::get(&amp;doc, 'a'): Option&lt;Mark&gt;</li>
-  <li class="err">None: set_toast("Mark a not set"), return</li>
-  <li>ViewerState::jump_to_mark -&gt; ViewerState::offset_for_source_line(mark.source_line): usize  <span class="note">past end of file clamps to max_offset(), not an error</span></li>
-  <li>ViewerState::jump_to_mark -&gt; nav_history.push((current_file_idx, offset))</li>
-  <li>ViewerState::jump_to_mark -&gt; offset = target; set_toast("Jumped to mark a")</li>
+  <li><code>handle_event -> handle_normal(state, Char('m'), mods): bool</code> - sets <code>state.pending_mark = Some(PendingMark::Set)</code>; status bar shows <code> m█ </code></li>
+  <li>Next key: <code>handle_event -> handle_mark_key(state, PendingMark::Set, Char('a'))</code> - <code>pending_mark.take()</code> runs before <code>is_help_toggle</code></li>
+  <li><code>handle_mark_key -> ViewerState::set_mark('a')</code></li>
+  <li><code>set_mark -> ViewerState::markable_file(): Option&lt;PathBuf&gt;</code></li>
+  <li><code>set_mark -> marks::anchor_at(&amp;self.wrapped, self.top_line(), &amp;self.content): Option&lt;Mark&gt;</code></li>
+  <li><code>set_mark -> MarkStore::set(&amp;file, 'a', mark): Result&lt;(), MarkStoreError&gt;</code></li>
+  <li><code>MarkStore::set -> read_marks_file(&amp;path)</code>, merge entry, drop missing paths, <code>write_marks_file(&amp;path, &amp;data)</code> (tmp + rename): <code>Ok(())</code></li>
+  <li><code>set_mark -> set_toast("Mark 'a' set")</code></li>
 </ol>
+<div class="errs"><strong>Error paths</strong><ul>
+  <li>Step 2, any key other than <kbd>a</kbd>-<kbd>z</kbd> (incl. uppercase, <kbd>Esc</kbd>, <kbd>?</kbd>): sequence cancelled, key swallowed, no toast. <kbd>Ctrl+C</kbd> still quits (checked first).</li>
+  <li>Step 4 <code>None</code> (stdin or JSON) &rarr; toast <em>"Marks need a markdown file"</em>.</li>
+  <li>Step 5 <code>None</code> (empty document) &rarr; toast <em>"Nothing to mark here"</em>.</li>
+  <li>Step 6/7 <code>Err(e)</code> &rarr; mark is already in memory and works this session; toast <em>"Mark 'a' set - not saved: {e}"</em>. <code>Corrupt</code> and <code>NewerVersion</code> never write, so the file is not clobbered.</li>
+</ul></div>
 
-<h3 id="chain-render">Render stamping and position restore: any <code>rebuild()</code> (open, resize, reload, theme, line numbers)</h3>
-<figure><svg id="seq-render" viewBox="0 0 920 484" role="img" aria-label="seq-render sequence"><title>seq-render sequence diagram</title><g class="sq-part"><title>rebuild</title><rect x="22.0" y="8" width="96" height="30" rx="6"/><text x="70.0" y="28" text-anchor="middle">rebuild</text></g><line class="sq-life" x1="70.0" y1="38" x2="70.0" y2="480"/><g class="sq-part"><title>render_with</title><rect x="278.2" y="8" width="103.6" height="30" rx="6"/><text x="330.0" y="28" text-anchor="middle">render_with</text></g><line class="sq-life" x1="330.0" y1="38" x2="330.0" y2="480"/><g class="sq-part"><title>Renderer</title><rect x="542.0" y="8" width="96" height="30" rx="6"/><text x="590.0" y="28" text-anchor="middle">Renderer</text></g><line class="sq-life" x1="590.0" y1="38" x2="590.0" y2="480"/><g class="sq-part"><title>wrap_lines</title><rect x="802.0" y="8" width="96" height="30" rx="6"/><text x="850.0" y="28" text-anchor="middle">wrap_lines</text></g><line class="sq-life" x1="850.0" y1="38" x2="850.0" y2="480"/><path class="sq-call" d="M70.0,64 h26 v14 h-22"/><text class="sq-lbl" x="102.0" y="75">anchor = top_source_line()</text><path class="sq-call" d="M70.0,98 H326.0"/><text class="sq-lbl" x="78.0" y="92">render_with(&amp;content, cw, ..)</text><text class="sq-note" x="20" y="132">loop: for (event, range) in into_offset_iter()</text><path class="sq-call" d="M330.0,154 H586.0"/><text class="sq-lbl" x="338.0" y="148">process(event, range.clone())</text><path class="sq-call" d="M590.0,184 h26 v14 h-22"/><text class="sq-lbl" x="582.0" y="195" text-anchor="end">emit_code_block(): rows = first_line + i</text><path class="sq-call" d="M330.0,218 H586.0"/><text class="sq-lbl" x="338.0" y="212">stamp_source_lines(from, range.start)</text><path class="sq-call" d="M590.0,248 h26 v14 h-22"/><text class="sq-lbl" x="582.0" y="259" text-anchor="end">source_line_at(byte_offset)</text><path class="sq-ret" d="M330.0,282 H74.0"/><text class="sq-lbl" x="322.0" y="276" text-anchor="end">(Vec&lt;Line&gt;, DocumentInfo)</text><path class="sq-call" d="M70.0,312 H846.0"/><text class="sq-lbl" x="78.0" y="306">wrap_lines(&amp;lines, cw)</text><path class="sq-ret" d="M850.0,342 H74.0"/><text class="sq-lbl" x="842.0" y="336" text-anchor="end">Vec&lt;Line&gt;, fragments keep source_line</text><path class="sq-call" d="M70.0,372 h26 v14 h-22"/><text class="sq-lbl" x="102.0" y="383">finalize_layout(): image rows keep source_line</text><path class="sq-call" d="M70.0,406 h26 v14 h-22"/><text class="sq-lbl" x="102.0" y="417">offset = offset_for_source_line(anchor)</text><path class="sq-err" d="M70.0,440 h26 v14 h-22"/><text class="sq-lbl-err" x="102.0" y="451">anchor None (JSON) -&gt; saved_offset as today</text></svg></figure>
+<h3 style="margin-top:26px">5.3 <kbd>'</kbd> + letter: jump to a mark</h3>
+<figure><div id="seq-jump"></div></figure>
 <ol class="steps">
-  <li>ViewerState::rebuild -&gt; ViewerState::top_source_line(): Option&lt;usize&gt;  <span class="note">anchor captured before re-render</span></li>
-  <li>ViewerState::rebuild -&gt; markdown::render_with(&amp;content, cw, &amp;theme, line_numbers, &amp;syntect_res): (Vec&lt;Line&gt;, DocumentInfo)</li>
-  <li>render_with -&gt; Renderer::process(event, range.clone())  <span class="note">per event; emit_code_block stamps content rows itself</span></li>
-  <li>render_with -&gt; Renderer::stamp_source_lines(from, range.start)  <span class="note">per event, fills rows still None</span></li>
-  <li>Renderer::stamp_source_lines -&gt; Renderer::source_line_at(byte_offset): usize</li>
-  <li>ViewerState::rebuild -&gt; style::wrap_lines(&amp;lines, cw): Vec&lt;Line&gt;  <span class="note">fragments copy source_line</span></li>
-  <li>ViewerState::rebuild -&gt; ViewerState::finalize_layout()  <span class="note">image rows copy source_line</span></li>
-  <li>ViewerState::rebuild -&gt; ViewerState::offset_for_source_line(anchor): usize  <span class="note">offset = result; replaces saved_offset restore</span></li>
-  <li class="err">JSON branch: rows keep source_line None, anchor is None, so rebuild falls back to saved_offset.min(max_offset()) as today</li>
+  <li><code>handle_event -> handle_normal(state, Char('\''), mods): bool</code> - <code>pending_mark = Some(PendingMark::Jump)</code>; status bar shows <code> '█ </code></li>
+  <li>Next key: <code>handle_event -> handle_mark_key(state, PendingMark::Jump, Char('a'))</code></li>
+  <li><code>handle_mark_key -> ViewerState::jump_to_mark('a')</code></li>
+  <li><code>jump_to_mark -> ViewerState::markable_file(): Option&lt;PathBuf&gt;</code></li>
+  <li><code>jump_to_mark -> MarkStore::get(&amp;file, 'a'): Option&lt;&amp;Mark&gt;</code></li>
+  <li><code>jump_to_mark -> marks::resolve(&amp;mark, &amp;self.wrapped, &amp;self.content): Option&lt;MarkTarget&gt;</code> (internally <code>relocate(&amp;mark, source): (usize, bool)</code>, then first wrapped row with that source line + <code>row</code>, clamped to the block)</li>
+  <li><code>jump_to_mark -> self.nav_history.push((self.current_file_idx, self.offset))</code></li>
+  <li><code>jump_to_mark -> ViewerState::scroll_to_line(target.line_idx)</code></li>
+  <li><code>jump_to_mark -> set_toast("Mark 'a'")</code></li>
 </ol>
-
-<h3 id="chain-startup">Startup</h3>
-<figure><svg id="seq-startup" viewBox="0 0 920 356" role="img" aria-label="seq-startup sequence"><title>seq-startup sequence diagram</title><g class="sq-part"><title>main</title><rect x="22.0" y="8" width="96" height="30" rx="6"/><text x="70.0" y="28" text-anchor="middle">main</text></g><line class="sq-life" x1="70.0" y1="38" x2="70.0" y2="352"/><g class="sq-part"><title>MarkStore</title><rect x="282.0" y="8" width="96" height="30" rx="6"/><text x="330.0" y="28" text-anchor="middle">MarkStore</text></g><line class="sq-life" x1="330.0" y1="38" x2="330.0" y2="352"/><g class="sq-part"><title>ViewerState</title><rect x="538.2" y="8" width="103.6" height="30" rx="6"/><text x="590.0" y="28" text-anchor="middle">ViewerState</text></g><line class="sq-life" x1="590.0" y1="38" x2="590.0" y2="352"/><g class="sq-part"><title>DocKey</title><rect x="802.0" y="8" width="96" height="30" rx="6"/><text x="850.0" y="28" text-anchor="middle">DocKey</text></g><line class="sq-life" x1="850.0" y1="38" x2="850.0" y2="352"/><path class="sq-call" d="M70.0,64 H326.0"/><text class="sq-lbl" x="78.0" y="58">MarkStore::load()</text><path class="sq-call" d="M330.0,94 h26 v14 h-22"/><text class="sq-lbl" x="362.0" y="105">read_marks_file(&amp;marks_path()?)</text><path class="sq-err" d="M330.0,128 h26 v14 h-22"/><text class="sq-lbl-err" x="362.0" y="139">Err / no data_dir -&gt; MarksFile::default()</text><path class="sq-ret" d="M330.0,162 H74.0"/><text class="sq-lbl" x="322.0" y="156" text-anchor="end">MarkStore</text><path class="sq-call" d="M70.0,192 H586.0"/><text class="sq-lbl" x="78.0" y="186">viewer::run(ViewerOptions { marks, .. })</text><path class="sq-call" d="M590.0,222 h26 v14 h-22"/><text class="sq-lbl" x="582.0" y="233" text-anchor="end">ViewerState::new(opts, cols, rows)</text><path class="sq-call" d="M590.0,256 H846.0"/><text class="sq-lbl" x="598.0" y="250">DocKey::for_file(&amp;filename)</text><path class="sq-ret" d="M850.0,286 H594.0"/><text class="sq-lbl" x="842.0" y="280" text-anchor="end">Option&lt;DocKey&gt; -&gt; mark_doc</text><path class="sq-err" d="M850.0,316 H594.0"/><text class="sq-lbl-err" x="842.0" y="310" text-anchor="end">None for &lt;stdin&gt; / missing path</text></svg></figure>
-<ol class="steps">
-  <li>main -&gt; MarkStore::load(): MarkStore</li>
-  <li>MarkStore::load -&gt; marks_path(): Option&lt;PathBuf&gt;</li>
-  <li>MarkStore::load -&gt; read_marks_file(&amp;path): io::Result&lt;MarksFile&gt;</li>
-  <li class="err">no data_dir, unreadable or corrupt file: empty store, silent (like Config::load). The path is kept, so a corrupt file is detected again and not overwritten on set.</li>
-  <li>main -&gt; viewer::run(ViewerOptions { marks, .. }) -&gt; ViewerState::new(opts, cols, rows)</li>
-  <li>ViewerState::new -&gt; DocKey::for_file(&amp;opts.filename): Option&lt;DocKey&gt;  <span class="note">None for &lt;stdin&gt;</span></li>
-</ol>
-
-<h3 id="chain-misc">Mouse capture: <kbd>M</kbd></h3>
-<ol class="steps">
-  <li>handle_event -&gt; handle_normal(state, Char('M'), mods)  <span class="note">existing toggle body, unchanged behaviour and toasts</span></li>
-</ol>
+<div class="errs"><strong>Error paths</strong><ul>
+  <li>Step 4 <code>None</code> &rarr; toast <em>"Marks need a markdown file"</em>.</li>
+  <li>Step 5 <code>None</code> &rarr; toast <em>"Mark 'a' not set"</em>; no scroll.</li>
+  <li>Step 6 <code>None</code> (empty layout) &rarr; toast <em>"Mark 'a' not set"</em>.</li>
+  <li>Step 6 <code>MarkTarget { exact: false }</code> - the fingerprint text was not found anywhere &rarr; jump to the stored line number anyway, toast <em>"Mark 'a' - text changed, jumped to line N"</em>. Jumping never writes the file.</li>
+</ul></div>
 
 <!-- 6 -->
 <h2 id="conventions"><span class="num">6</span>Conventions followed</h2>
-<div class="tablewrap">
+<div class="scroll">
 <table>
   <thead><tr><th>Pattern</th><th>Mirrors</th></tr></thead>
   <tbody>
-    <tr><td>One module per concern; <code>load()</code> falls back silently on error; private <code>*_path()</code> helper</td><td class="cite">config.rs:29-43</td></tr>
-    <tr><td>Persisted state built in <code>main</code> and injected through <code>ViewerOptions</code></td><td class="cite">main.rs:57, 126-134; viewer.rs:27</td></tr>
-    <tr><td>Source position carried through rendering on line data</td><td class="cite">markdown.rs:1108-1113 (bracket_offset)</td></tr>
-    <tr><td>Metadata propagated by <code>wrap_lines</code></td><td class="cite">style.rs:120-130</td></tr>
-    <tr><td>User-facing failures shown as toasts, never panics</td><td class="cite">viewer.rs:454, 895</td></tr>
-    <tr><td>Jumps record history for Backspace</td><td class="cite">viewer.rs:1966, 1765</td></tr>
-    <tr><td>Status-bar input label with block cursor</td><td class="cite">viewer.rs:2819-2837</td></tr>
-    <tr><td>Help table as static data, covered by duplicate-key test</td><td class="cite">viewer.rs:3597, 3976</td></tr>
-    <tr><td>Field grouping with <code>// Section</code> comments in <code>ViewerState</code></td><td class="cite">viewer.rs:283-372</td></tr>
-    <tr><td>Rust 2024 <code>if let ... &amp;&amp; let</code> chains</td><td class="cite">config.rs:31-34</td></tr>
+    <tr><td>Persistence module = struct + <code>load()</code> + private <code>*_path()</code> via <code>dirs</code>, silent fallback on read</td><td><span class="cite">config.rs:29-43</span></td></tr>
+    <tr><td>Record the parser's source position at render time, carried on the line</td><td><code>bracket_offset</code> <span class="cite">style.rs:39-44</span>, <span class="cite">markdown.rs:897</span></td></tr>
+    <tr><td>Values loaded in <code>main</code> and injected via <code>ViewerOptions</code></td><td><span class="cite">main.rs:57, 126-134</span></td></tr>
+    <tr><td>All user feedback through toasts</td><td><code>set_toast</code> <span class="cite">viewer.rs:454</span></td></tr>
+    <tr><td>Jump history so <kbd>Backspace</kbd> returns</td><td><span class="cite">viewer.rs:1966, 1765-1771</span></td></tr>
+    <tr><td>Small private enum for viewer key state, <code>#[derive(PartialEq, Copy, Clone, Debug)]</code></td><td><code>ViewMode</code> <span class="cite">viewer.rs:229-237</span></td></tr>
+    <tr><td>Status-bar prompt while input is pending</td><td>search label <span class="cite">viewer.rs:2819-2830</span></td></tr>
+    <tr><td>Key bindings listed in <code>help_sections</code>, uniqueness covered by an existing test</td><td><span class="cite">viewer.rs:3597, 3976</span></td></tr>
+    <tr><td>Let-chains for fallible lookups; inline <code>#[cfg(test)] mod tests</code> per file</td><td><span class="cite">config.rs:31-33</span>, <span class="cite">markdown.rs:1598</span></td></tr>
   </tbody>
 </table>
 </div>
-<h3>Deviations</h3>
-<ul>
-  <li><span class="dev">data_dir, not config_dir.</span> Marks are app state, not settings, and shouldn't sit next to a hand-edited <code>config.toml</code>.</li>
-  <li><span class="dev">JSON, not TOML.</span> The file is written by the program and never meant to be edited by hand, map keys are arbitrary paths, and <code>serde_json</code> is already a dependency.</li>
-  <li><span class="dev">Atomic temp + rename write.</span> <code>toggle_task</code> uses plain <code>fs::write</code> <span class="cite">viewer.rs:891</span>, but marks.json is shared by every document and every running instance, so a torn write would lose all marks.</li>
-  <li><span class="dev">First chord state.</span> No key prefix exists today. It's a <code>ViewerState</code> field rather than a <code>ViewMode</code>, because modes represent overlays <span class="cite">viewer.rs:230</span>.</li>
-</ul>
+<p class="note"><strong>Deviations.</strong> (1) <code>MarkStoreError</code> is the first custom error enum - elsewhere mdterm uses <code>io::Result</code> or silent fallback; here the viewer must tell "no state dir", "corrupt", "newer version" and "I/O" apart to explain why a mark was not saved. (2) <code>marks.rs</code> is the first module that writes state to disk, so atomic write (tmp + rename) is new. (3) <code>state_dir</code> instead of <code>config_dir</code>: marks are machine state, not user configuration. (4) <code>Line::new</code> replaces struct literals - a one-time churn to avoid touching ~50 sites for every future field.</p>
 
 <!-- 7 -->
 <h2 id="tests"><span class="num">7</span>Test seams</h2>
-<div class="tablewrap">
+<div class="scroll">
 <table>
-  <thead><tr><th>Unit</th><th>Level</th><th>What, and what is faked</th></tr></thead>
+  <thead><tr><th>Unit</th><th>Level</th><th>What, faked with</th></tr></thead>
   <tbody>
-    <tr><td><code>marks.rs</code></td><td>unit</td><td><code>MarkStore::open(Some(tmp))</code> under <code>std::env::temp_dir()</code>: round trip; set merges a mark written externally in between; corrupt file makes set return <code>InvalidData</code> and stays byte-identical; missing parent dir is created; <code>DocKey::for_file("&lt;stdin&gt;")</code> is None.</td></tr>
-    <tr><td><code>markdown.rs</code></td><td>unit</td><td>Existing <code>render_test</code>: heading on line 0, paragraph after a blank line on line 2, list items, fenced code rows exact, every markdown row is <code>Some</code>.</td></tr>
-    <tr><td><code>style.rs</code></td><td>unit</td><td><code>wrap_lines</code> on a long stamped line: every fragment has the same <code>source_line</code>, including blockquote wrapping.</td></tr>
-    <tr><td><code>viewer.rs</code></td><td>unit</td><td><code>make_state_with_lines</code> + <code>MarkStore::in_memory()</code> + <code>mark_doc</code> set directly: <code>top_source_line</code>, <code>offset_for_source_line</code> clamping; <code>handle_event</code> for m,a then scroll then ',a; m,h does not open help; Esc and m,A cancel; M toggles mouse flag; <code>rebuild()</code> at a different <code>cols</code> keeps <code>top_source_line()</code>.</td></tr>
-    <tr><td>End to end</td><td>manual, real terminal</td><td>Open <code>test.md</code>, <kbd>m</kbd><kbd>a</kbd> mid-document, quit, reopen with a different <code>-w</code> and window size, <kbd>'</kbd><kbd>a</kbd> lands on the same text; Backspace returns; help overlay shows <kbd>M</kbd>.</td></tr>
+    <tr><td><code>marks::anchor_at</code> / <code>resolve</code> / <code>relocate</code></td><td>unit</td><td>hand-built <code>Vec&lt;Line&gt;</code> + source strings: edits above, deleted line, duplicate text picks nearest, row clamped to block, empty layout.</td></tr>
+    <tr><td><code>MarkStore</code></td><td>unit, real FS</td><td><code>load_from(Some(temp))</code> under <code>std::env::temp_dir()</code>: round-trip, two stores merge without losing each other's entries, corrupt and <code>version = 2</code> files left byte-identical, missing paths pruned. No new dev-dependency.</td></tr>
+    <tr><td><code>markdown::render_with</code></td><td>unit</td><td>existing <code>render_test</code> helper (<span class="cite">markdown.rs:1604</span>): heading, paragraph, code block, list, table rows carry the expected <code>source_line</code>.</td></tr>
+    <tr><td><code>style::wrap_lines</code></td><td>unit</td><td>every wrapped row, incl. blockquote branch, inherits <code>source_line</code>.</td></tr>
+    <tr><td><code>viewer</code> key handling</td><td>unit</td><td><code>make_state_with_lines</code> (<span class="cite">viewer.rs:4249</span>) with <code>marks: MarkStore::load_from(None)</code>: <kbd>m</kbd><kbd>h</kbd> sets mark not help, <kbd>'</kbd><kbd>Esc</kbd> and <kbd>m</kbd><kbd>A</kbd> cancel, set + resize + jump lands on the same source line, jump pushes <code>nav_history</code>, stdin toasts.</td></tr>
+    <tr><td>End to end</td><td>manual / <code>run</code> skill</td><td>real file: set marks, resize the terminal, quit, reopen, jump; edit the file above a mark, jump again.</td></tr>
   </tbody>
 </table>
 </div>
 
 <!-- 8 -->
 <h2 id="assumptions"><span class="num">8</span>Assumptions</h2>
-<ul class="assume">
-  <li>Mark names are <code>a-z</code> only, local to the file (26 per file). <code>A-Z</code> cancel the pending prefix like any other non-<code>a-z</code> key.</li>
-  <li>Setting an existing mark overwrites it without asking.</li>
-  <li>A mark saves the top visible row's source line. If that row continues a wrapped paragraph, the jump lands on the paragraph's first row, a few rows higher.</li>
-  <li>A jump puts the marked row at the top of the viewport, clamped near the end of the document.</li>
-  <li>If the file shrank below the mark, the jump goes to the end of the document without an error.</li>
-  <li>A jump pushes onto <code>nav_history</code>, so <kbd>Backspace</kbd> returns to where you were.</li>
-  <li>After <kbd>m</kbd> or <kbd>'</kbd> the next key is always consumed. <code>a-z</code> acts; anything else (<code>A-Z</code>, Esc, digits, <kbd>h</kbd>, <kbd>?</kbd>, F1, Tab) cancels silently. Ctrl+c still quits.</li>
-  <li>While waiting for the letter, the status bar shows <code>m█</code> or <code>'█</code>.</li>
-  <li>Toasts: "Mark a set", "Jumped to mark a", "Mark a not set", "Marks need a file on disk", "Marks are not available in JSON view", "Mark a set, not saved: &lt;error&gt;".</li>
-  <li>Marks do nothing in slide mode, where <kbd>m</kbd> and <kbd>'</kbd> stay unbound.</li>
-  <li>JSON view has no marks. A <code>.json</code> file that fails to parse and falls back to markdown rendering does support them.</li>
-  <li>A resize, reload, theme or line-number toggle keeps the same source line at the top of the viewport. JSON view keeps today's offset behaviour.</li>
-  <li>stdin input has no marks, because it has no stable identity.</li>
-  <li>A file is identified by its canonical absolute path: renaming or moving a file loses its marks, and symlinks resolve to their target.</li>
-  <li>Storage is <code>dirs::data_dir()/mdterm/marks.json</code>: <code>~/Library/Application Support/mdterm/</code> on macOS, <code>~/.local/share/mdterm/</code> on Linux. It is written on every set.</li>
-  <li>With several mdterm instances open, each set re-reads the file and merges into it. The last writer wins per file and letter. Marks set in another instance become visible after your next set or a restart.</li>
-  <li>A corrupt <code>marks.json</code> is ignored on load and never overwritten. Marks keep working for the session, with a toast.</li>
-  <li>No delete, list or overlay for marks in v1. Entries for deleted files are never pruned.</li>
-  <li>Source lines are 0-based in memory and on disk.</li>
-  <li>Precision is per line inside code blocks; tables, mermaid diagrams and images resolve to the block start.</li>
-  <li>Mark keys work while search results are active, and <kbd>n</kbd>/<kbd>N</kbd> are unaffected.</li>
-  <li>The <kbd>m</kbd> to <kbd>M</kbd> move for mouse capture is a breaking key change and gets a mention in the commit/PR description.</li>
-</ul>
+<p class="lede">Cheap to change later. Annotate any you disagree with.</p>
+<ol>
+  <li>A mark is the <strong>top line of the viewport</strong>; jumping puts it back at the top (mdterm has no cursor).</li>
+  <li>Jumping <strong>pushes onto <code>nav_history</code></strong>, so <kbd>Backspace</kbd> returns to where you were.</li>
+  <li>After <kbd>m</kbd>/<kbd>'</kbd>, <strong>any key other than <kbd>a</kbd>-<kbd>z</kbd> cancels silently</strong> and is swallowed; the pending key shows in the status bar.</li>
+  <li>Marks are <strong>unavailable for stdin and JSON</strong> (toast "Marks need a markdown file").</li>
+  <li><strong>Slide mode</strong> supports marks: set uses the slide's first line, jump selects the slide containing the mark.</li>
+  <li>The marks file is <strong>written on every set</strong> (re-read, merge, atomic replace); <strong>jumping never writes</strong>, even after re-anchoring.</li>
+  <li>A corrupt or newer-version marks file is <strong>never overwritten</strong>; marks still work for the session and the toast says why they were not saved.</li>
+  <li>The fingerprint is the <strong>trimmed source line, capped at 80 chars</strong>; re-anchoring searches the whole file for the nearest exact match.</li>
+</ol>
 
 <!-- 9 -->
-<h2 id="questions"><span class="num">9</span>Open questions</h2>
-<p class="lede">None left. Q1-Q3 were answered in review and folded into the design (see Decision recap).</p>
-
-
-
-
-<form class="q" data-lavish-question="approve" style="border-color: var(--green)" onsubmit="event.preventDefault(); const notes = new FormData(event.currentTarget).get('approve-notes').trim(); const msg = 'Design approved' + (notes ? ' with notes: ' + notes : '') + '. Persist the plan.'; if (window.lavish && window.lavish.queuePrompt) { window.lavish.queuePrompt(msg, { tag: 'approve', text: 'Approve design', element: event.currentTarget, data: { question: 'approve', notes } }); document.getElementById('st-approve').textContent = 'Queued.'; } else { document.getElementById('st-approve').textContent = 'Lavish not running - copy answers below.'; }">
-  <h4>Approve</h4>
-  <p>Approve and I'll write the Markdown plan.</p>
-  <textarea name="approve-notes" rows="2" placeholder="Final notes (optional)"></textarea>
-  <button type="submit">Queue approval</button><span class="status" id="st-approve"></span>
-</form>
-
-<div>
-  <button type="button" class="ghost" onclick="(async () => {
-    const out = [];
-    for (const q of document.querySelectorAll('[data-lavish-question]')) {
-      const lines = [];
-      for (const el of q.querySelectorAll('input, textarea')) {
-        if (el.type === 'radio' && !el.checked) continue;
-        const v = (el.value || '').trim();
-        if (v) lines.push('  ' + el.name + ': ' + v);
-      }
-      if (lines.length) out.push(q.dataset.lavishQuestion + ':\n' + lines.join('\n'));
-    }
-    const text = out.join('\n\n');
-    const st = document.getElementById('st-copy');
-    try { await navigator.clipboard.writeText(text); st.textContent = 'Answers copied.'; }
-    catch { st.textContent = 'Clipboard unavailable: ' + text; }
-  })()">Copy all answers</button><span class="status" id="st-copy" role="status" aria-live="polite"></span>
-</div>
+<h2 id="questions"><span class="num">9</span>Review decisions</h2>
+<p class="lede">All open questions are resolved and folded into the design above.</p>
+<ol>
+  <li><strong>Letters:</strong> lowercase <kbd>a</kbd>-<kbd>z</kbd> only. Uppercase cancels the sequence like any other non-<kbd>a</kbd>-<kbd>z</kbd> key; no <kbd>A</kbd>-<kbd>Z</kbd> marks for now.</li>
+  <li><strong>Edits:</strong> <code>Mark</code> stores line + text fingerprint; <code>resolve</code> re-anchors to the nearest matching line.</li>
+  <li><strong>Reusing a letter:</strong> overwrite silently, toast <em>"Mark 'a' set"</em>.</li>
+  <li><strong>Missing files:</strong> <code>MarkStore::set</code> prunes paths that no longer exist on every save.</li>
+  <li><strong>Names and splits:</strong> approved as proposed.</li>
+</ol>
 
 </main>
 
 <script>
-  function submitQ(event, name, label) {
-    event.preventDefault();
-    const f = new FormData(event.currentTarget);
-    const answer = f.get(name);
-    const notes = (f.get(name + '-notes') || '').trim();
-    const st = document.getElementById('st-' + name);
-    const msg = label + ': ' + answer + (notes ? ' - notes: ' + notes : '');
-    if (window.lavish && window.lavish.queuePrompt) {
-      window.lavish.queuePrompt(msg, { tag: 'answer', text: msg, element: event.currentTarget, queueKey: name, data: { question: name, answer, notes } });
-      st.textContent = 'Queued.';
+/* Sequence diagrams: inline SVG built from step data so numbering matches the lists. */
+function seq(id, parts, steps, opts = {}) {
+  const W = 960, top = 54, rowH = 34, padX = 70;
+  const gap = (W - 2 * padX) / (parts.length - 1);
+  const x = Object.fromEntries(parts.map((p, i) => [p.id, padX + i * gap]));
+  const H = top + 26 + steps.length * rowH + 14;
+  const ns = 'http://www.w3.org/2000/svg';
+  let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + (opts.label || id) + '">';
+  s += '<defs><marker id="' + id + '-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--text)"/></marker>';
+  s += '<marker id="' + id + '-r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--sub)"/></marker>';
+  s += '<marker id="' + id + '-e" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--red)"/></marker></defs>';
+  parts.forEach(p => {
+    const px = x[p.id], w = Math.max(90, p.label.length * 7.6 + 16);
+    s += '<g id="' + id + '-p-' + p.id + '"><title>' + p.label + '</title>';
+    s += '<line class="life" x1="' + px + '" y1="' + (top - 10) + '" x2="' + px + '" y2="' + (H - 6) + '"/>';
+    s += '<rect class="pbox" x="' + (px - w / 2) + '" y="8" width="' + w + '" height="30" rx="6"/>';
+    s += '<text x="' + px + '" y="28" text-anchor="middle">' + p.label + '</text></g>';
+  });
+  steps.forEach((st, i) => {
+    const y = top + 26 + i * rowH;
+    const x1 = x[st.from], x2 = x[st.to];
+    const esc = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const lab = esc(st.label);
+    s += '<g id="' + id + '-s' + (i + 1) + '"><title>' + lab + '</title>';
+    if (st.from === st.to) {
+      s += '<path class="' + (st.kind === 'err' ? 'err' : 'call') + '" d="M' + x1 + ' ' + (y - 8) + ' h26 v14 h-24" marker-end="url(#' + id + (st.kind === 'err' ? '-e' : '-a') + ')"/>';
+      s += '<text class="' + (st.kind === 'err' ? 'errt' : '') + '" x="' + (x1 + 32) + '" y="' + (y + 2) + '">' + lab + '</text>';
     } else {
-      st.textContent = 'Lavish not running - use Copy all answers.';
+      const cls = st.kind === 'ret' ? 'ret' : st.kind === 'err' ? 'err' : 'call';
+      const mk = st.kind === 'ret' ? '-r' : st.kind === 'err' ? '-e' : '-a';
+      s += '<line class="' + cls + '" x1="' + x1 + '" y1="' + y + '" x2="' + (x2 + (x2 > x1 ? -3 : 3)) + '" y2="' + y + '" marker-end="url(#' + id + mk + ')"/>';
+      s += '<text class="' + (st.kind === 'err' ? 'errt' : st.kind === 'ret' ? 'lbl' : '') + '" x="' + ((x1 + x2) / 2) + '" y="' + (y - 6) + '" text-anchor="middle">' + lab + '</text>';
     }
-    return false;
-  }
+    s += '</g>';
+  });
+  s += '</svg>';
+  document.getElementById(id).innerHTML = s;
+}
 
-  // Plain fallback first, so code is readable even offline.
-  for (const el of document.querySelectorAll('.code[data-src]')) {
-    const pre = document.createElement('pre');
-    pre.className = 'fallback';
-    pre.textContent = document.getElementById(el.dataset.src).textContent;
-    el.appendChild(pre);
-  }
+seq('seq-startup', [
+  { id: 'main', label: 'main' }, { id: 'store', label: 'MarkStore' }, { id: 'vs', label: 'ViewerState' },
+  { id: 'md', label: 'render_with' }, { id: 'wrap', label: 'wrap_lines' }
+], [
+  { from: 'main', to: 'store', label: '1 load()' },
+  { from: 'store', to: 'store', label: '2 load_from(marks_path())' },
+  { from: 'store', to: 'main', label: 'MarkStore', kind: 'ret' },
+  { from: 'store', to: 'main', label: 'read Err -> empty store', kind: 'err' },
+  { from: 'main', to: 'vs', label: '3 run(ViewerOptions { marks, .. })' },
+  { from: 'vs', to: 'md', label: '4 rebuild: render_with(..)' },
+  { from: 'md', to: 'md', label: '5 stamp_source_line per event' },
+  { from: 'md', to: 'vs', label: 'Vec<Line> with source_line', kind: 'ret' },
+  { from: 'vs', to: 'wrap', label: '6 wrap_lines(&lines, cw)' },
+  { from: 'wrap', to: 'vs', label: 'rows inherit source_line', kind: 'ret' },
+  { from: 'vs', to: 'vs', label: '7 finalize_layout()' }
+], { label: 'Startup and render call chain' });
+
+seq('seq-set', [
+  { id: 'ev', label: 'handle_event' }, { id: 'mk', label: 'handle_mark_key' }, { id: 'vs', label: 'ViewerState' },
+  { id: 'an', label: 'marks::anchor_at' }, { id: 'store', label: 'MarkStore' }, { id: 'disk', label: 'marks.toml' }
+], [
+  { from: 'ev', to: 'vs', label: '1 m: pending_mark = Set' },
+  { from: 'ev', to: 'mk', label: "2 (Set, 'a')" },
+  { from: 'mk', to: 'vs', label: "3 set_mark('a')" },
+  { from: 'vs', to: 'vs', label: '4 markable_file()' },
+  { from: 'vs', to: 'vs', label: 'None -> toast', kind: 'err' },
+  { from: 'vs', to: 'an', label: '5 anchor_at(..)' },
+  { from: 'an', to: 'vs', label: 'Some(Mark)', kind: 'ret' },
+  { from: 'vs', to: 'store', label: "6 set(&file, 'a', mark)" },
+  { from: 'store', to: 'disk', label: '7 read, merge, tmp + rename' },
+  { from: 'store', to: 'vs', label: 'Ok(())', kind: 'ret' },
+  { from: 'store', to: 'vs', label: 'Err(e) -> "not saved" toast', kind: 'err' },
+  { from: 'vs', to: 'vs', label: "8 set_toast(\"Mark 'a' set\")" }
+], { label: 'Set mark call chain' });
+
+seq('seq-jump', [
+  { id: 'ev', label: 'handle_event' }, { id: 'mk', label: 'handle_mark_key' }, { id: 'vs', label: 'ViewerState' },
+  { id: 'store', label: 'MarkStore' }, { id: 'rs', label: 'marks::resolve' }
+], [
+  { from: 'ev', to: 'vs', label: "1 ': pending_mark = Jump" },
+  { from: 'ev', to: 'mk', label: "2 (Jump, 'a')" },
+  { from: 'mk', to: 'vs', label: "3 jump_to_mark('a')" },
+  { from: 'vs', to: 'vs', label: '4 markable_file()' },
+  { from: 'vs', to: 'store', label: "5 get(&file, 'a')" },
+  { from: 'store', to: 'vs', label: 'Some(&Mark)', kind: 'ret' },
+  { from: 'store', to: 'vs', label: "None -> \"not set\" toast", kind: 'err' },
+  { from: 'vs', to: 'rs', label: '6 resolve(&mark, &wrapped, &content)' },
+  { from: 'rs', to: 'vs', label: 'Some(MarkTarget)', kind: 'ret' },
+  { from: 'vs', to: 'vs', label: '7 nav_history.push(..)' },
+  { from: 'vs', to: 'vs', label: '8 scroll_to_line(line_idx)' },
+  { from: 'vs', to: 'vs', label: '9 set_toast(..)  exact=false -> "text changed"' }
+], { label: 'Jump to mark call chain' });
 </script>
+
 <script type="module">
-  try {
-    const { File } = await import("https://esm.sh/@pierre/diffs@1.2.10?bundle");
-    const dark = !window.matchMedia("(prefers-color-scheme: light)").matches;
-    const options = { theme: { light: "catppuccin-latte", dark: "catppuccin-mocha" }, themeType: dark ? "dark" : "light", overflow: "wrap" };
-    for (const el of document.querySelectorAll(".code[data-src]")) {
-      const contents = document.getElementById(el.dataset.src).textContent;
-      const lang = el.dataset.name.endsWith(".json") ? "marks.json" : el.dataset.name;
-      const host = document.createElement("div");
-      new File(options).render({ containerWrapper: host, file: { name: lang, contents } });
-      el.replaceChildren(host);
-    }
-  } catch (e) {
-    console.warn("code highlighting unavailable, using plain fallback", e);
-  }
+import { File } from "https://esm.sh/@pierre/diffs@1.2.10?bundle";
+
+const CODE = {
+  marks: { name: "src/marks.rs", contents: `use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
+use std::path::{Path, PathBuf};
+use std::{fmt, io};
+
+use crate::style::Line;
+
+pub struct MarkStore {
+    /// None: session-only (no state dir, or tests).
+    path: Option<PathBuf>,
+    data: MarksFile,
+}
+
+impl MarkStore {
+    /// Store backed by the platform state dir; never fails.
+    pub fn load() -> Self { todo!() }
+
+    /// Store backed by \`path\`; a missing or unreadable file yields an empty store.
+    pub fn load_from(path: Option<PathBuf>) -> Self { todo!() }
+
+    pub fn get(&self, file: &Path, letter: char) -> Option<&Mark> { todo!() }
+
+    /// Updates memory, then re-reads, merges, prunes missing paths and atomically rewrites.
+    pub fn set(&mut self, file: &Path, letter: char, mark: Mark) -> Result<(), MarkStoreError> { todo!() }
+}
+
+/// Builds the mark for wrapped-line index \`top\` (the viewport top).
+pub fn anchor_at(wrapped: &[Line], top: usize, source: &str) -> Option<Mark> { todo!() }
+
+/// Where \`mark\` lands in the current layout, re-anchoring by text after edits.
+pub fn resolve(mark: &Mark, wrapped: &[Line], source: &str) -> Option<MarkTarget> { todo!() }
+
+fn marks_path() -> Option<PathBuf> { todo!() }
+
+fn read_marks_file(path: &Path) -> Result<MarksFile, MarkStoreError> { todo!() }
+
+/// Writes to a sibling temp file, then renames over \`path\`.
+fn write_marks_file(path: &Path, data: &MarksFile) -> Result<(), MarkStoreError> { todo!() }
+
+/// Nearest source line whose trimmed text equals \`mark.text\`, else \`mark.line\`.
+/// Returns (line, exact).
+fn relocate(mark: &Mark, source: &str) -> (usize, bool) { todo!() }
+` },
+  style: { name: "src/style.rs", contents: `#[derive(Clone, Debug, Default)]
+pub struct Line {
+    pub spans: Vec<StyledSpan>,
+    pub meta: LineMeta,
+    /// 1-based line in the markdown source; None for content without a source (JSON view).
+    pub source_line: Option<usize>,
+}
+
+impl Line {
+    /// Line without a source position; renderers stamp it afterwards.
+    pub fn new(spans: Vec<StyledSpan>, meta: LineMeta) -> Self { todo!() }
+
+    pub fn empty() -> Self { todo!() } // unchanged, source_line: None
+}
+
+/// Unchanged signature; every wrapped row inherits \`source_line\` from its input line.
+pub fn wrap_lines(lines: &[Line], width: usize) -> Vec<Line> { todo!() }
+` },
+  markdown: { name: "src/markdown.rs", contents: `/// Unchanged signature; every returned line now carries \`source_line\`.
+pub fn render_with(
+    input: &str,
+    width: usize,
+    theme: &Theme,
+    line_numbers: bool,
+    syntect_res: &SyntectRes,
+) -> (Vec<Line>, DocumentInfo) { todo!() }
+
+/// Byte offset -> 1-based source line, built once per render.
+struct SourceLines {
+    starts: Vec<usize>,
+}
+
+impl SourceLines {
+    fn new(source: &str) -> Self { todo!() }
+
+    fn line_of(&self, byte: usize) -> usize { todo!() }
+}
+
+/// Sets \`source_line\` on lines that do not have one yet.
+fn stamp_source_line(lines: &mut [Line], line: usize) { todo!() }
+` },
+  viewer: { name: "src/viewer.rs", contents: `pub struct ViewerOptions {
+    // ...existing fields
+    pub marks: crate::marks::MarkStore,
+}
+
+/// Second key expected after \`m\` or \`'\`.
+#[derive(PartialEq, Copy, Clone, Debug)]
+enum PendingMark {
+    Set,
+    Jump,
+}
+
+struct ViewerState {
+    // ...existing fields
+
+    // Bookmarks
+    marks: crate::marks::MarkStore,
+    pending_mark: Option<PendingMark>,
+}
+
+impl ViewerState {
+    /// Canonical path of the current markdown file; None for stdin and JSON.
+    fn markable_file(&self) -> Option<PathBuf> { todo!() }
+
+    /// Wrapped-line index at the top of the view (slide start in slide mode).
+    fn top_line(&self) -> usize { todo!() }
+
+    /// Puts \`line_idx\` at the top, or selects the slide containing it.
+    fn scroll_to_line(&mut self, line_idx: usize) { todo!() }
+
+    fn set_mark(&mut self, letter: char) { todo!() }
+
+    fn jump_to_mark(&mut self, letter: char) { todo!() }
+}
+
+/// Completes a pending \`m\` / \`'\` sequence; any key other than a-z cancels it.
+fn handle_mark_key(state: &mut ViewerState, pending: PendingMark, code: KeyCode) { todo!() }
+
+// Changed, signatures unchanged:
+// handle_event       - takes pending_mark before is_help_toggle
+// handle_normal      - 'm' / '\\'' start a sequence, 'M' toggles mouse capture
+// handle_slide_keys  - 'm' / '\\'' start a sequence
+// finalize_layout    - expanded image rows copy source_line
+// render_status_bar  - " m█ " / " '█ " while pending
+// help_sections      - new entries
+` },
+  main: { name: "src/main.rs", contents: `mod marks;
+
+// in main(), interactive branch:
+let opts = viewer::ViewerOptions {
+    // ...existing fields
+    marks: marks::MarkStore::load(),
+};
+` },
+  data: { name: "src/marks.rs (data)", contents: `/// A bookmark anchored to the markdown source, independent of layout.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Mark {
+    /// 1-based source line of the block at the viewport top.
+    pub line: usize,
+    /// Wrapped rows from the block's first row to the viewport top.
+    pub row: usize,
+    /// Trimmed source line text (max 80 chars), used to re-anchor after edits.
+    pub text: String,
+}
+
+/// Where a mark lands in the current layout.
+#[derive(Debug, PartialEq)]
+pub struct MarkTarget {
+    pub line_idx: usize,
+    /// False when the text was not found and the stored line number was used.
+    pub exact: bool,
+}
+
+#[derive(Debug)]
+pub enum MarkStoreError {
+    NoStateDir,
+    Corrupt(PathBuf),
+    NewerVersion(u32),
+    Io(io::Error),
+}
+
+impl fmt::Display for MarkStoreError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { todo!() }
+}
+
+const MARKS_FILE_VERSION: u32 = 1;
+
+#[derive(Debug, Serialize, Deserialize)]
+struct MarksFile {
+    #[serde(default = "default_version")]
+    version: u32,
+    /// Canonical file path -> letter -> mark.
+    #[serde(default)]
+    files: BTreeMap<String, BTreeMap<String, Mark>>,
+}
+
+impl Default for MarksFile {
+    fn default() -> Self { todo!() }
+}
+
+fn default_version() -> u32 { todo!() }
+` },
+  toml: { name: "marks.toml", contents: `version = 1
+
+[files."/Users/jan/notes/rust.md".a]
+line = 142
+row = 0
+text = "## Ownership"
+
+[files."/Users/jan/notes/rust.md".b]
+line = 310
+row = 3
+text = "Borrowing rules are checked at compile time, not at runtime."
+` }
+};
+
+const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+const options = { theme: { dark: "catppuccin-mocha", light: "catppuccin-latte" }, themeType: dark ? "dark" : "light", overflow: "wrap", disableFileHeader: false };
+for (const el of document.querySelectorAll("[data-code]")) {
+  const file = CODE[el.dataset.code];
+  if (file) new File(options).render({ containerWrapper: el, file });
+}
 </script>
 </body>
 </html>

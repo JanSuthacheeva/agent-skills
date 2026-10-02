@@ -3,69 +3,62 @@
     {
       "text": "grounded: claims about the existing codebase are correct, and cited file:line references resolve",
       "passed": true,
-      "evidence": "citations.json 39/39 valid. Spot checks true: m toggles mouse capture at viewer.rs:1647; ViewMode enum at :230 has no mark variant; nav_history Vec<(usize,usize)> at :365 popped at :1766; Config::load silently defaults (config.rs:29); Line has only spans+meta; ~51 Line literals; dirs=5 dependency; CLAUDE.md says 'Ten source files'; ViewerOptions built at main.rs:126 and viewer.rs:4250 (test)."
+      "evidence": "Verified: m mouse toggle at viewer.rs:1647, Backspace nav_history pop at :1765, Line{spans,meta} in style.rs, config_path uses dirs::config_dir, accepts_text_input/is_help_toggle exist, suppress_images at :2438, ~51 Line literals. citations.json 18/18 valid."
     },
     {
-      "text": "conventions: the design follows the repo's existing conventions and names any deviation with a reason",
+      "text": "conventions: the design follows the repo's existing conventions (layering, naming, error handling, dependency wiring) and names any deviation with a reason",
       "passed": true,
-      "evidence": "Reuses ViewMode variants for pending key, set_toast, nav_history, ViewerOptions wiring like Config, dirs crate, serde. Names two deviations (first write to a user dir; source_line as Line field rather than LineMeta variant) with reasons."
+      "evidence": "Mirrors config.rs path helper, ViewerOptions injection, ViewMode/accepts_text_input pattern, set_toast, nav_history; deviations (new Line field, ..Default) explained."
     },
     {
       "text": "alternatives: at least one structurally different alternative is considered, with a concrete reason for rejecting it",
       "passed": true,
-      "evidence": "Approaches page and turn 1 compare A (screen-row offsets: drift with width), B (source lines), C (heading + rows below: breaks on rename/duplicate headings)."
+      "evidence": "Approaches page compares B heading-anchored and C raw offset, with concrete drift reasons for rejection."
     },
     {
-      "text": "preferences-honoured: the final plan agrees with every user answer and contradicts no hidden preference its design touches",
-      "passed": false,
-      "evidence": "Regrade: M, a-z only per file and dirs::data_dir() marks.json are fine, and source-line anchor survives resize. But a mark is a bare source line with no text/fingerprint; the plan states 'Edits above a mark shift it (vim-like)' and 'a mark past EOF jumps to the end'. Nothing relocates a mark after edits made between sessions, so the small-edits preference is not honoured."
-    },
-    {
-      "text": "elicitation: each hidden preference the design depends on was asked about or stated as explicit assumption",
+      "text": "preferences-honoured: the final plan agrees with every user answer given in the conversation and contradicts none",
       "passed": true,
-      "evidence": "Mouse key asked; letters asked (Q1 in turn 2); storage location stated explicitly in turn 1 ('Common to all three: saves marks.json in the user's data directory') and in plan Decision; edit/resize behaviour stated explicitly in approach tradeoffs ('edits above a mark shift it')."
+      "evidence": "Transcript answers: A, M for mouse, data_dir marks.json canonical path, text re-anchor with line fallback, a-z only. Plan matches all, plus hidden prefs: M move, a-z, state dir, text fingerprint relocated on jump and source-anchored survives resize."
     },
     {
-      "text": "coverage: every trigger designed end to end, including failures and what the user sees",
+      "text": "elicitation: each hidden preference that the plan's design depends on was either asked about or stated as an explicit assumption, never silently decided",
       "passed": true,
-      "evidence": "Call chains for startup, set, jump, rebuild with error branches and toasts: JSON view, nothing to mark, unset mark, read/write failure ('not saved'), corrupt file never overwritten, no data dir, stdin session-only, cancel keys, Esc not quitting while pending, status bar hint, help and README updates, slide mode."
+      "evidence": "Asked about approach, m conflict, storage, edit survival, uppercase; other choices (top visible row, slide/JSON, stdin, overwrite) listed as explicit assumptions."
     },
     {
-      "text": "consistency: names and signatures agree across the plan",
+      "text": "coverage: every trigger the feature implies is designed end to end, including how failures are handled and what the user sees",
       "passed": true,
-      "evidence": "MarkStore::load/load_from/get/set, MarkTarget, MarkAction, handle_mark_pending/set_mark/jump_to_mark, source_line_at_offset/offset_for_source_line, FileMarks signatures agree between unit cards, data table and call chains in the .md."
+      "evidence": "Set/jump/load/render chains with error paths and toasts for non-letter, unset, JSON, save failure, stdin, corrupt file, no data dir."
     },
     {
-      "text": "api-fit: new interfaces fit the code they plug into",
+      "text": "consistency: unit, method and type names and signatures agree everywhere they appear across the plan",
       "passed": true,
-      "evidence": "ViewerOptions gains marks and test constructors (make_state_with_lines at viewer.rs:4250) are updated; wrap_lines copy of source_line; finalize_layout image rows; Backspace nav_history reused; handle_event arm for new mode; chars as serde_json map keys is addressed in tests. Implementable without redesign."
+      "evidence": "Names (MarkStore, FileMarks, Mark::relocate, set_mark, jump_to_mark, handle_mark_key, source_line) consistent across units, data and call chains."
+    },
+    {
+      "text": "api-fit: new interfaces fit the code they plug into (existing types, call sites, layering), so the plan could be implemented without redesign",
+      "passed": true,
+      "evidence": "Plugs into existing ViewerOptions, ViewMode, handle_event, switch_file, finalize_layout, accepts_text_input; signatures fit existing types."
     },
     {
       "text": "key-fact: notices that m is already bound to the mouse-capture toggle in src/viewer.rs",
       "passed": true,
-      "evidence": "Turn 1: 'm is already taken. It toggles mouse capture (src/viewer.rs:1647)'; plan moves it to M."
+      "evidence": "Transcript turn 1 and plan: m already toggles mouse capture at src/viewer.rs:1647."
     }
   ],
   "summary": {
-    "passed": 8,
-    "failed": 1,
+    "passed": 9,
+    "failed": 0,
     "total": 9,
-    "pass_rate": 0.89
-  },
-  "timing": {
-    "executor_duration_seconds": 680.0,
-    "total_duration_seconds": 709.9
+    "pass_rate": 1.0
   },
   "eval_feedback": {
     "suggestions": [
       {
-        "assertion": "preferences-honoured",
-        "reason": "The 'small edits' preference is hard to meet with line-number anchors; consider whether the simulated user should accept 'edits above shift marks' or whether an assertion should require a content-anchor/relocation strategy."
-      },
-      {
-        "reason": "No assertion checks the 'platform state directory' preference precisely: the plan used dirs::data_dir() (Application Support on macOS) rather than dirs::state_dir() or an explicit rationale; consider asserting the plan justifies the chosen directory."
+        "assertion": "coverage",
+        "reason": "Does not check handling of auto-reload while a mark prompt is open or mark staleness after a rename/move; assertion is hard to discriminate."
       }
     ],
-    "overall": "Assertions are reasonable; the preference check discriminates well on the small-edits requirement."
+    "overall": "Assertions are mostly satisfiable by a thorough plan; consider assertions on concrete edge cases such as file move and concurrent instances."
   }
 }

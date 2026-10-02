@@ -4,84 +4,77 @@
 
 ## Executor turn 1
 
-I've built the approaches page at `.lavish/bookmarks-approaches.html`. It uses mdterm's own dark/light colours from `src/theme.rs`, so it looks like the viewer. I need two decisions from you before I design the code.
+I looked through the viewer, renderer and config code and wrote the approaches page. I haven't designed the implementation yet. That comes after you pick an approach.
 
-**What I found in the codebase**
-- **`m` is already taken.** It toggles mouse capture (`src/viewer.rs:1647`). That toggle is also missing from the README controls table, which I'd fix alongside this. `'` is free in every mode.
-- **No key sequences exist yet.** Every binding is a single key. Flows that need more than one key are modelled as `ViewMode` variants (`src/viewer.rs:230`), so "waiting for the letter" fits there.
-- **The current position doesn't survive a width change.** `offset` counts screen rows after line wrapping, so resizing, a different terminal width or toggling line numbers changes what it points at. That matters most for marks that persist across sessions.
-- **The closest existing feature is `Backspace` back-navigation** (`nav_history`, `src/viewer.rs:365, 1765`). It stores raw offsets and only lives in memory.
-- **Nothing is saved to disk today except reading config.** `Config::load` falls back to defaults silently on any error (`src/config.rs:29`).
+**Page:** `.lavish/bookmarks-approaches.html`. It uses custom CSS in mdterm's own dark/light theme colours from `src/theme.rs`, since the repo has no web design system. I haven't opened it or checked how it renders.
 
-**The approaches**
-- **A. Marks as screen-row offsets.** This is the smallest change, but a saved mark points somewhere else once the terminal width differs. Since persistence is the whole point, I don't recommend it.
-- **B. Marks as source line numbers (recommended).** The renderer records the source line on each rendered line, and wrapping keeps it.
-  - Marks then stay put across width changes, resizes, theme or line-number toggles, and sessions. Like vim, edits above a mark shift it.
-  - The cost is a new field on `Line`, which is built in about 50 places across 4 files. The change is mechanical.
-  - A mark inside a long paragraph returns to the paragraph's first row.
-  - Marks only work for Markdown, not JSON files.
-- **C. Marks as heading plus rows below it.** The renderer doesn't change. But the mark still drifts with width inside long sections, and it breaks when a heading is renamed or duplicated.
+**What I found that shapes the design:**
+- **`m` is already taken.** It toggles mouse capture (`src/viewer.rs:1647`, help entry at `:3637`).
+- **The current position is a row on screen, not a place in the file.** `state.offset` counts rows after line-wrapping (`src/viewer.rs:294`), and the wrapping is redone at the current width on every rebuild. A saved offset would point somewhere else after a resize, a `--width` change or toggling line numbers.
+- **Image loads move rows during a session too.** When an image finishes loading, `finalize_layout` swaps its 3-row placeholder for the real height and only corrects `offset` (`:605-657`). Any other stored position would drift.
+- **Rendered lines don't record where they came from.** `Line` holds only `spans` and `meta` (`src/style.rs:55`). The only source offset in the renderer is the checkbox position for task items (`src/markdown.rs:1110`).
 
-**Common to all three**
-- A new `src/marks.rs` saves marks to `marks.json` in the user's data directory, keyed by the file's full path.
-- Jumping to a mark adds to the back history, so `Backspace` returns you.
-- Marks for stdin input last only for the session.
+**Approaches:**
+- **A. Source-anchored (recommended).** Each rendered line records its source line number, and a mark stores that number. Width, line numbers and image heights stop affecting marks. The cost is about 50 mechanical edits where `Line` is built.
+- **B. Heading-anchored.** A mark stores the nearest heading plus a row count below it. The rendering code doesn't change, but marks still drift after a resize or image load inside a long section, and break if the heading is renamed.
+- **C. Raw offset.** Rejected for the reasons above: marks would be wrong in almost every new session.
 
-**Decisions needed**
-1. **Approach:** A, B or C, or a mix. I recommend B.
-2. **Mouse capture:** move it to `M` (my recommendation), or keep `m` for mouse and choose another key for setting marks.
+All three add a new `src/marks.rs` module (its load/save follows `src/config.rs`) and a new view mode for the key after `m` or `'`, so `?` and `h` don't open help mid-command.
 
-Once you answer, I'll write the implementation page with full signatures and call chains.
+**Decisions I need from you** (the form at the bottom of the page asks the same):
+1. **Approach:** A, B or C?
+2. **The `m` conflict:** move mouse capture to `M` so `m` can be mark, like vim (my recommendation)? Or keep `m` for the mouse and pick another key for marks?
+3. **Storage:** one `marks.json` in `dirs::data_dir()/mdterm/`, keyed by the file's full path (my recommendation)? Or a sidecar file next to each document? With the first, renaming or moving a file loses its marks.
+4. **Edits to the file:** store the text of the marked line too, and find it again if lines shift (my recommendation, because mdterm reloads automatically while you edit)? Or store only the line number, like vim?
+
+Mention anything else you want included, such as uppercase marks, `''` to jump back, marks in JSON files, or a list of marks. Once you answer, I'll write the implementation page with signatures and call chains.
 
 ## Simulated user turn 1
 
-1. Approach B, source-anchored marks. That matches wanting marks to survive resizes and small edits.
-2. Move mouse capture to `M`.
+1. Approach A, source-anchored.
+2. Move the mouse toggle to M so m becomes mark.
+3. One marks.json in dirs::data_dir()/mdterm/, keyed by canonical path (state dir, not config.toml).
+4. Re-anchor by stored line text, fall back to line number.
+
+Marks are a-z only, per file, no uppercase for now.
 
 ## Executor turn 2
 
-I've written the implementation design to `.lavish/bookmarks-implementation.html`. It has signatures only, no function bodies, plus call chains with error paths, tests, assumptions and two open questions. I checked that the signatures match across the cards and call chains, and that the JavaScript parses, but I haven't looked at the rendered page in a browser.
+The implementation page is ready for review: `.lavish/bookmarks-implementation.html`. It uses the same mdterm theme colours as the approaches page. I haven't opened it or checked how it renders. The code panels load a highlighter from esm.sh and fall back to plain text offline.
 
-**The shape**
-- **`src/marks.rs` (new).** Owns the marks and saves them.
-  - The API is `MarkStore::load()`, `load_from(Option<PathBuf>)`, `get(&MarkTarget, char) -> Option<usize>` and `set(&MarkTarget, char, usize) -> io::Result<()>`.
-  - `MarkTarget` is either `File(PathBuf)` or `Stdin`.
-  - Marks live in `dirs::data_dir()/mdterm/marks.json` as `{ version, files: { path: { letter: line } } }`.
-  - Each `set` re-reads the file, merges in the one mark and writes atomically, so two running mdterm instances don't lose each other's marks. A corrupt file is never overwritten.
-- **`style.rs`.** `Line` gets `source_line: Option<usize>`, and `wrap_lines` copies it onto every wrapped piece of a line.
-- **`markdown.rs`.** The renderer records where each line came from in one place, the event loop in `render_with`, using three small helpers (`source_owner`, `stamp_new_lines`, `source_line_of`). None of the existing places that push lines need new logic; their struct literals just add `source_line: None`, like the 20 in `json.rs`.
-- **`viewer.rs`.**
-  - A new mode, `ViewMode::MarkPending(MarkAction::Set | Jump)`, waits for the letter, handled by `handle_mark_pending`, `set_mark` and `jump_to_mark`.
-  - Two helpers convert between the screen and the source: `source_line_at_offset` and `offset_for_source_line`.
-  - Jumping adds to the back history, so `Backspace` returns you.
-  - While waiting for the letter, the status bar shows a hint. Mouse capture moves to `M`, and the help screen is updated.
-- **`main.rs`.** Loads the store and passes it to the viewer the same way config is handled.
-- **Docs.** The README gets the mark keys and the previously undocumented `M` mouse toggle. `CLAUDE.md` gets the new file.
+**How it fits together:**
+- **`src/marks.rs` (new).** It owns `Mark { line, row, text }`, the per-file map `FileMarks` (letter to `Mark`), and `MarkStore` with `open`, `at(path)`, `load` and `save`. `Mark::relocate(&self, source: &str) -> usize` finds the marked line again after edits: same line if its text still matches, else the nearest line with that text, else the stored line number.
+- **Saving.** `save` re-reads `marks.json`, replaces only the current file's entry, and writes through a temp file plus rename. It refuses to overwrite a corrupt `marks.json` or one with a newer `version`, so other files' marks can't be lost.
+- **`src/style.rs` and `src/markdown.rs`.** `Line` gets a new field `source_line: Option<usize>`. Stamping happens in one place, the `into_offset_iter` loop, and `wrap_lines` copies the value onto every wrapped row. The cost is adding `..Default::default()` to about 50 places that build a `Line`.
+- **`src/viewer.rs`.**
+  - Two new view modes, `MarkSet` and `MarkJump`, wait for the letter, and the status bar shows a ` m█ ` / ` '█ ` prompt like the search prompt.
+  - `M` now toggles mouse capture.
+  - `switch_file` loads the new file's marks.
+  - Image rows keep their source line when images finish loading.
+  - Two smaller fixes I found while tracing: images won't flicker while a mark prompt is showing, and `?` won't open help mid-command.
+- **`src/main.rs`.** It creates the store and passes it in through `ViewerOptions`, which lets tests point it at a temp file.
+- **`README.md`.** It gets the new keys. It never documented the old `m` mouse toggle, so this fills that gap too.
 
-**Two places this breaks existing patterns**
-- It is the first time mdterm writes into a user directory.
-- The source line is a field on `Line`, not a `LineMeta` variant, because every line has one.
+The page also has call chains for set, jump, load and rendering (including error paths and the toasts the user sees), conventions with file references, test seams, and eight assumptions. The assumptions worth checking:
+- The position is the top visible row.
+- Marks are off in slide mode and JSON views.
+- Marks on stdin input last for the session only.
+- Setting an existing letter overwrites it, and there is no delete command.
 
-**Open questions (my recommendation first)**
-1. **Which letters?** I recommend `a-z` and `A-Z`, all per file. The alternatives are `a-z` only, or vim-style uppercase marks that work across files.
-2. **Marks for files that no longer exist?** I recommend keeping them in v1. The alternative is removing entries whose path is gone each time marks are saved.
+**One open question:** should a mark jump be undoable with Backspace? I recommend yes: it pushes onto the existing `nav_history`, so there's one way back and no separate vim `''` key.
 
-Please review the units, call chains and the 17 assumptions (section 8), and answer the two questions. Once you approve, I'll write the Markdown plan to `.lavish/bookmarks.md`.
+Reply with your answer and any changes, or approve. Once you approve, I'll write the Markdown plan to `.lavish/bookmarks.md`. I haven't written it yet because the design isn't approved.
 
 ## Simulated user turn 2
 
 APPROVED
-Q1: a-z only, per file. Q2: keep stale entries in v1.
+Q1: yes, push mark jumps onto nav_history so Backspace returns.
 
 ## Executor turn 3
 
-The plan is finished and saved in two files. No code has been written.
+The plan is finished and written to two files. No code has been changed.
 
-- **Review page:** `.lavish/bookmarks-implementation.html`. Both of your answers are folded in and the open-questions section is replaced by a "Review decisions" summary.
-- **Markdown plan:** `.lavish/bookmarks.md`. It has every unit's signatures, the data types, the call chains with their error paths, the test plan, 18 assumptions and the decisions made. A later session can implement from it without the browser.
+- **`.lavish/bookmarks-implementation.html`** is the approved design page. I removed the open question and added your answer: a mark jump pushes onto `nav_history`, so Backspace returns. The Backspace help text becomes "Go back (after a link or mark jump)".
+- **`.lavish/bookmarks.md`** is the Markdown plan for the implementation session. It covers every unit with its file path and signatures, the `marks.json` format, the call chains with error paths, the test seams, the eight assumptions and the decisions you made. It links back to the design page.
 
-Your answers changed two things in the design:
-- **Letters:** marks use `a-z` only, one set per file. After `m` or `'`, an uppercase key cancels just like any other non-letter key.
-- **Old entries:** marks for files that no longer exist are kept in v1; nothing is pruned.
-
-The earlier comparison page is still at `.lavish/bookmarks-approaches.html`. I didn't open a browser or start or end a lavish session.
+The earlier `.lavish/bookmarks-approaches.html` is still there as the record of how A was chosen. Following your instruction, I didn't run any lavish-axi session commands.

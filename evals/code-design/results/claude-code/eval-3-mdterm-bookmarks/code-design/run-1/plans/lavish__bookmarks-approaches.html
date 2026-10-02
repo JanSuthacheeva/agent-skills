@@ -1,197 +1,141 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="nord">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>mdterm bookmarks - approaches</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/daisyui.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/themes.css">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.2.4/dist/index.global.js"></script>
 <style>
-  /* Palette taken from Theme::dark() in src/theme.rs */
-  :root {
-    --bg: rgb(30,30,46); --fg: rgb(205,214,244); --border: rgb(68,71,90);
-    --title: rgb(147,153,178); --muted: rgb(108,112,134); --track: rgb(49,50,68);
-    --code-bg: rgb(30,32,42); --inline-bg: rgb(40,42,54); --inline-fg: rgb(242,205,147);
-    --blue: rgb(137,180,250); --mauve: rgb(203,166,247); --green: rgb(166,227,161);
-    --yellow: rgb(249,226,175); --red: rgb(243,139,168); --quote: rgb(116,143,196);
-  }
   *, *::before, *::after { box-sizing: border-box; }
-  html, body { background: var(--bg); color: var(--fg); margin: 0; }
-  body { font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
-  main { max-width: 1080px; margin: 0 auto; padding: 32px 24px 64px; }
-  h1 { font-size: 26px; margin: 0 0 4px; }
-  h2 { color: var(--blue); font-size: 19px; margin: 40px 0 12px; border-bottom: 1px solid var(--track); padding-bottom: 6px; }
-  h3 { color: var(--mauve); font-size: 16px; margin: 0 0 8px; }
-  p { margin: 0 0 10px; }
-  .sub { color: var(--title); margin-bottom: 24px; }
-  code, kbd { font: 13px ui-monospace, "SF Mono", Menlo, monospace; background: var(--inline-bg); color: var(--inline-fg); padding: 1px 5px; border-radius: 4px; }
-  a { color: var(--blue); }
-  .grid { display: grid; gap: 16px; }
-  .g2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
-  .grid > * { min-width: 0; }
-  .card { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; }
-  .card.rec { border-color: var(--green); box-shadow: 0 0 0 1px var(--green) inset; }
-  .tag { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 99px; border: 1px solid var(--border); color: var(--title); margin-left: 8px; vertical-align: 2px; }
-  .tag.rec { color: var(--green); border-color: var(--green); }
-  .warn { border-left: 3px solid var(--yellow); background: var(--inline-bg); padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 12px 0; }
-  .warn b { color: var(--yellow); }
-  ul { margin: 6px 0 10px; padding-left: 20px; }
-  li { margin: 3px 0; overflow-wrap: anywhere; }
-  .pc { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; }
-  .pc > div { min-width: 0; }
-  .pc h4 { margin: 0 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: .05em; }
-  .pro h4 { color: var(--green); } .con h4 { color: var(--red); }
-  .meta { color: var(--title); font-size: 13.5px; }
-  svg { width: 100%; height: auto; display: block; margin: 8px 0 12px; }
-  svg text { font: 12px ui-monospace, Menlo, monospace; fill: var(--fg); }
-  svg .small { font-size: 10.5px; fill: var(--title); }
-  .n-new rect { fill: rgba(166,227,161,.10); stroke: var(--green); stroke-width: 1.6; }
-  .n-mod rect { fill: rgba(249,226,175,.08); stroke: var(--yellow); stroke-width: 1.6; stroke-dasharray: 5 3; }
-  .n-old rect { fill: var(--inline-bg); stroke: var(--border); stroke-width: 1.2; }
-  .n-file rect { fill: none; stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 2 3; }
-  .edge { stroke: var(--title); stroke-width: 1.4; fill: none; marker-end: url(#arr); }
-  .legend { display: flex; gap: 18px; flex-wrap: wrap; font-size: 13px; color: var(--title); }
-  .sw { display: inline-block; width: 14px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
-  table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--track); vertical-align: top; overflow-wrap: anywhere; }
-  th { color: var(--blue); font-weight: 600; }
-  td.good { color: var(--green); } td.bad { color: var(--red); } td.mid { color: var(--yellow); }
-  form { background: var(--code-bg); border: 1px solid var(--blue); border-radius: 10px; padding: 18px 20px; }
-  fieldset { border: none; padding: 0; margin: 0 0 16px; }
-  legend { color: var(--blue); font-weight: 600; margin-bottom: 8px; }
-  label.opt { display: block; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; margin: 6px 0; cursor: pointer; }
-  label.opt:has(input:checked) { border-color: var(--green); background: rgba(166,227,161,.07); }
-  textarea { width: 100%; min-height: 80px; background: var(--bg); color: var(--fg); border: 1px solid var(--border); border-radius: 8px; padding: 8px; font: inherit; }
-  button { background: var(--blue); color: var(--bg); border: none; border-radius: 8px; padding: 9px 18px; font-weight: 600; cursor: pointer; }
-  .status { color: var(--green); margin-left: 12px; font-size: 13px; }
-  @media (max-width: 640px) { .pc { grid-template-columns: 1fr; } }
+  :where(.grid, .flex) > * { min-width: 0; }
+  :where(p, li, td, th, .badge) { overflow-wrap: anywhere; }
+  svg { max-width: 100%; height: auto; display: block; }
+  code { font-size: .85em; background: var(--color-base-200); padding: .05rem .3rem; border-radius: .25rem; }
+  .fig text { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; fill: currentColor; }
+  .fig .new rect { fill: color-mix(in oklab, var(--color-success) 18%, transparent); stroke: var(--color-success); stroke-width: 1.6; }
+  .fig .mod rect { fill: color-mix(in oklab, var(--color-warning) 18%, transparent); stroke: var(--color-warning); stroke-width: 1.6; stroke-dasharray: 5 3; }
+  .fig .old rect { fill: var(--color-base-200); stroke: color-mix(in oklab, currentColor 35%, transparent); stroke-width: 1.2; }
+  .fig line, .fig path { stroke: color-mix(in oklab, currentColor 55%, transparent); stroke-width: 1.4; fill: none; }
+  .fig .file text { font-size: 10px; opacity: .65; }
+  .legend span { display: inline-flex; align-items: center; gap: .35rem; margin-right: 1rem; font-size: .8rem; }
+  .sw { width: 14px; height: 10px; border-radius: 2px; display: inline-block; }
 </style>
 </head>
-<body>
-<main>
-<h1>Bookmarks in mdterm - pick an approach</h1>
-<p class="sub"><kbd>m</kbd>+letter sets a mark, <kbd>'</kbd>+letter jumps to it, marks persist per file across sessions. The decision: <b>what a mark remembers</b> and <b>who owns it</b>.</p>
+<body class="bg-base-100 text-base-content">
+<main class="mx-auto max-w-5xl p-6 lg:p-10 space-y-10">
 
-<svg viewBox="0 0 0 0" width="0" height="0" style="position:absolute" aria-hidden="true"><defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="rgb(147,153,178)"/></marker></defs></svg>
+<header class="space-y-2">
+  <p class="text-sm opacity-60">mdterm - code design - phase 2 of 4</p>
+  <h1 class="text-3xl font-bold">Bookmarks: where does a mark point, and who owns it?</h1>
+  <p class="max-w-3xl">Requested: <kbd class="kbd kbd-sm">m</kbd>+letter sets a mark at the current position, <kbd class="kbd kbd-sm">'</kbd>+letter jumps back, marks persist per file between sessions. The approaches below differ in <b>what a stored mark refers to</b> - that single choice decides which modules change and whether a mark still lands in the right place next week.</p>
+</header>
 
-<h2>What exists today</h2>
-<div class="grid g2">
-  <div class="card">
-    <h3>Keys and state</h3>
-    <ul>
-      <li>All keys go <code>handle_event</code> -> <code>handle_normal</code> as a flat <code>match code</code> (<code>src/viewer.rs:993</code>, <code>:1606</code>). There is no multi-key sequence handling anywhere yet.</li>
-      <li>Every piece of viewer state lives on one <code>ViewerState</code> struct (<code>src/viewer.rs:283</code>); <code>SearchState</code> is the one sub-state with its own type and methods (<code>:2178</code>).</li>
-      <li>Position = <code>state.offset</code>, an index into <code>wrapped</code> lines, i.e. <em>after</em> word-wrap at the current width and after image rows are expanded (<code>:575</code>, <code>:605-657</code>).</li>
-      <li>Closest sibling: <code>nav_history: Vec&lt;(usize, usize)&gt;</code> stores <code>(file_idx, offset)</code> for Backspace (<code>:365</code>, <code>:1765</code>, <code>:1966</code>) - in-memory only.</li>
-    </ul>
+<section class="space-y-3">
+  <h2 class="text-xl font-bold">What exists today</h2>
+  <div class="grid md:grid-cols-2 gap-3 text-sm">
+    <div class="card card-border bg-base-100"><div class="card-body p-4 gap-1">
+      <h3 class="font-semibold">Position is a wrapped-line index</h3>
+      <p><code>ViewerState.offset</code> indexes <code>wrapped</code> (<code>viewer.rs:292-294</code>). It shifts whenever the content is re-wrapped: terminal resize, <kbd class="kbd kbd-xs">l</kbd> line numbers, image rows growing in <code>finalize_layout</code> (<code>viewer.rs:605-657</code>), and file reloads.</p>
+    </div></div>
+    <div class="card card-border bg-base-100"><div class="card-body p-4 gap-1">
+      <h3 class="font-semibold">Lines carry no source position</h3>
+      <p><code>Line { spans, meta }</code> (<code>style.rs:56</code>). The one exception, <code>TaskItem.bracket_offset</code> (<code>style.rs:39-43</code>), proves the renderer can stamp byte offsets: it already iterates <code>into_offset_iter()</code> (<code>markdown.rs:1585</code>).</p>
+    </div></div>
+    <div class="card card-border bg-base-100"><div class="card-body p-4 gap-1">
+      <h3 class="font-semibold">Keys are single-stroke only</h3>
+      <p><code>handle_normal</code> matches one <code>KeyCode</code> at a time (<code>viewer.rs:1606-1801</code>); there is no prefix/chord state anywhere. <b><kbd class="kbd kbd-xs">m</kbd> is taken</b> by mouse-capture toggle (<code>viewer.rs:1647</code>, help entry <code>viewer.rs:3637</code>). <kbd class="kbd kbd-xs">'</kbd> is free. Slide mode and JSON nav intercept keys first (<code>viewer.rs:1610-1617</code>).</p>
+    </div></div>
+    <div class="card card-border bg-base-100"><div class="card-body p-4 gap-1">
+      <h3 class="font-semibold">Closest siblings</h3>
+      <p><code>nav_history: Vec&lt;(file_idx, offset)&gt;</code> + <kbd class="kbd kbd-xs">Backspace</kbd> is an in-session "jump back" (<code>viewer.rs:365, 1765</code>). <code>SearchState</code> is the pattern for a sub-state struct with methods (<code>viewer.rs:2178</code>). <code>config.rs</code> is the only disk I/O: read-only TOML via <code>dirs</code>, silent fallback on error (<code>config.rs:30-43</code>). Nothing writes state to disk yet.</p>
+    </div></div>
   </div>
-  <div class="card">
-    <h3>Persistence and layout</h3>
-    <ul>
-      <li>The only thing mdterm reads from disk besides documents is <code>config.rs</code>: <code>Config::load()</code> from <code>dirs::config_dir()/mdterm/config.toml</code>, errors silently fall back to defaults (<code>src/config.rs:29-43</code>). Nothing is ever written to app dirs today.</li>
-      <li><code>Line</code> carries <code>spans</code> + <code>LineMeta</code> only - no link back to the source (<code>src/style.rs:56</code>). The renderer does see byte ranges via <code>into_offset_iter</code> (<code>src/markdown.rs:1585</code>) and already uses them for <code>TaskItem.bracket_offset</code>.</li>
-      <li>Errors in the TUI surface as 1s toasts via <code>set_toast</code> (<code>src/viewer.rs:454</code>), e.g. <code>"Write failed"</code> in <code>toggle_task</code> (<code>:895</code>).</li>
-    </ul>
-  </div>
-</div>
-<div class="warn"><b>Key conflict:</b> <kbd>m</kbd> is already "Toggle mouse capture" (<code>src/viewer.rs:1647</code>, help at <code>:3637</code>). Something has to move - see the second question in the form. (Side note: <kbd>m</kbd> is also missing from the README controls table, <code>README.md:94-110</code> - I would fix that in the same change.)</div>
-<div class="warn"><b>Why "what a mark remembers" matters:</b> a wrapped-line offset is only meaningful for one terminal width, one line-numbers setting and one set of loaded images. The same file opened tomorrow in a narrower window puts offset 412 somewhere else. Persistence across sessions is exactly where this breaks.</div>
+  <p class="text-sm opacity-75">Common to every approach: a new <code>marks.rs</code> owns the persisted store (one JSON file, keyed by canonical file path, <code>serde_json</code> already a dependency), the viewer gets a one-key "pending prefix" state for <kbd class="kbd kbd-xs">m</kbd>/<kbd class="kbd kbd-xs">'</kbd>, marks reload on <code>switch_file</code> (<code>viewer.rs:802</code>), and stdin input keeps marks in memory only. These are detailed on the implementation page.</p>
+  <div class="legend"><span><i class="sw" style="background:color-mix(in oklab,var(--color-success) 35%,transparent);border:1px solid var(--color-success)"></i>new</span><span><i class="sw" style="background:color-mix(in oklab,var(--color-warning) 35%,transparent);border:1px dashed var(--color-warning)"></i>modified</span><span><i class="sw" style="background:var(--color-base-200);border:1px solid #999"></i>existing</span></div>
+</section>
 
-<div class="legend" style="margin-top:20px">
-  <span><span class="sw" style="background:rgba(166,227,161,.25);border:1px solid var(--green)"></span>new</span>
-  <span><span class="sw" style="border:1px dashed var(--yellow)"></span>modified</span>
-  <span><span class="sw" style="background:var(--inline-bg);border:1px solid var(--border)"></span>existing, unchanged</span>
-  <span><span class="sw" style="border:1px dotted var(--muted)"></span>file on disk</span>
-</div>
-
-<h2>A - Viewer-local, store the wrapped offset</h2>
-<div class="card">
-  <p>Everything lives in <code>viewer.rs</code>: a pending-prefix field and a <code>HashMap&lt;char, usize&gt;</code> of wrapped offsets on <code>ViewerState</code>, plus a couple of free functions mirroring <code>config.rs</code> that read/write a marks file. A mark is literally the <code>offset</code> value, like <code>nav_history</code>.</p>
-  <svg viewBox="0 0 640 120" role="img" aria-label="Approach A component diagram">
-    <g id="a-viewer" class="n-mod"><title>viewer.rs (modified)</title><rect x="20" y="30" width="260" height="60" rx="8"/><text x="36" y="56">viewer.rs</text><text x="36" y="76" class="small">pending prefix, marks map, load/save fns</text></g>
-    <g id="a-file" class="n-file"><title>marks file</title><rect x="400" y="30" width="220" height="60" rx="8"/><text x="416" y="56">data_dir/mdterm/marks.toml</text><text x="416" y="76" class="small">path -> letter -> offset</text></g>
-    <path class="edge" d="M280,60 L398,60"><title>reads/writes</title></path>
+<!-- A -->
+<section id="approach-a" class="card card-border bg-base-100">
+<div class="card-body gap-4">
+  <div class="flex flex-wrap items-center gap-2"><h2 class="card-title text-xl">A. Wrapped-offset marks</h2><span class="badge badge-soft badge-error">not recommended</span></div>
+  <p>A mark stores <code>offset</code> exactly as the viewer sees it, like <code>nav_history</code> does. Setting is <code>marks.insert(c, state.offset)</code>; jumping is clamping the stored number. No renderer change.</p>
+  <svg class="fig" viewBox="0 0 640 120" role="img" aria-label="Approach A components">
+    <g class="mod" id="a-viewer"><title>viewer.rs (modified)</title><rect x="10" y="30" width="200" height="56" rx="6"/><text x="22" y="54">ViewerState</text><text x="22" y="72">+ pending_mark, marks</text></g>
+    <g class="new" id="a-marks"><title>marks.rs (new)</title><rect x="260" y="30" width="170" height="56" rx="6"/><text x="272" y="54">MarkStore</text><text x="272" y="72">{file: {c: offset}}</text></g>
+    <g class="old" id="a-file"><title>marks.json on disk</title><rect x="480" y="30" width="150" height="56" rx="6"/><text x="492" y="54">data_dir/mdterm</text><text x="492" y="72">marks.json</text></g>
+    <line x1="210" y1="58" x2="260" y2="58"/><line x1="430" y1="58" x2="480" y2="58"/>
   </svg>
-  <p class="meta">Touches: <code>src/viewer.rs</code> only (+ help, README). Fits the "it's all in ViewerState" habit (<code>:283</code>), but grows a 4356-line file further.</p>
-  <div class="pc">
-    <div class="pro"><h4>Benefits</h4><ul><li>Smallest diff, no new module.</li><li>Same shape as <code>nav_history</code>.</li></ul></div>
-    <div class="con"><h4>Costs</h4><ul><li><b>Wrong after reopen at another width</b>, after toggling line numbers, after resize, and while images load (<code>finalize_layout</code> shifts rows). Breaks the core requirement.</li><li>Persistence I/O mixed into the TUI file; only testable through <code>ViewerState</code>.</li></ul></div>
+  <div class="grid md:grid-cols-3 gap-4 text-sm">
+    <div><h3 class="font-semibold mb-1">Touches</h3><p><code>viewer.rs</code>, new <code>marks.rs</code>, <code>main.rs</code> (mod).</p></div>
+    <div><h3 class="font-semibold mb-1 text-success">Gains</h3><ul class="list-disc ml-4"><li>Smallest change; mirrors <code>nav_history</code>.</li><li>No new concept in the render pipeline.</li></ul></div>
+    <div><h3 class="font-semibold mb-1 text-error">Costs</h3><ul class="list-disc ml-4"><li>A persisted mark is wrong as soon as the terminal width differs from when it was set - the common case across sessions.</li><li>Also drifts on <kbd class="kbd kbd-xs">l</kbd>, image load, any edit above it.</li><li>The stored format would have to be migrated later, so "start simple" is not cheap here.</li></ul></div>
   </div>
 </div>
+</section>
 
-<h2>B - <code>marks.rs</code> module, heading-relative anchor</h2>
-<div class="card">
-  <p>New <code>marks.rs</code> owns the mark type and the per-file store (load, set, save). A mark remembers the <em>nearest heading above</em> (its slug, as <code>navigate_to_anchor</code> already matches at <code>src/viewer.rs:1979</code>) plus how many wrapped lines below it you were. The viewer converts offset &lt;-&gt; anchor using the existing <code>toc_entries</code>; the renderer is untouched.</p>
-  <svg viewBox="0 0 640 150" role="img" aria-label="Approach B component diagram">
-    <g id="b-viewer" class="n-mod"><title>viewer.rs (modified)</title><rect x="20" y="20" width="200" height="56" rx="8"/><text x="36" y="44">viewer.rs</text><text x="36" y="63" class="small">keys, offset &lt;-&gt; anchor</text></g>
-    <g id="b-toc" class="n-old"><title>toc_entries (existing)</title><rect x="20" y="96" width="200" height="40" rx="8"/><text x="36" y="121">toc_entries / slugs</text></g>
-    <g id="b-marks" class="n-new"><title>marks.rs (new)</title><rect x="270" y="20" width="160" height="56" rx="8"/><text x="286" y="44">marks.rs</text><text x="286" y="63" class="small">Mark, MarkStore</text></g>
-    <g id="b-file" class="n-file"><title>marks file</title><rect x="470" y="20" width="160" height="56" rx="8"/><text x="482" y="44">marks.toml</text><text x="482" y="63" class="small">slug + line delta</text></g>
-    <path class="edge" d="M120,76 L120,94"></path>
-    <path class="edge" d="M220,48 L268,48"></path>
-    <path class="edge" d="M430,48 L468,48"></path>
+<!-- B -->
+<section id="approach-b" class="card card-border bg-base-100">
+<div class="card-body gap-4">
+  <div class="flex flex-wrap items-center gap-2"><h2 class="card-title text-xl">B. Heading-anchored marks</h2><span class="badge badge-soft badge-warning">viable</span></div>
+  <p>A mark stores the enclosing heading (slug + occurrence, reusing <code>heading_to_slug</code>, <code>viewer.rs:1918</code>) and how far into that section the view was, as a fraction. Resolving looks the heading up in <code>toc_entries</code> (<code>viewer.rs:661-697</code>). No renderer change.</p>
+  <svg class="fig" viewBox="0 0 640 150" role="img" aria-label="Approach B components">
+    <g class="mod" id="b-viewer"><title>viewer.rs (modified)</title><rect x="10" y="20" width="200" height="56" rx="6"/><text x="22" y="44">ViewerState</text><text x="22" y="62">+ pending_mark, marks</text></g>
+    <g class="old" id="b-toc"><title>toc_entries (existing)</title><rect x="10" y="94" width="200" height="44" rx="6"/><text x="22" y="120">toc_entries / slug</text></g>
+    <g class="new" id="b-marks"><title>marks.rs (new)</title><rect x="260" y="20" width="170" height="56" rx="6"/><text x="272" y="44">MarkBook</text><text x="272" y="62">{c: SectionAnchor}</text></g>
+    <g class="old" id="b-file"><title>marks.json on disk</title><rect x="480" y="20" width="150" height="56" rx="6"/><text x="492" y="44">data_dir/mdterm</text><text x="492" y="62">marks.json</text></g>
+    <line x1="210" y1="48" x2="260" y2="48"/><line x1="430" y1="48" x2="480" y2="48"/><line x1="110" y1="76" x2="110" y2="94"/>
   </svg>
-  <p class="meta">Touches: new <code>src/marks.rs</code>, <code>src/viewer.rs</code>, <code>src/main.rs</code> (<code>mod marks;</code>). Fits the one-file-per-concern layout listed in <code>CLAUDE.md</code> and the <code>config.rs</code> load pattern.</p>
-  <div class="pc">
-    <div class="pro"><h4>Benefits</h4><ul><li>No change to rendering or <code>Line</code>.</li><li>Survives edits above the heading and most width changes.</li><li>Persistence is isolated and unit-testable.</li></ul></div>
-    <div class="con"><h4>Costs</h4><ul><li>The delta is still in wrapped lines, so inside a long section it drifts with width - wrong by a screen in long prose.</li><li>Documents without headings degrade to A. Duplicate heading texts need disambiguation.</li><li>A heuristic: hard to explain when it misses.</li></ul></div>
+  <div class="grid md:grid-cols-3 gap-4 text-sm">
+    <div><h3 class="font-semibold mb-1">Touches</h3><p><code>viewer.rs</code>, new <code>marks.rs</code>, <code>main.rs</code> (mod). Renderer untouched.</p></div>
+    <div><h3 class="font-semibold mb-1 text-success">Gains</h3><ul class="list-disc ml-4"><li>Survives resize roughly and edits in other sections exactly.</li><li>Stored data is human-readable ("Installation", 40%).</li></ul></div>
+    <div><h3 class="font-semibold mb-1 text-error">Costs</h3><ul class="list-disc ml-4"><li>Approximate: a fraction of a section lands a few lines off after resize, more in long sections.</li><li>Documents without headings fall back to whole-document fraction.</li><li>Renaming the heading orphans the mark.</li><li>Fuzzy semantics are hard to test crisply.</li></ul></div>
   </div>
 </div>
+</section>
 
-<h2>C - <code>marks.rs</code> module, source-line anchor <span class="tag rec">recommended</span></h2>
-<div class="card rec">
-  <p>Same <code>marks.rs</code> as B, but a mark remembers the <b>source line</b> of the markdown block at the top of the viewport. To get it, <code>Line</code> gains a source-position field that the renderer stamps from the byte ranges it already receives and that <code>wrap_lines</code> copies to every wrapped piece. Offset -&gt; mark reads <code>wrapped[offset]</code>; mark -&gt; offset finds the first wrapped line at or after that source line.</p>
-  <svg viewBox="0 0 640 160" role="img" aria-label="Approach C component diagram">
-    <g id="c-viewer" class="n-mod"><title>viewer.rs (modified)</title><rect x="20" y="20" width="200" height="56" rx="8"/><text x="36" y="44">viewer.rs</text><text x="36" y="63" class="small">keys, offset &lt;-&gt; src line</text></g>
-    <g id="c-marks" class="n-new"><title>marks.rs (new)</title><rect x="270" y="20" width="160" height="56" rx="8"/><text x="286" y="44">marks.rs</text><text x="286" y="63" class="small">Mark, MarkStore</text></g>
-    <g id="c-file" class="n-file"><title>marks file</title><rect x="470" y="20" width="160" height="56" rx="8"/><text x="482" y="44">marks.toml</text><text x="482" y="63" class="small">path -> letter -> line</text></g>
-    <g id="c-md" class="n-mod"><title>markdown.rs (modified)</title><rect x="20" y="96" width="200" height="50" rx="8"/><text x="36" y="118">markdown.rs</text><text x="36" y="135" class="small">stamps source position</text></g>
-    <g id="c-style" class="n-mod"><title>style.rs (modified)</title><rect x="270" y="96" width="160" height="50" rx="8"/><text x="286" y="118">style.rs Line</text><text x="286" y="135" class="small">+ source field, wrap copies</text></g>
-    <path class="edge" d="M220,48 L268,48"></path>
-    <path class="edge" d="M430,48 L468,48"></path>
-    <path class="edge" d="M120,76 L120,94"><title>viewer renders via markdown.rs</title></path>
-    <path class="edge" d="M220,121 L268,121"></path>
+<!-- C -->
+<section id="approach-c" class="card card-border bg-base-100 border-primary border-2">
+<div class="card-body gap-4">
+  <div class="flex flex-wrap items-center gap-2"><h2 class="card-title text-xl">C. Source-anchored marks</h2><span class="badge badge-primary">recommended</span></div>
+  <p>The renderer stamps every <code>Line</code> with the source line it came from (same mechanism as <code>bracket_offset</code>), and <code>wrap_lines</code> copies it to continuation lines. A mark stores that source line number plus a short fingerprint of its text. Jumping maps source line to the first wrapped line; if the file was edited, the fingerprint re-locates the line nearby.</p>
+  <svg class="fig" viewBox="0 0 640 170" role="img" aria-label="Approach C components">
+    <g class="mod" id="c-md"><title>markdown.rs (modified)</title><rect x="10" y="16" width="150" height="50" rx="6"/><text x="22" y="38">Renderer</text><text x="22" y="56">stamps source_line</text></g>
+    <g class="mod" id="c-style"><title>style.rs (modified)</title><rect x="10" y="100" width="150" height="50" rx="6"/><text x="22" y="122">Line, wrap_lines</text><text x="22" y="140">+ source_line</text></g>
+    <g class="mod" id="c-viewer"><title>viewer.rs (modified)</title><rect x="210" y="56" width="180" height="56" rx="6"/><text x="222" y="80">ViewerState</text><text x="222" y="98">+ pending_mark, marks</text></g>
+    <g class="new" id="c-marks"><title>marks.rs (new)</title><rect x="430" y="16" width="200" height="56" rx="6"/><text x="442" y="40">MarkBook</text><text x="442" y="58">{c: SourceAnchor}</text></g>
+    <g class="old" id="c-file"><title>marks.json on disk</title><rect x="430" y="100" width="200" height="50" rx="6"/><text x="442" y="122">data_dir/mdterm</text><text x="442" y="140">marks.json</text></g>
+    <line x1="85" y1="66" x2="85" y2="100"/><line x1="160" y1="125" x2="210" y2="96"/><line x1="390" y1="76" x2="430" y2="50"/><line x1="530" y1="72" x2="530" y2="100"/>
   </svg>
-  <p class="meta">Touches: new <code>src/marks.rs</code>; <code>src/style.rs</code> (<code>Line</code>, <code>wrap_lines</code>/<code>word_wrap</code>); <code>src/markdown.rs</code> (~15 <code>Line</code> constructions); <code>src/json.rs</code> (~20 constructions, get "no source position"); <code>src/viewer.rs</code>; <code>src/main.rs</code>. Mirrors how <code>TaskItem.bracket_offset</code> already threads a source byte offset from renderer to viewer (<code>src/style.rs:42</code>, <code>src/markdown.rs:1108</code>).</p>
-  <div class="pc">
-    <div class="pro"><h4>Benefits</h4><ul><li><b>Exact</b> across width, resize, theme, line numbers and image loading - the layout never enters the stored value.</li><li>Human-readable file ("line 142"), drifts like vim marks only when the file is edited above the mark.</li><li>Source position on <code>Line</code> is reusable later (e.g. "open in $EDITOR at this line", keeping position across live reload).</li></ul></div>
-    <div class="con"><h4>Costs</h4><ul><li>Largest diff: ~50 <code>Line { .. }</code> sites across three files get a new field.</li><li>Granularity is one markdown block: inside a long wrapped paragraph or code block the jump lands at the block start (code blocks could be per-line - decided on the next page).</li><li>Renderer changes need care so every emitted line gets the right position.</li></ul></div>
+  <div class="grid md:grid-cols-3 gap-4 text-sm">
+    <div><h3 class="font-semibold mb-1">Touches</h3><p>New <code>marks.rs</code>; <code>style.rs</code> (field on <code>Line</code>, ~13 literals), <code>markdown.rs</code> (~15 literals, stamping in <code>flush_line_with_meta</code>), <code>json.rs</code> (~20 literals, default <code>None</code>), <code>viewer.rs</code>.</p></div>
+    <div><h3 class="font-semibold mb-1 text-success">Gains</h3><ul class="list-disc ml-4"><li>Exact across resize, <kbd class="kbd kbd-xs">l</kbd>, theme, image loads, width override.</li><li>Robust to edits via fingerprint; stored line numbers are readable and debuggable.</li><li><code>Line.source_line</code> is reusable later (e.g. "open in $EDITOR at line", restoring scroll on reload).</li><li>Deterministic, unit-testable resolve.</li></ul></div>
+    <div><h3 class="font-semibold mb-1 text-error">Costs</h3><ul class="list-disc ml-4"><li>Widest diff: ~50 mechanical <code>Line { .. }</code> literal updates.</li><li>Granularity is the block's first source line: a mark inside a long wrapped paragraph lands at its top.</li><li>JSON views have no markdown source; marks there need their own anchor or are unsupported.</li></ul></div>
   </div>
 </div>
+</section>
 
-<h2>Side by side</h2>
-<table>
-  <thead><tr><th></th><th>A - wrapped offset</th><th>B - heading + delta</th><th>C - source line</th></tr></thead>
-  <tbody>
-    <tr><td>Correct after reopening at another width</td><td class="bad">no</td><td class="mid">near the heading</td><td class="good">yes (block start)</td></tr>
-    <tr><td>Correct after <kbd>l</kbd>, resize, images loading</td><td class="bad">no</td><td class="mid">mostly</td><td class="good">yes</td></tr>
-    <tr><td>Files touched</td><td class="good">1</td><td class="good">3</td><td class="mid">6</td></tr>
-    <tr><td>Persistence testable in isolation</td><td class="bad">no</td><td class="good">yes</td><td class="good">yes</td></tr>
-    <tr><td>Changes the core <code>Line</code> type</td><td class="good">no</td><td class="good">no</td><td class="mid">yes</td></tr>
-  </tbody>
-</table>
+<section class="space-y-3">
+  <h2 class="text-xl font-bold">Recommendation: C</h2>
+  <p class="max-w-3xl">Persistence is the point of the feature, and what is persisted is the hardest thing to change later. Only C stores a position that means the same thing in the next session regardless of terminal size, and it degrades predictably under edits. The extra cost is mechanical (struct literals), not conceptual, and the new <code>Line.source_line</code> pays for itself beyond bookmarks. B is the fallback if you want the renderer left untouched; A I would not ship because its stored data is wrong in the most common case.</p>
+</section>
 
-<h2>Recommendation</h2>
-<p><b>C.</b> Persistence across sessions is the point of the feature, and only C stores something the next session can interpret correctly regardless of terminal size. A cannot meet the requirement; B is a heuristic that fails silently in exactly the long documents where bookmarks are most useful. C's cost is a wide but mechanical change to <code>Line</code>, which is development cost - and it follows the existing <code>bracket_offset</code> precedent rather than inventing a new mechanism.</p>
-<p class="meta">Shared by B and C regardless of choice: marks file in <code>dirs::data_dir()/mdterm/marks.toml</code> (state, not config), keyed by canonical file path, written immediately on each <kbd>m</kbd>+letter; stdin documents get in-session marks only. These go on the assumptions list next round.</p>
+<section class="card bg-base-200">
+<div class="card-body gap-4">
+  <h2 class="card-title">Your decision</h2>
+  <form data-lavish-question="approach" class="space-y-4" onsubmit="event.preventDefault(); const fd = new FormData(event.currentTarget); const choice = fd.get('approach'); const notes = (fd.get('notes') || '').trim(); if (choice) window.lavish.queuePrompt('Use approach ' + choice + (notes ? '. Notes: ' + notes : ''), { tag: 'choice', text: 'Approach: ' + choice, element: event.currentTarget, data: { question: 'approach', answer: choice, notes } });">
+    <div class="grid sm:grid-cols-3 gap-2">
+      <label class="flex items-center gap-2 bg-base-100 rounded-box p-3"><input type="radio" class="radio radio-sm" name="approach" value="A - wrapped-offset marks"> A - wrapped offset</label>
+      <label class="flex items-center gap-2 bg-base-100 rounded-box p-3"><input type="radio" class="radio radio-sm" name="approach" value="B - heading-anchored marks"> B - heading-anchored</label>
+      <label class="flex items-center gap-2 bg-base-100 rounded-box p-3"><input type="radio" class="radio radio-sm radio-primary" name="approach" value="C - source-anchored marks" checked> C - source-anchored</label>
+    </div>
+    <textarea name="notes" class="textarea w-full" rows="3" placeholder="Rationale, mixes, or answers to the key-binding / storage questions"></textarea>
+    <button type="submit" class="btn btn-primary">Queue this answer</button>
+  </form>
+</div>
+</section>
 
-<h2>Your decision</h2>
-<form data-lavish-question="approach" onsubmit="event.preventDefault(); const fd = new FormData(event.currentTarget); const a = fd.get('approach'); const k = fd.get('mousekey'); const n = (fd.get('notes') || '').trim(); if (!a || !k) { event.currentTarget.querySelector('.status').textContent = 'Pick an approach and a key option first.'; return; } window.lavish.queuePrompt('Approach: ' + a + '. Mouse-capture key: ' + k + '.' + (n ? ' Notes: ' + n : ''), { tag: 'choice', text: 'Approach ' + a + ', mouse key: ' + k, element: event.currentTarget, data: { question: 'approach', approach: a, mousekey: k, notes: n } }); event.currentTarget.querySelector('.status').textContent = 'Queued - press Send to Agent.';">
-  <fieldset>
-    <legend>1. Which approach?</legend>
-    <label class="opt"><input type="radio" name="approach" value="A - viewer-local wrapped offset"> A - viewer-local, wrapped offset</label>
-    <label class="opt"><input type="radio" name="approach" value="B - marks.rs with heading-relative anchor"> B - <code>marks.rs</code>, heading + delta</label>
-    <label class="opt"><input type="radio" name="approach" value="C - marks.rs with source-line anchor" checked> C - <code>marks.rs</code>, source-line anchor (recommended)</label>
-  </fieldset>
-  <fieldset>
-    <legend>2. <kbd>m</kbd> is taken by mouse capture - what moves?</legend>
-    <label class="opt"><input type="radio" name="mousekey" value="move mouse capture to M" checked> Move mouse capture to <kbd>M</kbd>, <kbd>m</kbd> becomes set-mark (vim/less convention; recommended)</label>
-    <label class="opt"><input type="radio" name="mousekey" value="keep m for mouse, use another set-mark key"> Keep <kbd>m</kbd> for mouse capture, pick another set-mark key (say which in notes)</label>
-  </fieldset>
-  <fieldset>
-    <legend>Notes / mix-and-match</legend>
-    <textarea name="notes" placeholder="Anything to change, combine, or rule out"></textarea>
-  </fieldset>
-  <button type="submit">Queue this answer</button><span class="status" role="status" aria-live="polite"></span>
-</form>
 </main>
 </body>
 </html>
