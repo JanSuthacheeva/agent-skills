@@ -1,4 +1,4 @@
-You are judging implementation plans written by four different AI
+You are judging implementation plans written by {count} different AI
 planning methods for the same request in the same repository. You do not
 know which method wrote which plan, and it does not matter.
 
@@ -30,7 +30,7 @@ Score each plan from 1 to 10 on:
 - reviewability: you could point at a specific decision, unit or call and
   ask for it to change; open decisions are visible.
 
-Then rank the four plans from best to worst. Do not reward length,
+Then rank the {count} plans from best to worst. Do not reward length,
 styling or a particular format for its own sake - a short plan that gets
 the design right beats a long one that does not. Read the plans fully and
 check at least three concrete claims per plan against the repository.

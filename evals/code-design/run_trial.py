@@ -21,6 +21,8 @@ HERE = Path(__file__).resolve().parent
 EXECUTOR_MODEL = os.environ.get("MODEL", "claude-opus-5-5")
 USER_MODEL = os.environ.get("USER_MODEL", "claude-sonnet-5-5")
 EFFORT = os.environ.get("EFFORT", "medium")
+EVALS_FILE = Path(os.environ.get("EVALS_FILE", HERE / "evals.json"))
+CONFIGS_FILE = Path(os.environ.get("CONFIGS_FILE", HERE / "configs.json"))
 MAX_TURNS = int(os.environ.get("MAX_TURNS", "14"))
 TURN_TIMEOUT = 45 * 60
 ARTIFACT_CHARS = 60_000
@@ -110,7 +112,7 @@ def changed_files(repo: Path, base: str) -> dict[str, float]:
 def executor_settings(cfg: dict) -> str:
     return json.dumps({
         "enabledPlugins": {plugin: True for plugin in cfg["plugins"]},
-        "permissions": {"deny": DENIED_COMMANDS},
+        "permissions": {"deny": DENIED_COMMANDS + cfg.get("deny", [])},
     })
 
 
@@ -221,7 +223,8 @@ def clone_fixture(fixture: dict, repo: Path):
     subprocess.run(["git", "clone", "-q", source, str(repo)], check=True)
     if "bundle" in fixture:
         subprocess.run(["git", "fetch", "-q", str(HERE / fixture["bundle"]), "eval-fixture"], cwd=repo, check=True)
-    subprocess.run(["git", "checkout", "-q", fixture["sha"]], cwd=repo, check=True)
+    checkout = ["-B", fixture["branch"], fixture["sha"]] if "branch" in fixture else [fixture["sha"]]
+    subprocess.run(["git", "checkout", "-q", *checkout], cwd=repo, check=True)
     subprocess.run(["git", "remote", "remove", "origin"], cwd=repo, check=True)
 
 
@@ -238,8 +241,8 @@ def collect_outputs(repo: Path, base: str, outputs: Path):
 
 def main():
     eval_id, config_name, run_dir = int(sys.argv[1]), sys.argv[2], Path(sys.argv[3]).resolve()
-    scenario = next(e for e in json.loads((HERE / "evals.json").read_text())["evals"] if e["id"] == eval_id)
-    cfg = json.loads((HERE / "configs.json").read_text())[config_name]
+    scenario = next(e for e in json.loads(EVALS_FILE.read_text())["evals"] if e["id"] == eval_id)
+    cfg = json.loads(CONFIGS_FILE.read_text())[config_name]
     repo, outputs = run_dir / "repo", run_dir / "outputs"
     outputs.mkdir(parents=True, exist_ok=True)
     clone_fixture(scenario["fixture"], repo)

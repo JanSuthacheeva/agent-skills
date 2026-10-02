@@ -2,15 +2,17 @@
 # Run every scenario in evals.json for every config, N runs each.
 # Usage: run_iteration.sh <iteration-dir> [runs=1] [parallel=4]
 # CONFIGS="code-design plain" limits which configs run (default: all).
+# EVALS_FILE and CONFIGS_FILE point at other definitions (default: the ones here).
 # Runs that already have a timing.json are skipped, so an iteration can grow.
 set -euo pipefail
 it=$1; runs=${2:-1}; par=${3:-4}
 here=$(cd "$(dirname "$0")" && pwd)
 mkdir -p "$it"
 claude --version > "$it/harness.txt"
-configs=${CONFIGS:-$(python3 -c "import json; print(' '.join(json.load(open('$here/configs.json'))))")}
+export EVALS_FILE=${EVALS_FILE:-$here/evals.json} CONFIGS_FILE=${CONFIGS_FILE:-$here/configs.json}
+configs=${CONFIGS:-$(python3 -c "import json; print(' '.join(json.load(open('$CONFIGS_FILE'))))")}
 
-python3 - "$here/evals.json" "$it" "$runs" $configs <<'P' | xargs -0 -n3 -P"$par" sh -c 'python3 "$0/run_trial.py" "$1" "$2" "$3" > "$3.log" 2>&1' "$here"
+python3 - "$EVALS_FILE" "$it" "$runs" $configs <<'P' | xargs -0 -n3 -P"$par" sh -c 'python3 "$0/run_trial.py" "$1" "$2" "$3" > "$3.log" 2>&1' "$here"
 import json, os, sys
 evals, it, runs, configs = sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4:]
 for e in json.load(open(evals))["evals"]:
