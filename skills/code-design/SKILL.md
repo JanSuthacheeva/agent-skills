@@ -16,7 +16,7 @@ compatibility: >-
   https://github.com/JanSuthacheeva/agent-skills/tree/main/evals/code-design/results/claude-code
 metadata:
     author: Jan Suthacheeva
-    version: "0.4"
+    version: "0.6"
 ---
 
 Produce a code design the user can discuss and correct before any code
@@ -52,9 +52,23 @@ is clean in isolation, so earn the right to propose one first.
 
 If a requirement is ambiguous in a way that changes the design (not a
 detail you can decide and flag), ask before phase 2. Keep it to the
-questions that matter. Every behaviour you decide on the user's behalf
-instead - an edge case, a default, where something lives - goes on the
-assumptions list in phase 3, so no decision is made silently.
+questions that matter.
+
+Sort every decision you would otherwise make on the user's behalf by
+what it costs to reverse once the code ships:
+
+- **Ask** when it is expensive to undo or the user will notice it
+  immediately: what is stored, where and in what format, and what stored
+  data must keep working through (edits, renames, upgrades); the public
+  surface (commands, flags, key bindings, endpoints, payloads); and how
+  a state-changing action behaves for the user. These are questions, not
+  assumptions - ask them before phase 2 when they decide the approach,
+  otherwise as open questions on the implementation page.
+- **Assume** when it is cheap to change later: internal naming, an edge
+  case with an obvious answer, a default the user can override. These go
+  on the assumptions list, so no decision is made silently.
+
+When unsure which side a decision falls on, ask.
 
 ## 2. Approaches - the user decides
 
@@ -129,13 +143,16 @@ detail on one page, with these sections:
    design deviates from a convention and why.
 7. **Test seams** - briefly, which units get tested at which level and
    what gets faked. One line per unit is enough.
-8. **Assumptions** - every user-visible behaviour the design decides
-   without the user having said so (edge cases, defaults, scope, where a
-   setting lives, what happens on repeat or failure), one line each, so
-   the user can confirm or overturn them at a glance.
-9. **Open questions** - design choices you could not settle alone, each
-   with your recommended answer and an input control so the user can
-   answer in place.
+8. **Assumptions** - the cheap-to-reverse behaviours the design decides
+   without the user having said so (see phase 1), one line each, so the
+   user can confirm or overturn them at a glance. Keep it to the eight or
+   so that matter most; a long list hides the one worth objecting to. An
+   assumption that turns out to be expensive to reverse is an open
+   question instead.
+9. **Open questions** - the expensive-to-reverse decisions from phase 1
+   that are still open, and design choices you could not settle alone,
+   each with your recommended answer and an input control so the user
+   can answer in place.
 
 Keep the diagrams one concept each: the overview shows topology, each call
 chain shows one trigger. A dense everything-diagram is harder to review
