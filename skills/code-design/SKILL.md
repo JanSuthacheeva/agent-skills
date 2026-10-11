@@ -16,7 +16,7 @@ compatibility: >-
   https://github.com/JanSuthacheeva/agent-skills/tree/main/evals/code-design/results/claude-code
 metadata:
     author: Jan Suthacheeva
-    version: "0.6"
+    version: "0.7"
 ---
 
 Produce a code design the user can discuss and correct before any code
@@ -189,6 +189,21 @@ call chains as numbered `Caller -> Callee::method(args): Return` steps
 including error paths, test seams, the assumptions, and any decisions
 made during review. Leave out the diagrams, the rationale prose and the
 convention citations.
+
+End the plan with a `## Tasks` section: the order to build the design in,
+as plain `- [ ]` checkboxes the implementation session ticks off as it
+goes. Progress trackers read every checkbox in the file, so use them
+nowhere else in the plan.
+
+- One checkbox per task, in dependency order, each leaving the code
+  compiling with its tests passing.
+- Name the units and methods it builds, as they appear in the plan, and
+  the tests that prove it, e.g. `- [ ] Add CsvExporter::export(rows) with
+  unit tests for quoting and empty input`.
+- Keep the list flat. Beyond about ten tasks, group them under `###`
+  milestone headings instead of nesting checkboxes.
+- End with a task for the end-to-end check: running the feature the way
+  a user would.
 
 End the lavish session with `npx -y lavish-axi end <file>` and tell the
 user where both files are. Do not start implementing unless asked.
