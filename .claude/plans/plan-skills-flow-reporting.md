@@ -295,6 +295,10 @@ The implementation page repeats this chain with "Review the implementation page"
 - [x] `review_counts` treats a whole-line "nothing" item under a label (`- No open items.`, `- No findings.`, `- Nothing open.`) like `- None.`, while an item naming a thing (`- No test for X`) stays a finding; tests for both
 - [x] `flow_reports` fails loudly when a fixture holds the old `flow.log` and no `flow.jsonl`, naming the file and the conversion needed, instead of grading the trial as run without flow; test for it
 
+### After the third review (decided by the user)
+
+- [ ] `review_counts` decides "nothing" by a closed list of whole-line forms instead of word-by-word rules: an item, or the text after a label's colon, is empty only when the whole line, without trailing punctuation, is one of `none`, `nothing`, `n/a`, `none (<note>)`, `none identified|found|left|open|remaining`, `nothing (to report|open|left|remaining)`, `no (open )?(items|findings|questions|issues)( left| remain| remaining| open)?`; every other text counts as one finding. This ends the phrasing chase: an unknown phrasing is a finding. Tests for `- Nothing in tag checks the length`, `Open: nothing validates X` (one finding on the label line), and every form in the list; regrade the workspace copy to show the published gradings are unchanged
+
 ## Review
 
 Third isolated review, against `main` and this plan, including both
