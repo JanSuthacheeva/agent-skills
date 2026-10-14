@@ -1,0 +1,16 @@
+{
+  "eval_id": 1,
+  "eval_name": "tags-plan",
+  "prompt": "The plan in docs/plans/2026-10-14-bookmark-tags.md is approved. Implement it.",
+  "assertions": [
+    "Five new commits, one per task",
+    "Every new commit leaves npm test passing",
+    "All five task checkboxes are ticked",
+    "src/tags.ts exports normalizeTag and InvalidTagError",
+    "BookmarkStore has tag(id: number, tag: string) and listByTag(tag: string)",
+    "A test file covers normalizeTag",
+    "The CLI tags a bookmark and lists it by tag end to end",
+    "A file written before tags existed still loads",
+    "The working tree is clean"
+  ]
+}

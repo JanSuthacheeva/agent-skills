@@ -1,0 +1,45 @@
+New commits: 5
+
+4b4eab1 docs: tick end-to-end check in bookmark tags plan
+
+
+ docs/plans/2026-10-14-bookmark-tags.md | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+bc88aaf tags: add tag command and list --tag
+
+
+ docs/plans/2026-10-14-bookmark-tags.md |  6 +++--
+ src/cli.ts                             | 42 +++++++++++++++++++++++++++++++---
+ test/cli.test.ts                       | 41 +++++++++++++++++++++++++++++++++
+ 3 files changed, 84 insertions(+), 5 deletions(-)
+
+c55d6ba tags: add BookmarkStore tag and listByTag
+
+
+ docs/plans/2026-10-14-bookmark-tags.md |  2 +-
+ src/store.ts                           | 21 +++++++++++++++++++++
+ test/store.test.ts                     | 30 +++++++++++++++++++++++++++++-
+ 3 files changed, 51 insertions(+), 2 deletions(-)
+
+ca68e3c tags: add tags field to bookmarks, read missing as empty
+
+
+ docs/plans/2026-10-14-bookmark-tags.md |  2 +-
+ src/bookmark.ts                        |  1 +
+ src/store.ts                           |  6 ++++--
+ test/store.test.ts                     | 13 ++++++++++++-
+ 4 files changed, 18 insertions(+), 4 deletions(-)
+
+7ccc98e tags: add normalizeTag and InvalidTagError
+
+
+ docs/plans/2026-10-14-bookmark-tags.md |  5 +++--
+ src/tags.ts                            | 14 ++++++++++++++
+ test/tags.test.ts                      | 27 +++++++++++++++++++++++++++
+ 3 files changed, 44 insertions(+), 2 deletions(-)
+
+--- git status --short ---
+
+--- plan tasks ---
+[True, True, True, True, True]

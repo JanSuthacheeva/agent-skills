@@ -1,0 +1,25 @@
+New commits: 2
+
+f17c7b9 Add bookmark tags to store and CLI
+
+
+ docs/plans/2026-10-14-bookmark-tags.md |  8 +++---
+ src/bookmark.ts                        |  1 +
+ src/cli.ts                             | 52 +++++++++++++++++++++++++++++++---
+ src/store.ts                           | 30 ++++++++++++++++++--
+ test/cli.test.ts                       | 28 ++++++++++++++++++
+ test/store.test.ts                     | 32 +++++++++++++++++++--
+ 6 files changed, 139 insertions(+), 12 deletions(-)
+
+ffeb430 Add normalizeTag and InvalidTagError
+
+
+ docs/plans/2026-10-14-bookmark-tags.md |  2 +-
+ src/tags.ts                            | 12 ++++++++++++
+ test/tags.test.ts                      | 27 +++++++++++++++++++++++++++
+ 3 files changed, 40 insertions(+), 1 deletion(-)
+
+--- git status --short ---
+
+--- plan tasks ---
+[True, True, True, True, True]

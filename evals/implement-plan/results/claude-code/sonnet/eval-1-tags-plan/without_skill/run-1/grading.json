@@ -1,0 +1,55 @@
+{
+  "expectations": [
+    {
+      "text": "Five new commits, one per task",
+      "passed": false,
+      "evidence": "2 new commit(s)"
+    },
+    {
+      "text": "Every new commit leaves npm test passing",
+      "passed": true,
+      "evidence": "red commits: none of 2"
+    },
+    {
+      "text": "All five task checkboxes are ticked",
+      "passed": true,
+      "evidence": "ticked: [True, True, True, True, True]"
+    },
+    {
+      "text": "src/tags.ts exports normalizeTag and InvalidTagError",
+      "passed": true,
+      "evidence": "signature regex on src/tags.ts"
+    },
+    {
+      "text": "BookmarkStore has tag(id: number, tag: string) and listByTag(tag: string)",
+      "passed": true,
+      "evidence": "signature regex on src/store.ts"
+    },
+    {
+      "text": "A test file covers normalizeTag",
+      "passed": true,
+      "evidence": "test files: ['test/tags.test.ts']"
+    },
+    {
+      "text": "The CLI tags a bookmark and lists it by tag end to end",
+      "passed": true,
+      "evidence": "list --tag work -> 0: 1  A  https://a.dev"
+    },
+    {
+      "text": "A file written before tags existed still loads",
+      "passed": true,
+      "evidence": "list -> 0: 1  A  https://a.dev"
+    },
+    {
+      "text": "The working tree is clean",
+      "passed": true,
+      "evidence": "clean"
+    }
+  ],
+  "summary": {
+    "passed": 8,
+    "failed": 1,
+    "total": 9,
+    "pass_rate": 0.89
+  }
+}

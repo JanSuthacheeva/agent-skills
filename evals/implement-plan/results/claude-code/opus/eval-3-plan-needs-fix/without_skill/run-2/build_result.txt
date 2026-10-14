@@ -1,0 +1,43 @@
+New commits: 5
+
+3c7ff87 docs: mark bookmark tags plan done
+InvalidTagError declares raw as a field: Node's type stripping rejects parameter properties.
+
+
+ docs/plans/2026-10-14-bookmark-tags.md | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
+
+933408b cli: add tag command and list --tag
+
+
+ src/cli.ts       | 45 ++++++++++++++++++++++++++++++++++++++++++---
+ test/cli.test.ts | 53 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 95 insertions(+), 3 deletions(-)
+
+5416439 store: add tag and listByTag
+
+
+ src/store.ts       | 24 ++++++++++++++++++++++++
+ test/store.test.ts | 35 ++++++++++++++++++++++++++++++++++-
+ 2 files changed, 58 insertions(+), 1 deletion(-)
+
+5c04df3 store: add tags to bookmarks
+Files written before tags existed load with empty tags, so no migration is needed.
+
+
+ src/bookmark.ts    |  1 +
+ src/store.ts       |  6 ++++--
+ test/store.test.ts | 22 ++++++++++++++++++++--
+ 3 files changed, 25 insertions(+), 4 deletions(-)
+
+aa39be0 tags: add normalizeTag and InvalidTagError
+
+
+ src/tags.ts       | 15 +++++++++++++++
+ test/tags.test.ts | 26 ++++++++++++++++++++++++++
+ 2 files changed, 41 insertions(+)
+
+--- git status --short ---
+
+--- plan tasks ---
+[True, True, True, True, True]

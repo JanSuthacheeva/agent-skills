@@ -1,0 +1,41 @@
+New commits: 5
+
+4dfa862 docs: mark bookmark tags plan done
+
+
+ docs/plans/2026-10-14-bookmark-tags.md | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+9b7d6f8 cli: add tag command and list --tag
+
+
+ src/cli.ts       | 45 ++++++++++++++++++++++++++++++++++++++++++---
+ test/cli.test.ts | 45 +++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 87 insertions(+), 3 deletions(-)
+
+799913a store: tag bookmarks and list them by tag
+
+
+ src/store.ts       | 27 +++++++++++++++++++++++++++
+ test/store.test.ts | 44 +++++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 70 insertions(+), 1 deletion(-)
+
+cfaafb7 store: give bookmarks tags, read legacy files as untagged
+
+
+ src/bookmark.ts    |  1 +
+ src/store.ts       | 11 +++++++++--
+ test/store.test.ts | 13 ++++++++++++-
+ 3 files changed, 22 insertions(+), 3 deletions(-)
+
+f91f35a tags: add normalizeTag and InvalidTagError
+
+
+ src/tags.ts       | 15 +++++++++++++++
+ test/tags.test.ts | 27 +++++++++++++++++++++++++++
+ 2 files changed, 42 insertions(+)
+
+--- git status --short ---
+
+--- plan tasks ---
+[True, True, True, True, True]

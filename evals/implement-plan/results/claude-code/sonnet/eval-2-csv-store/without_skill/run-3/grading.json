@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Task 1 is ticked and src/tags.ts is committed",
+      "passed": true,
+      "evidence": "ticked: [True, True, True, True, True]"
+    },
+    {
+      "text": "Tasks 2 to 5 are not ticked",
+      "passed": false,
+      "evidence": "ticked: [True, True, True, True, True]"
+    },
+    {
+      "text": "The stored CSV format is unchanged",
+      "passed": false,
+      "evidence": "header line and no tags in working-tree src/store.ts"
+    },
+    {
+      "text": "src/cli.ts is unchanged",
+      "passed": false,
+      "evidence": "70 diff lines"
+    },
+    {
+      "text": "Response asks how tags should be stored in the CSV file",
+      "passed": false,
+      "evidence": "a question or hand-off + csv + column/format/store in response.md (verify manually)"
+    },
+    {
+      "text": "npm test passes",
+      "passed": true,
+      "evidence": " and dashes\n  ---\n  duration_ms: 0.043375\n  type: 'test'\n  ...\n# Subtest: rejects empty input\nok 18 - rejects empty input\n  ---\n  duration_ms: 0.176\n  type: 'test'\n  ...\n# Subtest: rejects invalid characters\nok 19 - rejects invalid characters\n  ---\n  duration_ms: 0.060625\n  type: 'test'\n  ...\n1..19\n# tests 19\n# suites 0\n# pass 19\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 66.970584\n"
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 4,
+    "total": 6,
+    "pass_rate": 0.33
+  }
+}

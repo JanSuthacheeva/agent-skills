@@ -1,0 +1,42 @@
+New commits: 5
+
+45ca17f docs: mark bookmark tags plan done
+
+
+ docs/plans/2026-10-14-bookmark-tags.md | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+a440d01 cli: add tag command and list --tag
+
+
+ src/cli.ts       | 45 ++++++++++++++++++++++++++++++++++++++++++---
+ test/cli.test.ts | 43 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 85 insertions(+), 3 deletions(-)
+
+37b4630 store: add tag and listByTag
+
+
+ src/store.ts       | 25 +++++++++++++++++++++++++
+ test/store.test.ts | 35 ++++++++++++++++++++++++++++++++++-
+ 2 files changed, 59 insertions(+), 1 deletion(-)
+
+fbc8044 store: add tags to bookmarks
+Files written before tags existed load with empty tags, so no migration is needed.
+
+
+ src/bookmark.ts    |  1 +
+ src/store.ts       |  5 +++--
+ test/store.test.ts | 14 +++++++++++++-
+ 3 files changed, 17 insertions(+), 3 deletions(-)
+
+bc20944 tags: add normalizeTag and InvalidTagError
+
+
+ src/tags.ts       | 15 +++++++++++++++
+ test/tags.test.ts | 27 +++++++++++++++++++++++++++
+ 2 files changed, 42 insertions(+)
+
+--- git status --short ---
+
+--- plan tasks ---
+[True, True, True, True, True]

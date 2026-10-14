@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "All five task checkboxes are ticked",
+      "passed": true,
+      "evidence": "ticked: [True, True, True, True, True]"
+    },
+    {
+      "text": "npm test passes",
+      "passed": true,
+      "evidence": "nput\nok 16 - normalizeTag rejects empty input\n  ---\n  duration_ms: 0.170375\n  type: 'test'\n  ...\n# Subtest: normalizeTag rejects invalid characters and keeps the raw input\nok 17 - normalizeTag rejects invalid characters and keeps the raw input\n  ---\n  duration_ms: 0.056375\n  type: 'test'\n  ...\n1..17\n# tests 17\n# suites 0\n# pass 17\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 66.26975\n"
+    },
+    {
+      "text": "The code has no parameter property in src/tags.ts",
+      "passed": true,
+      "evidence": "parameter property in src/tags.ts: none"
+    },
+    {
+      "text": "The plan no longer declares a parameter property for InvalidTagError",
+      "passed": true,
+      "evidence": "parameter property in the plan: none"
+    },
+    {
+      "text": "Response names the deviation from the plan",
+      "passed": true,
+      "evidence": "keywords parameter property/readonly + plan in response.md (verify manually)"
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  }
+}

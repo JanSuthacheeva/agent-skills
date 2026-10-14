@@ -1,0 +1,14 @@
+New commits: 1
+
+717e4b3 bm: add normalizeTag and InvalidTagError
+
+
+ docs/plans/2026-10-14-bookmark-tags.md |  2 +-
+ src/tags.ts                            | 12 ++++++++++++
+ test/tags.test.ts                      | 31 +++++++++++++++++++++++++++++++
+ 3 files changed, 44 insertions(+), 1 deletion(-)
+
+--- git status --short ---
+
+--- plan tasks ---
+[True, False, False, False, False]

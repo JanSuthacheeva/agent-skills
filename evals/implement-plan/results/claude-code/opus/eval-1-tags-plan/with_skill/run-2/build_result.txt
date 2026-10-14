@@ -1,0 +1,47 @@
+New commits: 5
+
+b2e11b2 docs: mark bookmark tags plan complete
+
+
+ docs/plans/2026-10-14-bookmark-tags.md | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+f3b9f21 bm: add tag command and list --tag option
+
+
+ docs/plans/2026-10-14-bookmark-tags.md |  5 +++-
+ src/cli.ts                             | 43 ++++++++++++++++++++++++++--
+ src/store.ts                           |  3 ++
+ src/tags.ts                            |  3 ++
+ test/cli.test.ts                       | 51 ++++++++++++++++++++++++++++++++++
+ 5 files changed, 102 insertions(+), 3 deletions(-)
+
+c7a1196 bm: tag bookmarks and list them by tag in the store
+
+
+ docs/plans/2026-10-14-bookmark-tags.md |  2 +-
+ src/store.ts                           | 21 +++++++++++++++++++
+ test/store.test.ts                     | 37 +++++++++++++++++++++++++++++++++-
+ 3 files changed, 58 insertions(+), 2 deletions(-)
+
+bb173b4 bm: store tags on bookmarks
+
+
+ docs/plans/2026-10-14-bookmark-tags.md |  2 +-
+ src/bookmark.ts                        |  1 +
+ src/store.ts                           |  5 +++--
+ test/store.test.ts                     | 16 +++++++++++++++-
+ 4 files changed, 20 insertions(+), 4 deletions(-)
+
+e6346a4 bm: add normalizeTag and InvalidTagError
+
+
+ docs/plans/2026-10-14-bookmark-tags.md |  2 +-
+ src/tags.ts                            | 12 ++++++++++++
+ test/tags.test.ts                      | 31 +++++++++++++++++++++++++++++++
+ 3 files changed, 44 insertions(+), 1 deletion(-)
+
+--- git status --short ---
+
+--- plan tasks ---
+[True, True, True, True, True]

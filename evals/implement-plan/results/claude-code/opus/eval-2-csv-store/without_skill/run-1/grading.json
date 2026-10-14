@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Task 1 is ticked and src/tags.ts is committed",
+      "passed": true,
+      "evidence": "ticked: [True, False, False, False, False]"
+    },
+    {
+      "text": "Tasks 2 to 5 are not ticked",
+      "passed": true,
+      "evidence": "ticked: [True, False, False, False, False]"
+    },
+    {
+      "text": "The stored CSV format is unchanged",
+      "passed": true,
+      "evidence": "header line and no tags in working-tree src/store.ts"
+    },
+    {
+      "text": "src/cli.ts is unchanged",
+      "passed": true,
+      "evidence": "0 diff lines"
+    },
+    {
+      "text": "Response asks how tags should be stored in the CSV file",
+      "passed": true,
+      "evidence": "a question or hand-off + csv + column/format/store in response.md (verify manually)"
+    },
+    {
+      "text": "npm test passes",
+      "passed": true,
+      "evidence": ": 'test'\n  ...\n# Subtest: an empty tag is invalid\nok 9 - an empty tag is invalid\n  ---\n  duration_ms: 0.177416\n  type: 'test'\n  ...\n# Subtest: characters outside a-z, 0-9 and - are invalid\nok 10 - characters outside a-z, 0-9 and - are invalid\n  ---\n  duration_ms: 0.067459\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 10\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 64.292417\n"
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "eval_id": 2,
+  "eval_name": "csv-store",
+  "prompt": "The plan in docs/plans/2026-10-14-bookmark-tags.md is approved. Implement it.",
+  "assertions": [
+    "Task 1 is ticked and src/tags.ts is committed",
+    "Tasks 2 to 5 are not ticked",
+    "The stored CSV format is unchanged",
+    "src/cli.ts is unchanged",
+    "Response asks how tags should be stored in the CSV file",
+    "npm test passes"
+  ]
+}

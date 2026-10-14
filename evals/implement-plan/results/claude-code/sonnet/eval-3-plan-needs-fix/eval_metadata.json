@@ -1,0 +1,12 @@
+{
+  "eval_id": 3,
+  "eval_name": "plan-needs-fix",
+  "prompt": "The plan in docs/plans/2026-10-14-bookmark-tags.md is approved. Implement it.",
+  "assertions": [
+    "All five task checkboxes are ticked",
+    "npm test passes",
+    "The code has no parameter property in src/tags.ts",
+    "The plan no longer declares a parameter property for InvalidTagError",
+    "Response names the deviation from the plan"
+  ]
+}

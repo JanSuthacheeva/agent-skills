@@ -1,0 +1,19 @@
+New commits: 1
+
+3fb48cd bm: add bookmark tags
+
+
+ docs/plans/2026-10-14-bookmark-tags.md | 13 +++++----
+ src/bookmark.ts                        |  1 +
+ src/cli.ts                             | 52 +++++++++++++++++++++++++++++++---
+ src/store.ts                           | 26 +++++++++++++++--
+ src/tags.ts                            | 14 +++++++++
+ test/cli.test.ts                       | 28 ++++++++++++++++++
+ test/store.test.ts                     | 35 +++++++++++++++++++++--
+ test/tags.test.ts                      | 23 +++++++++++++++
+ 8 files changed, 178 insertions(+), 14 deletions(-)
+
+--- git status --short ---
+
+--- plan tasks ---
+[True, True, True, True, True]
