@@ -118,10 +118,12 @@ def check(t, repo, base, new, response):
         return ok, "a question or hand-off + csv + column/format/store in response.md (verify manually)"
     if t.startswith("The plan no longer declares a parameter property"):
         plan = (repo / PLAN).read_text() if (repo / PLAN).exists() else ""
-        return "readonly raw" not in plan, "looked for `readonly raw` in the plan"
+        found = re.search(r"constructor\([^)]*\b(readonly|public|private|protected)\s", plan)
+        return not found, f"parameter property in the plan: {found.group(0) if found else 'none'}"
     if t.startswith("The code has no parameter property"):
         src = head("src/tags.ts")
-        return "readonly raw" not in src and bool(src), "looked for `readonly raw` in src/tags.ts"
+        found = re.search(r"constructor\([^)]*\b(readonly|public|private|protected)\s", src)
+        return bool(src) and not found, f"parameter property in src/tags.ts: {found.group(0) if found else 'none'}"
     if t.startswith("Response names the deviation"):
         r = response.lower()
         ok = bool(re.search(r"parameter propert|readonly", r)) and bool(re.search(r"plan", r))
