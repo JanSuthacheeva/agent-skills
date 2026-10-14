@@ -106,11 +106,16 @@ Report `review --fixed <n> --open <n>`, counting the Fixed and Open lines.
 
 ```
 If a `flow` command is available, report the flow's progress to it with
-`flow report`: `phase <the step's phase>` as each step starts, `waiting
-"<the question>"` before every question you put to the user and `working`
-once it is answered, and the stops below. Otherwise, or when a report
-fails, go on - the flow works the same without them.
+`flow report`: `phase design`, `phase implement`, `phase review` or
+`phase merge-request` as each step starts, `waiting "<the question>"`
+before every question you put to the user and `working` once it is
+answered, and the stops below. Otherwise, or when a report fails, go on -
+the flow works the same without them.
 ```
+
+The phases are named, not `<the step's phase>` as first drafted: the
+steps are called Design, Build, Review and Merge request, so the agent
+could not derive `implement` from them.
 
 - `## Stops`, replace from "At a stop, say in a few lines..." to "...otherwise ask the user directly." with:
 
@@ -253,7 +258,7 @@ The implementation page repeats this chain with "Review the implementation page"
 - [x] implement-plan: reporting note, `tasks`, `decision`, `blocked`, version 0.2
 - [x] review-changes: reporting note, `review` counts, version 0.5
 - [x] write-merge-request: `allowed-tools`, reporting note, push question, `merge-request <url>`, version 0.8
-- [ ] ship-feature: reporting note with the phase per step, stops, version 0.3
+- [x] ship-feature: reporting note with the phase per step, stops, version 0.3
 - [ ] README: the sentence on reporting to flow
 - [ ] Rerun the ship-feature evals with `FLOW=stub` and `FLOW=absent` on Opus and Sonnet, and publish the results and report
 - [ ] End-to-end: a throwaway `flow new` flow, a mid-build ship-feature trial reporting into it with the real CLI, and `flow status` showing phases implement, review and merge-request, 5/5 tasks, the review counts and the push question; then remove the flow
