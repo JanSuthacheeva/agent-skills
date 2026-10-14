@@ -9,7 +9,14 @@ Trying to keep the evals up to date and run them for different harnesses and mod
 | Skill | What it does | Eval results |
 |---|---|---|
 | [design-code](skills/design-code/SKILL.md) | Plans the code design of a change before any code exists: investigates the codebase, lets you pick between structurally different approaches, then lays out units, typed signatures, data and call chains (no function bodies) as [lavish](https://www.npmjs.com/package/lavish-axi) review pages plus a Markdown plan. | [Claude Code, Opus 5.5 (medium effort)](evals/design-code/results/claude-code/README.md): judge score and assertions on par with `feature-dev` (34.7 vs 33.6 of 40, 77 vs 76 of 81) at about the same cost (2.90 vs 2.79 USD per run); most reviewable plans of four planning methods |
+| [implement-plan](skills/implement-plan/SKILL.md) | Builds an approved plan task by task: tests first, one commit per task, the plan's names and signatures. Makes cheap deviations and writes them back into the plan, stops on expensive ones (stored data, public surface, user-visible behavior), ends with an end-to-end check and how the result works. | [Claude Code, Opus 5.5 and Sonnet 5.5](evals/implement-plan/results/claude-code/README.md): Opus 9/9 trials pass with and without the skill; Sonnet 9/9 with, 1/9 without (changed a public file format, merged tasks, left the plan stale) |
+| [review-changes](skills/review-changes/SKILL.md) | Reviews a branch in a context that has not seen the implementation, proves findings, fixes the cheap ones and re-reviews them, and reports what was fixed, what is open and where to look. | [Claude Code, Opus 5.5 and Sonnet 5.5](evals/review-changes/results/claude-code/README.md): every condition repairs every planted defect; blind-judged owner report 36.0 of 40 vs 30.0 for a plain review and 22.0 for `/code-review` (Opus), 35.7 vs 29.3 and 23.1 (Sonnet), ranked first in 18 of 18 |
+| [write-merge-request](skills/write-merge-request/SKILL.md) | Writes MR/PR title and description around the why: decisions a reviewer would question, deploy steps such as new env variables, a short reading order for larger diffs; follows the repo's template. Pushes and creates the MR only when asked. | [Claude Code, Opus 5.5 and Sonnet 5.5](evals/write-merge-request/results/claude-code/README.md): 18/18 trials pass with the skill, 6/18 without (Opus); 17/18 vs 5/18 (Sonnet) |
 | [commit](skills/commit/SKILL.md) | Writes + creates git commits in Scoped Commits format (`scope: description`): reuses scopes from log, adds a `Refs:` trailer from branch's ticket id (if available), keeps git's default revert and merge messages. Never pushes. | [Claude Code, Opus 5.5](evals/commit/results/claude-code/README.md): 55/55 trials pass with the skill, 40/55 without |
+
+Together they form a flow from idea to merge request:
+`design-code` -> `implement-plan` -> `review-changes` -> `write-merge-request`,
+with `commit` used throughout. Each skill also works on its own.
 
 ## Install
 
@@ -19,6 +26,9 @@ Codex and other supported agents:
 ```sh
 npx skills add JanSuthacheeva/agent-skills --skill commit
 npx skills add JanSuthacheeva/agent-skills --skill design-code
+npx skills add JanSuthacheeva/agent-skills --skill implement-plan
+npx skills add JanSuthacheeva/agent-skills --skill review-changes
+npx skills add JanSuthacheeva/agent-skills --skill write-merge-request
 ```
 
 `design-code` renders its review pages with the
