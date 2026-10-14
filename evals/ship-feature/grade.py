@@ -16,7 +16,7 @@ REVIEW_LABEL = re.compile(r"""^\s*(?:
     | (?:[-*]\s+)?(?:\*\*|__)                          # **Fixed**, - **Open questions**
     | (?:[-*]\s+)?(?=(?:Fixed|Open|Where\ to\ look)\b[^:\n]{0,20}(?::|$)))  # Fixed:, Open
     (Fixed|Open|Where\ to\ look)\b""", re.I | re.X)
-LIST_ITEM = re.compile(r"^(\s*)(?:[-*]|\d+[.)])\s+\S")
+LIST_ITEM = re.compile(r"^(\s*)(?:[-*]|\d+[.)])\s+(?!(?:none|nothing)\b)\S", re.I)
 BUILD_REPORT = re.compile(r"deviation|I (built|implemented)|has been (built|implemented)|tasks? \d+ (to|-) \d+ (are|were) (done|built)", re.I)
 
 
@@ -62,7 +62,7 @@ def flow_reports(fx: Path) -> list[list[str]] | None:
 def review_counts(plan: str) -> tuple[int, int]:
     """Findings under Fixed and Open in the plan's ## Review: the list items
     at the outermost level of each, so details nested under a finding do
-    not count."""
+    not count, nor does an item saying there is none."""
     m = re.search(r"^## Review\s*$(.*?)(?=^## |\Z)", plan, re.M | re.S)
     indents: dict[str, list[int]] = {"fixed": [], "open": [], "where to look": []}
     current = None
