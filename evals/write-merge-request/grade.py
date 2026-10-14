@@ -31,6 +31,27 @@ def drafted(response):
     return "\n".join(blocks) if blocks else response
 
 
+REVIEW_HEADING = re.compile(r"^\s*(#+\s*)?\**Review( guide)?\**:?\s*$", re.I)
+SECTION_END = re.compile(r"^\s*(#+\s|\**(Deploy|Refs|Breaking|Closes)\b)", re.I)
+
+
+def review_section(draft):
+    lines = draft.splitlines()
+    start = next((i for i, l in enumerate(lines) if REVIEW_HEADING.match(l)), None)
+    if start is None:
+        return None
+    body = []
+    for line in lines[start + 1:]:
+        if SECTION_END.match(line):
+            break
+        body.append(line)
+    while body and not body[-1].strip():
+        body.pop()
+    while body and not body[0].strip():
+        body.pop(0)
+    return body
+
+
 def created(calls):
     return [c for c in calls
             if c[:3] in (["glab", "mr", "create"], ["gh", "pr", "create"]) and "--help" not in c and "-h" not in c]
@@ -78,6 +99,21 @@ def check(t, response, draft, calls, pushed, head, repo):
     if t.startswith("Description does not tick Tests"):
         ticked = re.search(r"^\s*-\s*\[[xX]\]\s*Tests added", draft, re.M)
         return not ticked, "ticked" if ticked else "not ticked"
+    if t.startswith("Description has no Review section"):
+        return review_section(draft) is None, "no Review heading" if review_section(draft) is None else "Review section found"
+    if t.startswith("Description has a Review section"):
+        body = review_section(draft) or []
+        chunks = [l for l in body if re.match(r"^\s*\d+[.)]\s", l)]
+        return 2 <= len(chunks) <= 4, f"{len(chunks)} numbered chunk(s)" if body else "no Review section"
+    if t.startswith("Review chunks name files"):
+        body = "\n".join(review_section(draft) or [])
+        return bool(re.search(r"src/\w+\.ts|BookmarkStore|run\(|tag\(", body)), "file or function names in Review"
+    if t.startswith("Review section names what can be skimmed"):
+        body = "\n".join(review_section(draft) or [])
+        return bool(re.search(r"skim|routine", body, re.I)), "keyword skim/routine in Review"
+    if t.startswith("Review section is at most"):
+        body = [l for l in (review_section(draft) or []) if l.strip()]
+        return bool(body) and len(body) <= 8, f"{len(body)} non-empty lines"
     if t.startswith("Description names the new variables"):
         want = re.findall(r"EXPORT_[A-Z_]+", t)
         missing = [v for v in want if v not in draft]

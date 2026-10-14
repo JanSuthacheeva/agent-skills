@@ -35,6 +35,7 @@
         "Description has no How to test or Testing section",
         "Description is at most 600 characters",
         "Response has no Refs line",
+        "Description has no Review section",
         "No merge request was created",
         "Nothing was pushed to origin"
       ],
@@ -89,10 +90,30 @@
         "Description uses the template headings What, Why and Checklist in order",
         "Description does not tick Tests added or updated",
         "Description explains the one-cent drift",
+        "Description has no Review section",
         "No merge request was created",
         "Nothing was pushed to origin"
       ],
       "tests": "A repo merge request template that must win over the skill's own structure, filled honestly."
+    },
+    {
+      "id": 6,
+      "name": "review-guide",
+      "prompt": "write the MR description for this branch",
+      "expected_output": "A why-focused description of the bookmark tags feature with a short Review section: two to four numbered chunks in reading order (by commits or flows such as `bm tag` from src/cli.ts to BookmarkStore), each saying what to check, and a Skim line for the routine parts; nothing pushed or created.",
+      "files": [
+        "setup_fixture.sh",
+        "../review-changes/setup_fixture.sh"
+      ],
+      "expectations": [
+        "Description has a Review section with two to four numbered chunks",
+        "Review chunks name files or functions in src/",
+        "Review section names what can be skimmed",
+        "Review section is at most 8 lines",
+        "No merge request was created",
+        "Nothing was pushed to origin"
+      ],
+      "tests": "A three-commit feature over six files; whether the description gives the reviewer a short reading order and what to skim."
     }
   ]
 }

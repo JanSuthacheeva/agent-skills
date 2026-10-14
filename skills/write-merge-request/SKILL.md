@@ -2,8 +2,9 @@
 name: write-merge-request
 description: >-
   Writes the title and description of a GitLab merge request or GitHub pull
-  request for the current branch - what changed and why, not a tour of the
-  diff - and creates it once the user approves the push. Use when the user
+  request for the current branch - what changed and why, a reading order
+  for the reviewer and the deploy steps, not a tour of the diff - and
+  creates it once the user approves the push. Use when the user
   asks to open, create or draft an MR or PR, write or improve an MR/PR
   description, or get a branch ready for review, even if they just say
   "MR please". Not for reviewing MRs or writing commit messages.
@@ -12,7 +13,7 @@ compatibility: >-
   the ticket title with clickup-axi when it is installed.
 metadata:
     author: Jan Suthacheeva
-    version: "0.5"
+    version: "0.6"
 allowed-tools: >-
   Bash(git status:*) Bash(git branch:*) Bash(git log:*) Bash(git diff:*)
   Bash(git remote:*) Bash(git symbolic-ref:*) Bash(git rev-parse:*)
@@ -73,10 +74,11 @@ them yourself.
 If the repo has an MR or PR template, it wins over the structure below:
 keep its headings in its order and fill them in the same concise way. Put
 decisions, deploy steps and the ticket reference under its closest
-headings, and add a short section of your own only for what has no home.
-Drop sections that do not apply rather than writing "N/A", and tick a
-checklist box only for what the branch actually did. With several
-templates, use the default one (GitLab's `Default.md`) and name it.
+headings, and add a short section of your own only for what has no home,
+such as the review guide. Drop sections that do not apply rather than
+writing "N/A", and tick a checklist box only for what the branch actually
+did. With several templates, use the default one (GitLab's `Default.md`)
+and name it.
 
 Without a template, use this structure:
 
@@ -85,6 +87,11 @@ Without a template, use this structure:
 first, then the change that addresses it.>
 
 - <A decision a reviewer would question, with its reason.>
+
+Review:
+1. <A chunk to read in one sitting - commits, or a flow from its entry
+   point - and what to check there.>
+Skim: <the routine parts.>
 
 Deploy:
 - <A change outside the code this MR needs, when it must happen, and
@@ -103,6 +110,15 @@ Refs: <ID>
 - Take the reasons from the commits, the plan, the ticket or the code.
   A reason you would have to guess is not one: leave the decision out, or
   ask. A reviewer trusts the description as the author's intent.
+- Review gives the reviewer a reading order, so they can trust the MR
+  without reading every line: two to four numbered chunks, riskiest
+  first - data and what happens to it on failure, boundaries between
+  units, error paths - each small enough for one sitting and named by
+  commits or by a flow from its entry point (`bm tag` from `src/cli.ts`
+  `run()` to `BookmarkStore::tag`), with what to check there. End with
+  what is routine and can be skimmed. If a review of the branch left a
+  "where to look" list, start from it. Leave the section out when the
+  diff is small enough to read in one go.
 - Deploy lists what someone has to do outside the code for the MR to
   work: new or changed environment variables, migrations and backfills,
   new services, queues, workers or cron jobs, new dependencies or system

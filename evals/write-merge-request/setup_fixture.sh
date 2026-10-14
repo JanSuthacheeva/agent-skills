@@ -7,17 +7,11 @@
 # calls.jsonl, so no run reaches a real service.
 set -euo pipefail
 name=$1; dest=$2
-rm -rf "$dest"; mkdir -p "$dest/bin"
-git init -q --bare "$dest/origin.git"
-repo="$dest/repo"; mkdir -p "$repo"; cd "$repo"
-git init -q -b main
-git config user.name "Eval User"; git config user.email "eval@example.com"
-git config commit.gpgsign false
-git remote add origin git@gitlab.com:shop/shop.git
-git config remote.origin.pushurl "$dest/origin.git"
-git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'
+here=$(cd "$(dirname "$0")" && pwd)
 
-cat > "$dest/bin/clickup-axi" <<P
+stubs() {
+  mkdir -p "$dest/bin"
+  cat > "$dest/bin/clickup-axi" <<P
 #!/usr/bin/env bash
 python3 -c 'import json, sys; print(json.dumps(sys.argv[1:]))' clickup-axi "\$@" >> "$dest/calls.jsonl"
 if [ "\$1 \$2" = "tasks SHOP-217" ]; then
@@ -26,7 +20,7 @@ else
   echo "error: task \$2 not found" >&2; exit 1
 fi
 P
-cat > "$dest/bin/glab" <<P
+  cat > "$dest/bin/glab" <<P
 #!/usr/bin/env bash
 python3 -c 'import json, sys; print(json.dumps(sys.argv[1:]))' glab "\$@" >> "$dest/calls.jsonl"
 case "\$1 \$2" in
@@ -35,13 +29,42 @@ case "\$1 \$2" in
   *) echo "glab stub: \$*" ;;
 esac
 P
-cat > "$dest/bin/gh" <<P
+  cat > "$dest/bin/gh" <<P
 #!/usr/bin/env bash
 python3 -c 'import json, sys; print(json.dumps(sys.argv[1:]))' gh "\$@" >> "$dest/calls.jsonl"
 echo "gh: this repository is not on GitHub" >&2; exit 1
 P
-chmod +x "$dest/bin/"*
-touch "$dest/calls.jsonl"
+  chmod +x "$dest/bin/"*
+  touch "$dest/calls.jsonl"
+}
+
+remote() {
+  git init -q --bare "$dest/origin.git"
+  git remote add origin git@gitlab.com:shop/shop.git
+  git config remote.origin.pushurl "$dest/origin.git"
+  git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'
+}
+
+rm -rf "$dest"
+if [ "$name" = review-guide ]; then
+  # The bookmark-tags branch of the review-changes suite: a plan and three
+  # commits over six files, big enough to need a reading order.
+  "$here/../review-changes/setup_fixture.sh" seeded-defects "$dest" >/dev/null
+  stubs
+  cd "$dest/repo"; remote
+  git push -q origin main
+  git update-ref refs/remotes/origin/main main
+  git symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/main
+  git rev-parse main > "$dest/base_sha"
+  exit 0
+fi
+stubs
+repo="$dest/repo"; mkdir -p "$repo"; cd "$repo"
+git init -q -b main
+git config user.name "Eval User"; git config user.email "eval@example.com"
+git config commit.gpgsign false
+remote
+
 
 c() { git add -A; git commit -q "$@"; }
 mkdir -p billing api
