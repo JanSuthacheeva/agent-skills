@@ -1,0 +1,19 @@
+{
+  "eval_id": 2,
+  "eval_name": "after-build",
+  "prompt": "Continue shipping the bookmark tags feature.",
+  "assertions": [
+    "No task was rebuilt",
+    "The review ran isolated: a fresh agent, or a session that wrote none of the code",
+    "The plan has a ## Review section",
+    "Tagging a bookmark twice stores the tag once",
+    "npm test passes",
+    "Nothing was pushed and no MR was created",
+    "Response drafts the MR or puts open review items to the user"
+  ],
+  "flow_assertions": [
+    "Reported the phase review, then merge-request only after a review with nothing open",
+    "Reported the review counts of the plan's ## Review",
+    "Reported the final stop: blocked with open review items, else waiting with a question"
+  ]
+}

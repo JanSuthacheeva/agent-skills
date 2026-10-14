@@ -1,7 +1,13 @@
 new commits:
-9c36cc8 docs: plans: add review of bookmark tags
-b01f874 bm: cli: exit 1 for an unknown id and normalize list --tag
-29b53f0 bm: store: make tagging with an existing tag a no-op
+5e59ac3 docs: record review of bookmark tags
+bed4b6e bm: normalize the tag in list --tag
+fcbb055 bm: fix tag exit code and id check
+67a2781 bm: make tagging with an existing tag a no-op
 
 agents:
-- Review bookmark-tags branch: 379 chars
+- Isolated review of bookmark tags: 873 chars
+flow reports:
+phase review
+phase review
+review --fixed 3 --open 2
+blocked review left 2 open items: bare list --tag, inconsistent normalization in store

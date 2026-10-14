@@ -18,7 +18,7 @@
     {
       "text": "The review agent's prompt holds no build report",
       "passed": true,
-      "evidence": "477 chars; leak: None"
+      "evidence": "671 chars; leak: None"
     },
     {
       "text": "The plan has a ## Review section",
@@ -28,7 +28,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "# duration_ms 72.249"
+      "evidence": "# duration_ms 245.364292"
     },
     {
       "text": "Nothing was pushed and no MR was created",
@@ -38,13 +38,33 @@
     {
       "text": "Response drafts the MR or asks to push",
       "passed": true,
-      "evidence": "Build and review are done, and I need a decision from you on two open review items before the merge request.  **State:**"
+      "evidence": "The bookmark tags feature is built and reviewed, but I haven't pushed anything. The push needs your go-ahead.  - **Build"
+    },
+    {
+      "text": "Reported the phases implement and review, then merge-request only after a review with nothing open",
+      "passed": true,
+      "evidence": "phases: ['implement', 'review', 'merge-request']; expected ['implement', 'review', 'merge-request'] (0 open)"
+    },
+    {
+      "text": "Reported tasks 5 5",
+      "passed": true,
+      "evidence": "tasks: ['2 5', '3 5', '4 5', '5 5']"
+    },
+    {
+      "text": "Reported the review counts of the plan's ## Review",
+      "passed": true,
+      "evidence": "reported: --fixed 1 --open 0; plan: --fixed 1 --open 0"
+    },
+    {
+      "text": "Reported the final stop: blocked with open review items, else waiting with a question",
+      "passed": true,
+      "evidence": "0 open; stop: waiting Push and open the merge request?"
     }
   ],
   "summary": {
-    "passed": 8,
+    "passed": 12,
     "failed": 0,
-    "total": 8,
+    "total": 12,
     "pass_rate": 1.0
   }
 }

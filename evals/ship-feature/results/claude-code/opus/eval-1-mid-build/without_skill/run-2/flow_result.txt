@@ -1,11 +1,16 @@
 new commits:
-a4844a0 docs: review bookmark tags
-f59222e bm: test normalizeTag on empty input, invalid characters and hyphens
-92f78a4 bm: reject extra arguments to tag and list --tag
-2ee73b0 docs: check bookmark tags end to end
-4351a89 bm: add tag command and list --tag
-772b5cf bm: tag bookmarks and list them by tag
-fb07078 bm: store tags on bookmarks
+532f712 docs: mark bookmark tags plan done
+98a02e6 bm: add tag command and list --tag
+2b2b394 bm: tag bookmarks and list them by tag
+50fc213 bm: store tags on bookmarks
 
 agents:
-- Review bookmark tags branch: 708 chars
+
+flow reports:
+phase implement
+tasks 1 5
+tasks 2 5
+tasks 3 5
+decision run delegates to a private dispatch so error-to-exit-code mapping lives in one place
+tasks 4 5
+tasks 5 5

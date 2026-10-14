@@ -1,1 +1,1 @@
-{"total_tokens": 16165, "output_tokens": 13411, "cache_read_tokens": 124637, "cost_usd": 0.678, "num_turns": 26, "duration_ms": 136695, "total_duration_seconds": 136.7, "session_id": "adc4d76e-f375-4cb9-807c-51e80d208b9f", "cost_usd_reported": 0.6780236000000003, "subagents": 2}
+{"total_tokens": 17642, "output_tokens": 13659, "cache_read_tokens": 177897, "cost_usd": 0.6828, "num_turns": 29, "duration_ms": 220628, "total_duration_seconds": 220.6, "session_id": "2067c26d-dab5-4b25-ae83-afb7a761176e", "cost_usd_reported": 0.6828361000000001, "subagents": 2}

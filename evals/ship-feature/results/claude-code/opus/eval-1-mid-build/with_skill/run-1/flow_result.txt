@@ -1,10 +1,22 @@
 new commits:
-1549705 docs: record bookmark tags review
-d8a667d docs: tick bookmark tags end-to-end check
-c769ffb bm: add tag command and list --tag
-cd57b24 bm: tag bookmarks and list them by tag
-7fbc6b2 bm: store tags on bookmarks
+7fd6d48 docs: add review of bookmark tags
+2aaa969 docs: tick end-to-end check for bookmark tags
+446a9c8 bm: add tag command and list --tag
+45749f4 bm: tag bookmarks and list them by tag
+e5dcc95 bm: store tags on bookmarks
 
 agents:
-- Build bookmark tags plan: 781 chars
-- Review bookmark tags branch: 487 chars
+- Build bookmark tags plan: 807 chars
+- Isolated review of bookmark tags: 829 chars
+flow reports:
+phase implement
+phase implement
+tasks 2 5
+tasks 3 5
+decision list --tag without a value and tag without a tag print usage, exit 2
+tasks 4 5
+tasks 5 5
+phase review
+phase review
+review --fixed 0 --open 2
+blocked review left 2 open items: lenient argument parsing, stray test bookmark in ~/.bookmarks.json

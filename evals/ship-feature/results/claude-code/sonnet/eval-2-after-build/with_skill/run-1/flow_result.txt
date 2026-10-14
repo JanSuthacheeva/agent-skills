@@ -1,5 +1,11 @@
 new commits:
-cad1609 bm: align tag behaviour with the plan
+d7426eb docs: record review of bookmark tags
+0e06f9c bm: fix tag exit code, duplicate tags and list --tag normalizing
 
 agents:
-- Review bookmark tags branch: 801 chars
+- Isolated branch review: 516 chars
+flow reports:
+phase review
+phase review
+review --fixed 4 --open 2
+blocked review left 2 open items on bookmark tags

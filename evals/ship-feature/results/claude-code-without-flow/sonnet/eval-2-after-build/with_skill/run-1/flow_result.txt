@@ -1,0 +1,8 @@
+new commits:
+102d1bc docs: add review to bookmark tags plan
+a903700 bm: align tagging with the plan (exit 1, no duplicates, listByTag, normalized filter)
+
+agents:
+- Isolated review of bookmark tags: 748 chars
+flow reports:
+(ran without flow)

@@ -1,0 +1,13 @@
+new commits:
+7c59981 docs: review bookmark tags
+c83a5fa bm: treat an empty tag id as bad input
+e5ef51d docs: tick bookmark tags e2e check
+0511e07 bm: add tag command and list --tag
+45cab01 bm: tag bookmarks and list them by tag
+88901e0 bm: store tags on bookmarks
+
+agents:
+- Build bookmark tags plan: 679 chars
+- Isolated review of branch: 737 chars
+flow reports:
+(ran without flow)

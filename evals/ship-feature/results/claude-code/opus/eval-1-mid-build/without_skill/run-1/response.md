@@ -1,22 +1,28 @@
-Bookmark tags are built: all five tasks in the plan are done and committed. The 18 tests pass, and the commands work end to end when run through the real CLI. The project has no lint or type checker set up, so tests were the only automated check.
+The bookmark tags feature is done: all five plan tasks are complete and committed on `feature/bookmark-tags`. The 16 tests pass, up from 6 before I started. The project has no lint or type check set up, so tests were the only automated check. Nothing is pushed.
 
 **Commits**
-- `dce3cac` `bm: store tags on bookmarks`: bookmarks now have a `tags` list. Files saved before tags existed load with no tags, so no migration is needed.
-- `941df2e` `bm: tag bookmarks and list them by tag`: adds `BookmarkNotFoundError`, `tag()` and `listByTag()` to the store. Adding a tag a bookmark already has does nothing.
-- `3023b65` `bm: add tag command and list --tag`
-- `d2e9507` ticks the last task in the plan.
+- `877e906` bm: store tags on bookmarks (old store files load with `tags: []`, no migration)
+- `9a7be8d` bm: store: tag bookmarks and list them by tag (also adds `BookmarkNotFoundError`)
+- `dcd13a6` bm: cli: add tag command and list --tag
+- `f7f488a` docs: check bookmark tags end to end (ticks the last task in the plan)
 
-**End-to-end check:** I ran the CLI (`node src/main.ts`) against a temp store that started with a bookmark saved before tags existed, and checked the saved file afterwards.
-- `tag 2 ' Work '` prints `tagged 2 work`, and tagging it again leaves only one `work`.
-- `list --tag WORK` lists only the tagged bookmarks, including the old one.
-- `tag 9 work` prints `no bookmark 9` and exits 1.
-- `tag 2 'to do'` prints `invalid tag: to do` and exits 2.
-- `tag x work` and `list --tag` with no tag both print a usage line and exit 2.
+**End-to-end check:** I ran `npm run bm` against a temporary store file:
+- `bm tag 2 " Work "` printed `tagged 2 work`. Tagging again changed nothing.
+- `bm list --tag WORK` listed only the tagged bookmark.
+- An unknown id printed `no bookmark 9` and exited with 1.
+- An invalid tag (`to do`) and a non-numeric id each printed their error and exited with 2.
+- A store file written before tags existed listed, tagged and filtered normally.
 
-**Changes from the plan** (both are recorded in the plan file):
-- `bm list` with `--tag` but no tag, or with any other argument, now prints `usage: bm list [--tag <tag>]` and exits 2. The plan didn't cover these cases. The wording is my choice, so change it if you'd prefer something else.
-- `bm tag` also rejects a missing or extra argument with its usage line. This means `bm tag 1 to do` without quotes is a usage error, not an invalid tag.
+**Changes from the plan** (the plan file is updated to match):
+- `run` now only turns errors into messages and exit codes. The commands moved into a private `dispatch` function. This is internal only.
+- **Needs your OK:** `bm list` now rejects anything other than `--tag <tag>` with `usage: bm list [--tag <tag>]` and exits with 2. The plan didn't say what `list --tag` with no value should do. Before this change, `list` silently ignored extra arguments, so this is a visible behaviour change. It's one line to revert if you'd rather keep ignoring them.
+- `tag` with no tag argument gives the same usage error as a non-numeric id.
 
-**How it works:** `run()` in `src/cli.ts` now wraps the existing command switch in one try/catch. That catch is the only place errors become messages and exit codes, as `AGENTS.md` asks. `tag` and `list --tag` clean up the tag with `normalizeTag()` before calling the store. The store loads the file, changes it and saves it.
+**Not covered:** `list` still doesn't show tags in its output, which matches the plan.
 
-Nothing is pushed. The next steps would be a review in a fresh context (`/review-changes`) and then the merge request.
+**How it works:**
+1. `main.ts` calls `run(argv, store, out)` in `cli.ts`.
+2. The CLI normalizes the raw tag once with `normalizeTag` in `tags.ts`. It trims and lowercases the tag, and rejects it unless it uses only `a-z`, `0-9` and `-`.
+3. The CLI then calls `BookmarkStore.tag(id, tag)` or `listByTag(tag)`.
+4. The store loads the JSON file and treats a missing `tags` field as `[]`. It adds a tag only if the bookmark doesn't already have it, and saves only when something changed.
+5. `run` turns `InvalidTagError` into exit 2 and `BookmarkNotFoundError` into exit 1, so the CLI never reads or writes the file itself.

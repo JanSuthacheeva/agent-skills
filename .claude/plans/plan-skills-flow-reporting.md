@@ -172,6 +172,15 @@ is not None:
   open (assumption 3), else `waiting` with a question ending in "?" after
   the merge-request phase
 
+### Published results
+
+- `FLOW=stub` runs: `evals/ship-feature/results/claude-code/`, rendered
+  from `report.md`.
+- `FLOW=absent` runs: `evals/ship-feature/results/claude-code-without-flow/`,
+  rendered from `report-without-flow.md`.
+- `evals/shared/export_results.py export ... --template <file>` picks the
+  report template; `summary.json` records it so `render` reuses it.
+
 ### README.md
 
 One sentence after the flow paragraph: with
@@ -259,6 +268,6 @@ The implementation page repeats this chain with "Review the implementation page"
 - [x] review-changes: reporting note, `review` counts, version 0.5
 - [x] write-merge-request: `allowed-tools`, reporting note, push question, `merge-request <url>`, version 0.8
 - [x] ship-feature: reporting note with the phase per step, stops, version 0.3
-- [ ] README: the sentence on reporting to flow
-- [ ] Rerun the ship-feature evals with `FLOW=stub` and `FLOW=absent` on Opus and Sonnet, and publish the results and report
+- [x] README: the sentence on reporting to flow
+- [x] Rerun the ship-feature evals with `FLOW=stub` and `FLOW=absent` on Opus and Sonnet, and publish the results and report
 - [ ] End-to-end: a throwaway `flow new` flow, a mid-build ship-feature trial reporting into it with the real CLI, and `flow status` showing phases implement, review and merge-request, 5/5 tasks, the review counts and the push question; then remove the flow

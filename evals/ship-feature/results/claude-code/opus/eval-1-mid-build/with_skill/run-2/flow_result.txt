@@ -1,11 +1,26 @@
 new commits:
-454ac8b docs: add review to bookmark tags plan
-7707ef6 bm: reject extra arguments to list --tag
-2fcecf4 docs: mark bookmark tags plan done
-1d3b344 bm: add tag command and list --tag
-585f25c bm: tag bookmarks and list them by tag
-8b3fa9d bm: store tags on bookmarks
+23e52f0 docs: add review of bookmark tags
+9025866 bm: reject extra arguments to tag
+a18ff63 bm: test list rejects arguments other than --tag <tag>
+545d2ed docs: mark bookmark tags end-to-end check done
+42f7d4c bm: add tag command and list --tag
+0f1759c bm: tag bookmarks and list them by tag
+98a3135 bm: store tags on bookmarks
 
 agents:
-- Build bookmark tags plan: 592 chars
-- Review bookmark tags branch: 400 chars
+- Build bookmark tags plan: 737 chars
+- Isolated review of branch: 729 chars
+flow reports:
+phase implement
+phase implement
+working
+tasks 2 5
+tasks 3 5
+decision list rejects unknown args with a usage line; run maps tag errors via a private dispatch
+tasks 4 5
+tasks 5 5
+phase review
+phase review
+review --fixed 2 --open 0
+phase merge-request
+waiting Push and open the merge request?

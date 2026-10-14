@@ -1,23 +1,16 @@
-The bookmark tags feature is built and all five plan tasks are ticked. All 17 tests pass and the working tree is clean. The repo has no lint or type-check script, so I didn't run either. I haven't pushed anything.
+Bookmark tags are built, and all five tasks in the plan are checked off. `npm test` passes with 18 tests, and I ran the real CLI against a temp store file.
 
-**Commits**
-- `6234ef4` adds the `tags` field to bookmarks. Files written before tags existed load as `tags: []`.
-- `5ffa512` adds `BookmarkNotFoundError`, `BookmarkStore.tag` and `BookmarkStore.listByTag`.
-- `42d29b0` adds `bm tag <id> <tag>` and `bm list --tag <tag>`.
-- A final docs commit ticks the end-to-end task.
+**What now works**
+- **Storage:** bookmarks carry a `tags` array. Store files written before this change load with `tags: []`, so no migration is needed.
+- **Store:** `BookmarkStore` has `tag(id, tag)` and `listByTag(tag)`, plus `BookmarkNotFoundError`. Tagging twice with the same tag does nothing.
+- **CLI:**
+  - `bm tag <id> <tag>` prints `tagged <id> <tag>`.
+  - `bm list --tag <tag>` lists only the matching bookmarks.
+  - Both accept input like `" Work "` and store it as `work`.
+- **Errors:** an invalid tag prints `invalid tag: <raw>` and exits 2. An unknown id prints `no bookmark <id>` and exits 1. A non-numeric id prints the usage line and exits 2.
 
-**End-to-end check** against a temp `BM_FILE`:
-- `tag 2 Work` printed `tagged 2 work`, and tagging `work` again was a no-op.
-- `list --tag work` printed only bookmark 2.
-- `tag 9 x` printed `no bookmark 9` (exit 1).
-- `tag 1 "to do"` printed `invalid tag: to do` (exit 2).
-- `tag x y` printed the usage line (exit 2).
-- The store file keeps its JSON-array format, with `tags` on each bookmark.
+**Beyond the plan**
+- `run` is now a thin wrapper that maps the two error classes to messages and exit codes.
+- `bm list --tag` with no tag prints `usage: bm list [--tag <tag>]` and exits 2.
 
-**Deviations from the plan**
-- I added a usage error, `usage: bm list [--tag <tag>]` with exit 2, for `list --tag` with no value. The plan didn't cover that case.
-- `run` now wraps a private `dispatch` function in one `try/catch`. That `try/catch` maps `InvalidTagError` to exit 2 and `BookmarkNotFoundError` to exit 1.
-
-**How it works:** `main` calls `run`, which calls `dispatch`. For `tag`, it calls `store.tag(id, tag)`, which normalizes the tag with `normalizeTag`, loads the bookmarks, adds the tag if it's missing, and saves. For `list --tag`, `store.listByTag(tag)` normalizes the tag and filters the loaded bookmarks.
-
-Nothing is blocked or left open.
+The work is in four commits on `feature/bookmark-tags`, plus a docs commit that ticks the plan. Nothing is pushed and no merge request is open.

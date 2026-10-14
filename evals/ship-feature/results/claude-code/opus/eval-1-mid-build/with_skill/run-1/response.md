@@ -1,17 +1,18 @@
-The build and review are done. The flow is now stopped on two open review items, and these decisions are yours.
+I finished building the feature and the separate review is done, but it left two open items that need your decision before I write the merge request.
 
-**Where it stands**
-- **Build:** all 5 tasks are done and committed as `7fbc6b2`, `cd57b24`, `c769ffb` and `d8a667d`. I re-ran the tests myself and all 18 pass. The build added one thing the plan didn't cover: `bm tag 1` or `bm list --tag` with no tag now prints the usage line and exits 2.
-- **Review:** a separate agent that hadn't seen the build checked the branch. It found no defects and changed no code. It wrote its notes into the plan (`1549705`).
+**Where it stands:** the plan has all 5 tasks ticked across 5 commits (`9f69283` through `2aaa969`), and all 16 tests pass. I checked the commits, ticked boxes and test run in the repo myself. The review (`7fd6d48`) didn't fix anything; everything it tried matched the plan.
 
-**Open items**
-1. **Unexpected arguments are silently ignored.** A typo like `bm list --tags work` lists every bookmark and exits 0. An unquoted `bm tag 1 to do` saves the tag `to` and drops `do`. `list` already ignored extra arguments before this branch, but `--tag` makes this kind of typo more likely.
-   - The reviewer recommends rejecting any argument `list` or `tag` doesn't expect, with the usage line and exit 2.
-   - **I recommend fixing it.** It's a small change, and failing loudly is clearly better than quietly giving a wrong result.
-2. **The store accepts tags that haven't been cleaned up.** `store.tag(1, 'Work')` would save `Work` as-is, uppercase included. The CLI is the only code that calls the store and it always cleans the tag first, so users can't hit this today.
-   - The reviewer recommends leaving it until other code starts calling the store.
-   - **I lean towards a small fix:** call `normalizeTag` inside `BookmarkStore.tag` and `listByTag`, and have the CLI stop calling it. Tags would then be cleaned in exactly one place, and the store couldn't save a bad tag whoever calls it. This changes the plan's call chains a little.
+The build hit two error cases the plan didn't cover and handled both. It added them to the plan's Errors section:
+- `bm tag <id>` with no tag prints `usage: bm tag <id> <tag>` and exits 2.
+- `bm list --tag` with no tag prints the usage line and exits 2.
 
-Also, the plan links a review page at `.lavish/bookmark-tags-implementation.html` that isn't in the repo. I'd remove that line from the plan.
+**Open items:**
 
-What do you want for items 1 and 2? I'll write your decisions into the plan as new tasks, start a new build, then run a second review before the merge request.
+1. **Unknown arguments are silently ignored.** A typo like `bm list --tags work` lists every bookmark and exits 0. Extra arguments such as `bm tag 1 work extra` are ignored too. `list` on `main` already behaves this way, and fixing it changes what users see.
+   - Options: (a) leave it for a follow-up, as the reviewer recommends; (b) add a task now so unknown options and extra arguments print the usage message and exit 2.
+   - **I recommend (b).** The new `--tag` option makes this typo likely, and right now the mistake gives no error at all. It's a small, well-contained task.
+
+2. **Test data got into your real bookmark file.** The CLI uses `~/.bookmarks.json` when `BM_FILE` isn't set. That file now holds one test bookmark: id 1, `https://a.dev`, "A", created today, tagged `work`. An earlier manual check without `BM_FILE` probably created it. The reviewer also wrote to the file once by mistake and says it removed its own changes. I've looked at the file but haven't changed it.
+   - **I recommend deleting `~/.bookmarks.json`** if you weren't already using `bm` for real bookmarks. Should I delete it?
+
+Once you decide on 1, I'll add any new task to the plan, build it, and run a second review on those commits.

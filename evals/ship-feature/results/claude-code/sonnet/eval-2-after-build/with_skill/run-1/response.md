@@ -1,16 +1,19 @@
-The review is finished, and it left two open items. I'm stopping here for your decision before the merge request.
+The review is done, but it left two items open for you to decide. I've stopped here.
 
-**Fixed by the reviewer** in commit `cad1609`. The tests pass (16) and the working tree is clean.
-- Tagging a bookmark twice stored the tag twice. It is now a no-op, as the plan says.
-- An unknown id exited 2. It now exits 1.
-- `list --tag Work` found nothing because the filter wasn't normalized. It is now.
-- `listTagged` is renamed to `listByTag`, as in the plan.
-- Tests were added for each of these. The reviewer reports that five of them failed before the fixes.
+**What the review fixed** in `0e06f9c`, each with a test that failed first:
+- `bm tag` on an unknown id now exits 1 instead of 2.
+- Tagging a bookmark twice with the same tag is now a no-op, as the plan says.
+- `bm list --tag` now normalizes the tag. `--tag Work` finds `work`, and an invalid tag exits 2 with `invalid tag: <raw>`.
+- I renamed `listTagged` to `listByTag`, as the plan names it.
 
-**Open items, for you to decide**
-1. **`bm list --tag` with no value** currently lists every bookmark without complaint. I recommend a usage error, `usage: bm list [--tag <tag>]`, with exit 2. If you agree, I'll add it as a task in the plan and run another build and review pass.
-2. **A corrupt store file** still throws a raw `SyntaxError`. This was already the case before this branch, and the file is never overwritten. I recommend leaving it alone.
+The suite is green with 14 passing tests. The project has no lint or type-check script. The reviewer re-read its own fixes rather than having an independent agent do it, and the plan's review section says so.
 
-One more thing: the plan's last task, the manual `npm run bm` check, was ticked, yet the duplicate-tag and exit-code bugs would have shown up in it.
+**Open items:**
+1. `bm tag "" x` reads the empty id as 0 and prints `no bookmark 0` (exit 1). The plan says non-numeric ids should print the usage message and exit 2. The reviewer recommends rejecting a blank id in `run`.
+2. `bm list --tag` with no value, or with the option after other arguments, silently lists everything. The reviewer recommends printing a usage line and exiting 2.
 
-Do you want the usage error for item 1? If you say no, I'll move straight to the merge request description. Nothing is pushed until you approve it.
+I recommend fixing both. They are small, and they make the CLI match the plan's error rules. If you agree, I'll add them as tasks under `## Tasks`, commit, rebuild in a fresh agent, and run a second review of the new commits. Then we go on to the merge request.
+
+**Your real `~/.bookmarks.json`:** the reviewer's manual end-to-end check ran without `BM_FILE` set, so it added a test entry (id 2) to that file. The reviewer says it removed that entry. The file now holds only bookmark 1, which has the tag `work`. I can't tell whether that tag was there before the review, so please check it.
+
+Do you want both items fixed, or should I skip either?

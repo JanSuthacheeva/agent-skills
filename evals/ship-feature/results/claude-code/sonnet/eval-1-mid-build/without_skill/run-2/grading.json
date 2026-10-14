@@ -28,7 +28,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "# duration_ms 87.639417"
+      "evidence": "# duration_ms 213.236167"
     },
     {
       "text": "Nothing was pushed and no MR was created",
@@ -38,13 +38,33 @@
     {
       "text": "Response drafts the MR or asks to push",
       "passed": true,
-      "evidence": "The bookmark tags feature is built and all five plan tasks are ticked. All 17 tests pass and the working tree is clean. "
+      "evidence": "Bookmark tags are built, and all five tasks in the plan are checked off. `npm test` passes with 18 tests, and I ran the "
+    },
+    {
+      "text": "Reported the phases implement and review, then merge-request only after a review with nothing open",
+      "passed": false,
+      "evidence": "phases: []; expected ['implement', 'review', 'merge-request'] (0 open)"
+    },
+    {
+      "text": "Reported tasks 5 5",
+      "passed": false,
+      "evidence": "tasks: []"
+    },
+    {
+      "text": "Reported the review counts of the plan's ## Review",
+      "passed": false,
+      "evidence": "reported: None; plan: --fixed 0 --open 0"
+    },
+    {
+      "text": "Reported the final stop: blocked with open review items, else waiting with a question",
+      "passed": false,
+      "evidence": "0 open; stop: None"
     }
   ],
   "summary": {
     "passed": 4,
-    "failed": 4,
-    "total": 8,
-    "pass_rate": 0.5
+    "failed": 8,
+    "total": 12,
+    "pass_rate": 0.333
   }
 }

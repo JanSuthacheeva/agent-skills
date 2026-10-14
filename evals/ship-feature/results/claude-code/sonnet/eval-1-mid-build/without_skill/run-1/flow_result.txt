@@ -1,8 +1,10 @@
 new commits:
-d41c0a6 docs: tick bookmark tags end-to-end check
-1f0ebc7 bm: add tag command and list --tag
-131c283 bm: tag bookmarks and list them by tag
-a17a8da bm: store tags on bookmarks
+1788c4f docs: tick bookmark tags end-to-end check
+73b938f bm: add tag command and list --tag
+f25ceff bm: tag bookmarks and list by tag in the store
+c764eb8 bm: store tags on bookmarks
 
 agents:
+
+flow reports:
 

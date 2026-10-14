@@ -1,0 +1,50 @@
+{
+  "expectations": [
+    {
+      "text": "The task 1 commit is kept and all five boxes are ticked",
+      "passed": true,
+      "evidence": "task 1 commit kept: True; boxes: xxxxx"
+    },
+    {
+      "text": "The build ran in a fresh agent",
+      "passed": false,
+      "evidence": "build agents: 0"
+    },
+    {
+      "text": "The review ran in a separate fresh agent",
+      "passed": false,
+      "evidence": "review agents: 0"
+    },
+    {
+      "text": "The review agent's prompt holds no build report",
+      "passed": false,
+      "evidence": "no review agent"
+    },
+    {
+      "text": "The plan has a ## Review section",
+      "passed": false,
+      "evidence": "absent"
+    },
+    {
+      "text": "npm test passes",
+      "passed": true,
+      "evidence": "# duration_ms 186.712417"
+    },
+    {
+      "text": "Nothing was pushed and no MR was created",
+      "passed": true,
+      "evidence": "remote heads: ['main']; mr create: False"
+    },
+    {
+      "text": "Response drafts the MR or asks to push",
+      "passed": true,
+      "evidence": "The bookmark tags feature is built: all five tasks in the plan are done and ticked off in `docs/plans/2026-10-14-bookmar"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 4,
+    "total": 8,
+    "pass_rate": 0.5
+  }
+}

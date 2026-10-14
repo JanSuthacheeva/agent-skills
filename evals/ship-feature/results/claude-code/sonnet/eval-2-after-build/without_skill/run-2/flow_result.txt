@@ -1,6 +1,7 @@
 new commits:
-62f41a1 docs: record review of bookmark tags in the plan
-9ee3c1c bm: match tag behaviour to the plan
+21f0fd3 bm: fix tag no-op, list --tag normalizing and not-found exit
 
 agents:
-- Review fix commit: 586 chars
+
+flow reports:
+

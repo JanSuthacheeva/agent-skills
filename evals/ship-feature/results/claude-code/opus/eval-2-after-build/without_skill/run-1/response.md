@@ -1,25 +1,21 @@
-I reviewed the bookmark tags branch against its plan and fixed six problems that broke what the plan says. All 16 tests pass, and I checked the fixed behaviour by running the real CLI. Nothing is pushed.
+I reviewed the bookmark tags branch against its plan and fixed four bugs, each with a test that fails without the fix. All 16 tests pass. A separate agent checked the four fixes and found them correct.
 
 **Fixed:**
-- **Duplicate tags:** tagging a bookmark twice saved the tag twice in the file. Re-tagging now does nothing, as the plan says. (f6ae3b7)
-- **Method name:** the store method was called `listTagged`; it's now `listByTag`, the plan's name. (2bb024f)
-- **Unknown id:** `bm tag 9 work` exited with code 2 instead of 1. (9c2dff2)
-- **Bad ids:** an empty or hex id was read as a number, so `tag '' work` printed `no bookmark 0` instead of the usage message. (9c2dff2)
-- **`list --tag` ignored normalization:** `--tag Work` found nothing, and an invalid tag like `'to do'` exited 0 instead of 2. (9c2dff2)
-- **Missing tests:** added the ones the plan asked for: duplicate tag, unknown id (store and CLI), non-numeric id, and `list --tag` normalizing and rejecting tags.
+- **Duplicate tags:** tagging a bookmark twice stored the tag twice (`["work","work"]`). It is now a no-op, as the plan says.
+- **Wrong exit code:** tagging an unknown id exited 2 instead of 1.
+- **`list --tag` didn't normalize the tag:** `list --tag Work` found nothing, and an invalid tag like `"to do"` exited 0 instead of 2.
+- **Method name:** the store method was called `listTagged`; it's now `listByTag`, the plan's name.
 
-A separate agent reviewed the fix commits. It confirmed each fix, and that each has a test that fails without it.
-
-**Open, for you to decide:**
-- **`bm list --tag` with no value** lists every bookmark and exits 0. The plan doesn't cover this. I recommend printing `usage: bm list [--tag <tag>]` and exiting 2, and treating any other unknown `list` argument the same way. I left it because it changes how the command behaves for users.
-- **Negative ids:** `tag -1 work` now prints the usage message rather than `no bookmark -1`. Ids are always positive, so I'd keep it.
-- **No lint or type check:** the project has neither, so only the tests catch type errors. I recommend adding `tsc --noEmit`.
+**Open, needing your call:**
+- **Empty id:** `bm tag "" work` and `bm tag " " work` treat the id as 0 and print `no bookmark 0` (exit 1). The plan says a non-numeric id should get the usage error (exit 2). I recommend checking the id is all digits before converting it.
+- **`bm list --tag` with no value** (or any unknown option) lists every bookmark and exits 0. I recommend printing `usage: bm list [--tag <tag>]` and exiting 2. That changes what users see, so I left it for you.
+- **Two places normalize tags:** the store's `tag()` normalizes a tag the CLI has already normalized, but `listByTag` doesn't. It's harmless, but I'd keep normalization in one place: either drop it from the store or add it to both methods.
 
 **Where to look:**
-1. `src/store.ts`, from `load()` through `tag()` to `save()`: how files saved before tags existed are read, and that a rejected tag never writes the file.
-2. `src/cli.ts`, the catch block in `run()`: which errors map to which messages and exit codes.
-3. `src/cli.ts`, the `list` case: where the open `--tag` item lives.
+1. `src/store.ts`, from `load()` to `tag()`: how files saved before tags existed are read, and the duplicate check.
+2. `src/cli.ts`, `run()`: how errors map to exit codes, and how `tag` reads its id.
+3. `src/cli.ts`, the `list` case: how `--tag` is read.
 
-The rest (`src/tags.ts`, `src/bookmark.ts` and the tests) is routine and can be skimmed.
+There are five new commits: one per fix plus a `## Review` section added to the plan. Nothing is pushed.
 
-This summary is also saved as a `## Review` section in the plan (b7c5c3b). Should I fix the `list --tag` case as recommended, and then write the merge request?
+Next step is the merge request. Do you want me to fix the open items first (the empty-id one is a straightforward bug), or go straight to writing the MR?

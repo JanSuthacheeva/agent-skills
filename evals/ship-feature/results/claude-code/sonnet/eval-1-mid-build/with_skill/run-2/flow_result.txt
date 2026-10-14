@@ -1,11 +1,21 @@
 new commits:
-e7b1455 docs: add review section to bookmark tags plan
-d4abd7c bm: treat an empty tag id as a usage error
-4a92d7b docs: tick bookmark tags e2e check
-3f021fa bm: add tag command and list --tag
-bd8146b bm: add BookmarkStore tag and listByTag
-219bfa0 bm: add tags to bookmarks and default missing tags on load
+fe40f1f bm: reject empty tag id as usage error
+ea2a7cb docs: tick bookmark tags end-to-end check
+059f5dd bm: add tag command and list --tag
+531b8a7 bm: tag bookmarks and list by tag in the store
+882097a bm: store tags on bookmarks
 
 agents:
-- Build bookmark tags plan: 515 chars
-- Review bookmark tags branch: 477 chars
+- Build bookmark tags plan: 619 chars
+- Isolated review of branch: 671 chars
+flow reports:
+phase implement
+phase implement
+tasks 2 5
+tasks 3 5
+tasks 4 5
+tasks 5 5
+phase review
+review --fixed 1 --open 0
+phase merge-request
+waiting Push and open the merge request?

@@ -1,8 +1,16 @@
 new commits:
-d2e9507 docs: mark bookmark tags plan done
-3023b65 bm: add tag command and list --tag
-941df2e bm: tag bookmarks and list them by tag
-dce3cac bm: store tags on bookmarks
+f7f488a docs: check bookmark tags end to end
+dcd13a6 bm: cli: add tag command and list --tag
+9a7be8d bm: store: tag bookmarks and list them by tag
+877e906 bm: store tags on bookmarks
 
 agents:
 
+flow reports:
+phase implement
+working
+tasks 2 5
+tasks 3 5
+decision list rejects arguments other than --tag <tag> with a usage error instead of ignoring them
+tasks 4 5
+tasks 5 5

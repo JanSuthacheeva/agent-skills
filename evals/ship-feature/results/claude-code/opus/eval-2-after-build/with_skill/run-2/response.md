@@ -1,15 +1,15 @@
-Review finished. It fixed three bugs, each with a test that fails without the fix:
+The build and the review are both done. The review found and fixed three bugs that didn't match the plan, each with a test:
 
-- Tagging a bookmark twice with the same tag stored it twice. It now does nothing.
-- `bm tag` on an unknown id exited 2 instead of 1.
-- `bm list --tag` used the tag as typed. So `--tag Work` found nothing, and an invalid tag printed nothing and exited 0 instead of exiting 2. The store method is also renamed to `listByTag`, the name the plan uses.
+- Tagging a bookmark twice with the same tag stored it twice.
+- Tagging an unknown id exited 2 instead of 1.
+- `list --tag` didn't normalize the tag, so `--tag Work` found nothing.
 
-All 16 tests pass and the working tree is clean.
+All 16 tests pass and nothing has been pushed.
 
-**Stop: three open review items need your decision**
+It left three items for you to decide:
 
-1. **`bm list --tag` with no value** currently lists every bookmark without saying anything. The reviewer recommends printing `usage: bm list [--tag <tag>]` and exiting 2. I agree: an option without its value is bad input, and quietly ignoring it hides typos.
-2. **The id in `bm tag` is parsed loosely.** `""` is read as id 0 and `0x1` as id 1. The reviewer recommends accepting digits only (`/^\d+$/`) and printing the usage message with exit 2 otherwise. I agree, because the plan already says a non-numeric id should get the usage message.
-3. **The tag is cleaned up twice**, once in the CLI and again in `BookmarkStore::tag`. The reviewer recommends keeping it: running it twice gives the same result, and it keeps the store safe for other callers. I agree, so no change.
+1. **`bm list --tag` with no value lists every bookmark without an error.** The plan doesn't cover this case. The reviewer recommends printing `usage: bm list [--tag <tag>]` and exiting 2. I agree, and it belongs in this feature.
+2. **Extra arguments to `list` are silently ignored.** `main` already does this. The reviewer recommends leaving it until argument parsing is tightened across the whole CLI. I agree, because fixing it only for `list` would make the commands behave differently from each other.
+3. **An empty or corrupt store file crashes with a raw `SyntaxError` stack trace.** `main` already does this, and the file is never overwritten, so nothing is lost. The reviewer recommends a separate change. Given your standard of fixing defects you come across, I'd fix it here: a `CorruptStoreError` mapped to a clear message and exit 2. It's small and covers the file that now stores tags.
 
-My recommendation: fix 1 and 2, keep 3. If you approve, I'll add 1 and 2 to the plan as tasks, commit, run a fresh build agent and then a second review. After that I'll write the merge request.
+**My recommendation:** build 1 and 3 on this branch and leave 2. Which ones should I add as tasks? Once you decide, I'll write them into the plan, build them in a fresh agent and run a second review.

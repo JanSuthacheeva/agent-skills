@@ -1,0 +1,11 @@
+new commits:
+2174abd docs: plans: add review of bookmark tags
+c5301dd bm: normalize the tag in list --tag and name it listByTag
+40427b3 bm: cli: reject ids that are not plain digits in tag
+a0c558c bm: cli: exit 1 when tagging an unknown bookmark
+f5b6c0c bm: store: make tagging with an existing tag a no-op
+
+agents:
+- Isolated review of bookmark tags: 1017 chars
+flow reports:
+(ran without flow)

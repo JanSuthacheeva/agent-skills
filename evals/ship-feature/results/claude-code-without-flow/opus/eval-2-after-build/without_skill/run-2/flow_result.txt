@@ -1,0 +1,10 @@
+new commits:
+9e9672e docs: record the bookmark tags review
+eb564de bm: normalize the tag in list --tag and name it listByTag
+4dc9697 bm: cli: exit 1 for an unknown id and reject non-numeric ids in tag
+a8d0017 bm: store: ignore a tag the bookmark already has
+
+agents:
+- Review three fix commits: 1547 chars
+flow reports:
+(ran without flow)

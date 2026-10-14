@@ -1,13 +1,21 @@
-The review is finished. It fixed two problems, committed the fixes, and left three questions for you. All 19 tests pass and the working tree is clean; nothing has been pushed.
+The bookmark tags feature is finished: all 5 tasks in `docs/plans/2026-10-14-bookmark-tags.md` are done, ticked and committed. All 17 tests pass, and the commands behave correctly when run for real. There's no lint or type checker set up in this project, so neither was run.
 
-**Fixed:**
-- `92f78a4`: `bm tag 1 to do` used to save the tag `to`, silently drop `do` and report success. `bm list --tag work home` ignored `home`. Both now print their usage line and exit 2, and the plan is updated to match.
-- `f59222e`: the plan asked for tests of empty input and invalid characters in tags, and they were missing. They're added now.
-- `a4844a0`: the plan now has a review section listing the open items and where to look.
+**Commits**
+- `50fc213 bm: store tags on bookmarks` - new bookmarks get `tags: []`, and files written before tags existed load as `tags: []`, so no migration is needed.
+- `2b2b394 bm: tag bookmarks and list them by tag` - adds `BookmarkNotFoundError`, `BookmarkStore::tag` and `BookmarkStore::listByTag`. Adding a tag a bookmark already has does nothing.
+- `98a02e6 bm: add tag command and list --tag` - the two new CLI commands, with tests for success, an invalid tag, an unknown id and bad usage.
+- `532f712 docs: mark bookmark tags plan done` - ticks the last task.
 
-**Decisions for you:**
-1. **Tags made only of hyphens are accepted.** `bm tag 1 -` saves the tag `-`, and `bm list --tag --tag` searches for a tag literally called `--tag` instead of showing usage. I recommend requiring tags to start with a letter or digit. It's a one-line change, but it decides which tags can ever be saved, so it's best done before release. Once odd tags are in people's files, tightening the rule leaves tags the CLI no longer accepts.
-2. **A broken store file crashes with a stack trace.** This already happens on `main`, and no data is lost because nothing is saved after a failed read. I'd add a proper error with a clear message and exit code, in a separate change.
-3. **The plan links a review page that isn't in the repo** (`.lavish/bookmark-tags-implementation.html`). Should I remove the link, or do you have the page somewhere to add?
+**End-to-end check** (`npm run bm` against a temp `BM_FILE` that started as a file written before tags existed):
+- `tag 2 " Work "` prints `tagged 2 work`. Running `tag 2 work` again doesn't add a duplicate.
+- `list --tag WORK` lists only the tagged bookmarks. With bookmark 2 tagged `docs`, `list --tag docs` showed only bookmark 2.
+- An unknown id prints `no bookmark 9` (exit 1). An invalid tag prints `invalid tag: to do` (exit 2). A non-numeric id or `list --tag` with no tag prints a usage message (exit 2).
+- The old bookmark loaded without errors and was saved back with a `tags` field.
 
-Should I go ahead with 1 and 2 and remove the link in 3? After that, the next step is writing the pull request description for you to approve before anything is pushed.
+**Changes from the plan** (both written into the plan):
+- `run` now hands the commands to a private `dispatch` function, so turning the two errors into messages and exit codes happens in one place.
+- I added one message the plan didn't specify: `list` with anything other than `--tag <tag>` prints `usage: bm list [--tag <tag>]` and exits 2. A missing tag in `bm tag` gives its usage message, the same as a non-numeric id.
+
+**How it works:** `main` passes the arguments to `run`. For `tag` and `list --tag`, the CLI first cleans up the tag with `normalizeTag` (trim, lowercase, only `a-z`, `0-9` and `-` allowed). It then calls `BookmarkStore::tag` or `listByTag`. The store loads the JSON file (filling in `tags: []` where it's missing), changes or filters it, and saves it. The CLI never touches the file itself.
+
+Nothing is blocked or left open, and nothing has been pushed.

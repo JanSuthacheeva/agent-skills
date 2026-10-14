@@ -1,11 +1,22 @@
 new commits:
-72db3eb docs: add review to bookmark tags plan
-de390db bm: reject empty and non-decimal ids in tag
-3797292 docs: tick end-to-end check in bookmark tags plan
-ed3ebbf bm: add tag command and list --tag
-ec8d138 bm: tag bookmarks and list them by tag in the store
-03fadbe bm: store tags on bookmarks
+ee44ca7 docs: record review of bookmark tags
+bddae36 bm: reject list --tag without a tag and tag with an empty id
+6a94354 docs: tick bookmark tags end-to-end check
+6150d51 bm: add tag command and list --tag
+2f2dc45 bm: tag bookmarks and list by tag in the store
+5bbb21e bm: store tags on bookmarks
 
 agents:
-- Build bookmark tags plan: 509 chars
-- Review bookmark tags branch: 470 chars
+- Build bookmark tags plan: 494 chars
+- Isolated review of bookmark tags: 679 chars
+flow reports:
+phase implement
+phase implement
+tasks 2 5
+tasks 3 5
+tasks 4 5
+phase review
+phase review
+review --fixed 2 --open 0
+phase merge-request
+waiting Push and open the merge request?

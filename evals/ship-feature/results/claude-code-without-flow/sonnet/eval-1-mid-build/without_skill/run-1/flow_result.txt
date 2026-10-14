@@ -1,0 +1,10 @@
+new commits:
+100006d docs: mark bookmark tags plan complete
+29932bd bm: add tag command and list --tag to the cli
+6ed8969 bm: tag bookmarks and list by tag in the store
+31fcf22 bm: store tags on bookmarks
+
+agents:
+
+flow reports:
+(ran without flow)

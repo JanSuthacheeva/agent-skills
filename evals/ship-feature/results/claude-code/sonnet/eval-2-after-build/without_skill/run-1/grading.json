@@ -7,13 +7,13 @@
     },
     {
       "text": "The review ran isolated: a fresh agent, or a session that wrote none of the code",
-      "passed": true,
-      "evidence": "review agents: 0; build agents: 0; reviewed: True"
+      "passed": false,
+      "evidence": "review agents: 0; build agents: 0; reviewed: False"
     },
     {
       "text": "The plan has a ## Review section",
-      "passed": true,
-      "evidence": "found"
+      "passed": false,
+      "evidence": "absent"
     },
     {
       "text": "Tagging a bookmark twice stores the tag once",
@@ -23,7 +23,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "# duration_ms 81.125459"
+      "evidence": "# duration_ms 197.109709"
     },
     {
       "text": "Nothing was pushed and no MR was created",
@@ -33,13 +33,28 @@
     {
       "text": "Response drafts the MR or puts open review items to the user",
       "passed": true,
-      "evidence": "The review found four deviations from the plan, and I fixed all of them. All 16 tests pass.  I haven't pushed or opened "
+      "evidence": "The bookmark tags feature is now finished and committed. Tests pass (15), and I ran `add`, `tag` and `list --tag` agains"
+    },
+    {
+      "text": "Reported the phase review, then merge-request only after a review with nothing open",
+      "passed": false,
+      "evidence": "phases: []; expected ['review', 'merge-request'] (0 open)"
+    },
+    {
+      "text": "Reported the review counts of the plan's ## Review",
+      "passed": false,
+      "evidence": "reported: None; plan: --fixed 0 --open 0"
+    },
+    {
+      "text": "Reported the final stop: blocked with open review items, else waiting with a question",
+      "passed": false,
+      "evidence": "0 open; stop: None"
     }
   ],
   "summary": {
-    "passed": 7,
-    "failed": 0,
-    "total": 7,
-    "pass_rate": 1.0
+    "passed": 5,
+    "failed": 5,
+    "total": 10,
+    "pass_rate": 0.5
   }
 }

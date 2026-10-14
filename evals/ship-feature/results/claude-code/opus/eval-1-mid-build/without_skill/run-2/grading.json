@@ -12,23 +12,23 @@
     },
     {
       "text": "The review ran in a separate fresh agent",
-      "passed": true,
-      "evidence": "review agents: 1"
+      "passed": false,
+      "evidence": "review agents: 0"
     },
     {
       "text": "The review agent's prompt holds no build report",
-      "passed": true,
-      "evidence": "708 chars; leak: None"
+      "passed": false,
+      "evidence": "no review agent"
     },
     {
       "text": "The plan has a ## Review section",
-      "passed": true,
-      "evidence": "found"
+      "passed": false,
+      "evidence": "absent"
     },
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "# duration_ms 68.977542"
+      "evidence": "# duration_ms 288.308083"
     },
     {
       "text": "Nothing was pushed and no MR was created",
@@ -38,13 +38,33 @@
     {
       "text": "Response drafts the MR or asks to push",
       "passed": true,
-      "evidence": "The review is finished. It fixed two problems, committed the fixes, and left three questions for you. All 19 tests pass "
+      "evidence": "The bookmark tags feature is finished: all 5 tasks in `docs/plans/2026-10-14-bookmark-tags.md` are done, ticked and comm"
+    },
+    {
+      "text": "Reported the phases implement and review, then merge-request only after a review with nothing open",
+      "passed": false,
+      "evidence": "phases: ['implement']; expected ['implement', 'review', 'merge-request'] (0 open)"
+    },
+    {
+      "text": "Reported tasks 5 5",
+      "passed": true,
+      "evidence": "tasks: ['1 5', '2 5', '3 5', '4 5', '5 5']"
+    },
+    {
+      "text": "Reported the review counts of the plan's ## Review",
+      "passed": false,
+      "evidence": "reported: None; plan: --fixed 0 --open 0"
+    },
+    {
+      "text": "Reported the final stop: blocked with open review items, else waiting with a question",
+      "passed": false,
+      "evidence": "0 open; stop: None"
     }
   ],
   "summary": {
-    "passed": 7,
-    "failed": 1,
-    "total": 8,
-    "pass_rate": 0.875
+    "passed": 5,
+    "failed": 7,
+    "total": 12,
+    "pass_rate": 0.417
   }
 }

@@ -18,7 +18,7 @@
     {
       "text": "The review agent's prompt holds no build report",
       "passed": true,
-      "evidence": "487 chars; leak: None"
+      "evidence": "829 chars; leak: None"
     },
     {
       "text": "The plan has a ## Review section",
@@ -28,7 +28,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "# duration_ms 72.256875"
+      "evidence": "# duration_ms 273.198334"
     },
     {
       "text": "Nothing was pushed and no MR was created",
@@ -38,13 +38,33 @@
     {
       "text": "Response drafts the MR or asks to push",
       "passed": true,
-      "evidence": "The build and review are done. The flow is now stopped on two open review items, and these decisions are yours.  **Where"
+      "evidence": "I finished building the feature and the separate review is done, but it left two open items that need your decision befo"
+    },
+    {
+      "text": "Reported the phases implement and review, then merge-request only after a review with nothing open",
+      "passed": true,
+      "evidence": "phases: ['implement', 'review']; expected ['implement', 'review'] (2 open)"
+    },
+    {
+      "text": "Reported tasks 5 5",
+      "passed": true,
+      "evidence": "tasks: ['2 5', '3 5', '4 5', '5 5']"
+    },
+    {
+      "text": "Reported the review counts of the plan's ## Review",
+      "passed": true,
+      "evidence": "reported: --fixed 0 --open 2; plan: --fixed 0 --open 2"
+    },
+    {
+      "text": "Reported the final stop: blocked with open review items, else waiting with a question",
+      "passed": true,
+      "evidence": "2 open; stop: blocked review left 2 open items: lenient argument parsing, stray test bookmark in ~/.bookmarks.json"
     }
   ],
   "summary": {
-    "passed": 8,
+    "passed": 12,
     "failed": 0,
-    "total": 8,
+    "total": 12,
     "pass_rate": 1.0
   }
 }

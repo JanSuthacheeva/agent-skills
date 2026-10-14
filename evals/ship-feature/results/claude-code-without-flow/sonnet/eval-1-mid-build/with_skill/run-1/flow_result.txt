@@ -1,0 +1,13 @@
+new commits:
+a82164d docs: add review to bookmark tags plan
+1c0e32f bm: reject empty and fractional ids in tag command
+f3c82e1 docs: tick bookmark tags e2e check
+12cb687 bm: add tag command and list --tag
+a58352e bm: tag bookmarks and list them by tag in the store
+f8254c2 bm: store tags on bookmarks
+
+agents:
+- Build bookmark tags plan: 620 chars
+- Isolated review of bookmark tags: 822 chars
+flow reports:
+(ran without flow)

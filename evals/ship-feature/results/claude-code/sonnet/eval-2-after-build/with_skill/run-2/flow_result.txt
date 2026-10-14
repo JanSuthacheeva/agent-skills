@@ -1,6 +1,12 @@
 new commits:
-6377bb9 docs: add review to bookmark tags plan
-cb9e68a bm: match tag behaviour to the plan
+d39cc05 docs: add review summary to bookmark tags plan
+0340fd5 bm: fix tag review findings
 
 agents:
-- Review bookmark tags branch: 572 chars
+- Isolated branch review: 723 chars
+flow reports:
+phase review
+phase review
+review --fixed 5 --open 0
+phase merge-request
+waiting Push and open the merge request?

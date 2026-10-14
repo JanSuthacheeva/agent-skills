@@ -1,0 +1,11 @@
+new commits:
+7ecd6cf docs: record the bookmark tags review
+46a199e bm: normalize the tag in list --tag
+4f1bc15 bm: reject an empty or blank id in tag
+1b3a60e bm: exit 1 for an unknown bookmark id
+09ed64b bm: skip a tag the bookmark already has
+
+agents:
+- Isolated review of bookmark tags: 497 chars
+flow reports:
+(ran without flow)
