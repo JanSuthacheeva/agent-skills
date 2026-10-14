@@ -7,7 +7,7 @@
 case ${FLOW:-stub} in
   stub) export FLOW_ID=eval-trial ;;
   absent)
-    rm -f "$fx/bin/flow" "$fx/flow.log"; unset FLOW_ID
+    rm -f "$fx/bin/flow" "$fx/flow.jsonl"; unset FLOW_ID
     IFS=: read -ra entries <<< "$PATH"
     dirs=(); n=0
     for dir in "${entries[@]}"; do

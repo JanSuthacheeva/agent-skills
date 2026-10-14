@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Grade ship-feature eval runs from each run's repository, the forge stub
 log, the bare remote, the session transcript (for which steps ran in a
-fresh agent and what that agent was told) and the flow stub's log. The
-eval's flow_assertions are graded only for trials run with the flow stub.
+fresh agent and what that agent was told) and the flow stub's log, one
+argv per call. The eval's flow_assertions are graded only for trials run
+with the flow stub.
 
 Usage: grade.py <iteration-dir>
 Writes <run>/grading.json and <run>/outputs/flow_result.txt for every run.
@@ -50,14 +51,11 @@ def boxes(repo):
 def flow_reports(fx: Path) -> list[list[str]] | None:
     """The flow stub's log as argument lists after `report`, in order;
     None when the trial ran without flow."""
-    log = fx / "flow.log"
+    log = fx / "flow.jsonl"
     if not log.exists():
         return None
-    reports = []
-    for line in log.read_text().splitlines():
-        args = line.split()
-        reports.append(args[1:] if args[:1] == ["report"] else args)
-    return reports
+    calls = [json.loads(line) for line in log.read_text().splitlines()]
+    return [args[1:] if args[:1] == ["report"] else args for args in calls]
 
 
 def review_counts(plan: str) -> tuple[int, int]:
@@ -100,10 +98,10 @@ def flow_check(t: str, reports: list[list[str]], plan: str) -> tuple[bool, str]:
     if t.startswith("Reported the final stop"):
         if open_ > 0:
             after = reviews[-1][0] if reviews else len(reports)
-            stop = [" ".join(r) for r in reports[after:] if r[:1] == ["blocked"]]
+            stop = [" ".join(r) for r in reports[after:] if r[:1] == ["blocked"] and len(r) == 2]
         else:
             after = max((i for i, p in phases if p == "merge-request"), default=len(reports))
-            stop = [" ".join(r) for r in reports[after:] if r[:1] == ["waiting"] and r[-1].endswith("?")]
+            stop = [" ".join(r) for r in reports[after:] if r[:1] == ["waiting"] and len(r) == 2 and r[1].endswith("?")]
         return bool(stop), f"{open_} open; stop: {stop[-1] if stop else None}"
     raise ValueError(t)
 

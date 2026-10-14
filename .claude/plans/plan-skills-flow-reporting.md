@@ -129,7 +129,8 @@ ask the user directly.
 ### evals/write-merge-request/setup_fixture.sh - `stubs()`
 
 ```
-bin/flow    # appends "$*" as one line to $dest/flow.log, prints "flow: stub", exits 0
+bin/flow    # appends its argv as one JSON array per line to $dest/flow.jsonl,
+            # like the forge stubs; prints "flow: stub", exits 0
 ```
 
 ship-feature fixtures inherit it (its setup calls this one).
@@ -154,7 +155,7 @@ flow worker never reports into the real flow.
 
 ```python
 def flow_reports(fx: Path) -> list[list[str]] | None
-    # flow.log as argument lists in order; None when the trial ran with FLOW=absent
+    # flow.jsonl as argument lists in order; None when the trial ran with FLOW=absent
 
 def review_counts(plan: str) -> tuple[int, int]
     # number of lines under Fixed and Open in the plan's ## Review
@@ -204,7 +205,9 @@ Nothing new is stored. Events the existing `flow report` CLI accepts:
 | `review --fixed <n> --open <n>` | review-changes at the end |
 | `merge-request <url>` | write-merge-request after creating it |
 
-`flow.log` (eval stub): one line per call, the stub's `$*`; read by `grade.py`.
+`flow.jsonl` (eval stub): one JSON array per call, the stub's argv; read by
+`grade.py`, whose final-stop check takes only a `waiting` or `blocked` with
+exactly one argument, so an unquoted multi-word report fails.
 
 ## Call chains
 
@@ -277,7 +280,7 @@ The implementation page repeats this chain with "Review the implementation page"
 
 ### After review (decided by the user)
 
-- [ ] `flow` stub logs each call's argv as one JSON array per line, like the forge stubs, and `flow_reports` parses it, so an unquoted multi-word report no longer passes as quoted; regrade the published trials' workspace copies to show the results are unchanged (no paid rerun)
+- [x] `flow` stub logs each call's argv as one JSON array per line, like the forge stubs, and `flow_reports` parses it, so an unquoted multi-word report no longer passes as quoted; regrade the published trials' workspace copies to show the results are unchanged (no paid rerun)
 - [ ] Harden `review_counts` in `evals/ship-feature/grade.py` so a finding line shaped like a label (`- Fixed duplicate tags: ...`) is counted as a finding, with checks for that case, `- None.` and labels with a note before the colon; regrade to show the published counts are unchanged
 
 ## Review
