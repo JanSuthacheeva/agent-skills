@@ -79,8 +79,9 @@ stopped:
 Start another fresh agent with only the review-changes skill, the branch,
 its target and the plan's path. It must not see this conversation, the
 build agent's report or your opinion of the code - an isolated review is
-the point of this step. Without fresh agents, ask the user to run the
-review in a new session and resume from there.
+the point of this step. Tell it that it is that isolated review, so it
+reviews instead of trying to isolate itself again. Without fresh agents,
+ask the user to run the review in a new session and resume from there.
 
 Then read the `## Review` section it wrote into the plan:
 
