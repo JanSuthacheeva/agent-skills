@@ -119,7 +119,7 @@ def stored_tags(repo):
 
 
 def check(t, ctx):
-    repo, run = ctx["repo"], ctx["run"]
+    repo = ctx["repo"]
     build = [c for c in ctx["calls"] if re.search(r"implement-plan", c[0]) or re.search(r"\bbuild", c[1], re.I)]
     review = [c for c in ctx["calls"] if re.search(r"review-changes", c[0])
               and not re.search(r"\bfix", c[1], re.I)]
