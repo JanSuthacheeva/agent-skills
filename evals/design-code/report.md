@@ -4,13 +4,13 @@ Template for results/<harness>/README.md, rendered by export_results.py.
 Summary, Discussion and Limitations interprets one specific run: review it
 by hand after every new export.
 -->
-# Evaluation of the `code-design` skill v{{version}} in Claude Code
+# Evaluation of the `design-code` skill v{{version}} in Claude Code
 
 {{harness}}, `{{model}}` at {{effort}} effort, {{n_scenarios}} scenarios, {{runs}} runs per scenario and method, {{date_long}}.
 
 ## Summary
 
-`code-design` is a planning skill: before any code is written, it
+`design-code` is a planning skill: before any code is written, it
 investigates the codebase, lets the user choose between structurally
 different approaches, and then lays out the chosen design as units, typed
 signatures, data and call chains, without function bodies. It is evaluated
@@ -20,7 +20,7 @@ model without a planning skill. All four are told to deliver the plan as a
 lavish HTML page and a Markdown file, run in the same public-only
 environment and answer to the same simulated user. Across
 {{n_blocks}} blind comparisons ({{n_scenarios}} scenarios x {{runs}} runs),
-`code-design` received a mean judge score of {{code_design_judge}} of 40 and
+`design-code` received a mean judge score of {{code_design_judge}} of 40 and
 passed {{code_design_checks}} assertions, against {{feature_dev_judge}} and
 {{feature_dev_checks}} for `feature-dev`; the paired score difference to
 `feature-dev` ({{vs_feature_dev_diff}} points, p = {{vs_feature_dev_p}}) is
@@ -28,7 +28,7 @@ not distinguishable from zero. Its lead over `superpowers`
 ({{vs_superpowers_diff}}, p = {{vs_superpowers_p}}) is significant at the
 5% level but not after correcting for the three comparisons, and its lead over planning without a skill
 ({{vs_plain_diff}}, p = {{vs_plain_p}}) is consistent across every
-comparison. `code-design` scored highest on clarity and reviewability, and
+comparison. `design-code` scored highest on clarity and reviewability, and
 cost {{code_design_cost}} USD per run against {{feature_dev_cost}} for
 `feature-dev` and {{plain_cost}} without a skill, so the two leading
 methods reach equal judged quality at about the same cost.
@@ -57,7 +57,7 @@ blind ranking by a judge model.
 
 ### 2.1 Methods compared
 
-- **`code-design`** ([`SKILL.md`](../../../../skills/code-design/SKILL.md), version {{version}}), invoked as `/code-design <task>`.
+- **`design-code`** ([`SKILL.md`](../../../../skills/design-code/SKILL.md), version {{version}}), invoked as `/design-code <task>`.
 - **`superpowers`** (plugin `superpowers@claude-plugins-official`), invoked as `/superpowers:brainstorming <task>`, which continues into its own plan-writing skill.
 - **`feature-dev`** (plugin `feature-dev@claude-plugins-official`), invoked as `/feature-dev:feature-dev <task>`.
 - **`plain`**: the task without a planning skill.
@@ -87,12 +87,12 @@ which subagents inherit. To make runs reproducible
 with public components only, no user settings, user hooks, user
 instructions (`CLAUDE.md`) or MCP servers are loaded. Each run starts from
 a fresh clone of the pinned commit, into which the lavish skill [2] is
-installed for every method and `code-design` only for its own runs; only
+installed for every method and `design-code` only for its own runs; only
 the method's own plugin is enabled. Every method receives the same
 appended instruction: deliver the final plan as a lavish HTML page and a
 Markdown file, ask when a decision is needed, and do not implement.
 
-Only `code-design` changed since the previous evaluation (v0.4, 1 October
+Only `design-code` changed since the previous evaluation (v0.4, 1 October
 2026), so only its runs were repeated, on 2 October 2026 with Claude Code
 2.1.287. The runs of the other three methods are those of 1 October (Claude
 Code 2.1.286). All plans, old and new, were judged afresh in the same
@@ -137,7 +137,7 @@ result's usage omits them; its cost already includes them. Subagents may
 run on a cheaper model, so tokens and cost are not proportional across
 methods.
 
-`code-design` is compared with each other method by an exact two-sided
+`design-code` is compared with each other method by an exact two-sided
 Wilcoxon signed-rank test [3] on the paired judge-score differences of the
 {{n_blocks}} comparisons. The ranks are compared with a Friedman test [4]
 and pairwise sign tests.
@@ -150,7 +150,7 @@ and pairwise sign tests.
 
 {{table_overall}}
 
-**Table 3.** Paired judge-score differences of `code-design` against each other method, over {{n_blocks}} comparisons.
+**Table 3.** Paired judge-score differences of `design-code` against each other method, over {{n_blocks}} comparisons.
 
 {{table_pairwise}}
 
@@ -191,7 +191,7 @@ the differences were.
 The Friedman test over all comparisons yields chi-squared = {{friedman_chi2}}
 (df = 3, p = {{friedman_p}}).
 
-**Table 9.** Pairwise ranks of `code-design` against each other method.
+**Table 9.** Pairwise ranks of `design-code` against each other method.
 
 {{table_rank_pairwise}}
 
@@ -204,7 +204,7 @@ last or second to last in every comparison, missed the broken build in
 structurally different design.
 
 Among the planning methods, the profiles differ more than the totals.
-`code-design` scored highest on clarity and reviewability, the two criteria
+`design-code` scored highest on clarity and reviewability, the two criteria
 it is built for. Judges repeatedly cited the per-unit signatures, the
 numbered call chains with failure branches and the list of assumptions as
 what made individual decisions easy to challenge. It never failed the
@@ -231,22 +231,22 @@ shorter pages. An intermediate version that delegated investigation and
 the Markdown plan to subagents on a cheaper model raised the judge score
 by less than a point but cost 19% more and was discarded.
 
-`feature-dev` matched `code-design` on judged quality at about the same
+`feature-dev` matched `design-code` on judged quality at about the same
 cost: it was ranked first most often and scored highest on correctness
 and completeness, but its plans described call flow less precisely. `superpowers` produced the most thorough edge-case
 coverage in `mdterm-bookmarks`, but its plans often contained full
 implementation code, which lowered clarity, and it missed the broken build
 in every `clickup-status-command` run.
 
-`code-design` is the most expensive method by a small margin over
+`design-code` is the most expensive method by a small margin over
 `feature-dev`, although `feature-dev` uses more tokens in total: in four of its nine runs `feature-dev` delegated
 exploration and architecture to subagents on Claude Sonnet 5.5, a cheaper
-model, while `code-design` does all of its work in the main Claude Opus 5.5
-session. `code-design` also produces about 2.5 times the output tokens of
+model, while `design-code` does all of its work in the main Claude Opus 5.5
+session. `design-code` also produces about 2.5 times the output tokens of
 `plain` and about 1.4 times those of `superpowers`, mainly because it
 writes two review pages (an approaches page and an implementation page)
 and a more detailed design. Since its judged quality and cost both match
-`feature-dev`, the choice between the two is one of format: `code-design`
+`feature-dev`, the choice between the two is one of format: `design-code`
 is easier to review and correct decision by decision, `feature-dev`
 slightly more complete.
 
@@ -257,7 +257,7 @@ slightly more complete.
   planning methods; only the separation from `plain` is clear.
 - **Model as judge.** Each comparison was scored by a single judge model,
   of the same family as the methods under test, with no second judge or
-  human rating. Blinding is partial: `code-design` is recognizable by its
+  human rating. Blinding is partial: `design-code` is recognizable by its
   two-page structure. Re-judging the unchanged plans of the other methods
   moved their mean scores by up to 0.9 points against the previous
   evaluation, which bounds the differences a single evaluation can show.
@@ -304,11 +304,11 @@ The private scenario is published with scores only. The run can be
 repeated with:
 
 ```sh
-evals/code-design/run_iteration.sh <run-dir> {{runs}} 4
-# this evaluation: CONFIGS=code-design, with the other methods' runs linked in
+evals/design-code/run_iteration.sh <run-dir> {{runs}} 4
+# this evaluation: CONFIGS=design-code, with the other methods' runs linked in
 # grade every run with grader.md, then for each run index:
-evals/code-design/blind.py <run-dir> <run> <seed>
-evals/code-design/export_results.py export <run-dir> evals/code-design/results/claude-code --version {{version}} --model {{model}} --effort {{effort}}
+evals/design-code/blind.py <run-dir> <run> <seed>
+evals/design-code/export_results.py export <run-dir> evals/design-code/results/claude-code --version {{version}} --model {{model}} --effort {{effort}}
 ```
 
 ## Sources

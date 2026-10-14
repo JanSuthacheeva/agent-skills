@@ -24,14 +24,14 @@ from math import comb
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-CONFIGS = ("code-design", "feature-dev", "superpowers", "plain")
-TARGET = "code-design"
+CONFIGS = ("design-code", "feature-dev", "superpowers", "plain")
+TARGET = "design-code"
 CRITERIA = ("correctness", "completeness", "clarity", "reviewability")
 
 
 def scrub(text):
     text = re.sub(r"/private/tmp/[^\s`'\")]*", "<tmp>", text)
-    text = re.sub(r"[^\s`'\"(]*/evals/code-design/workspace/[^\s`'\")]*", "<run>", text)
+    text = re.sub(r"[^\s`'\"(]*/evals/design-code/workspace/[^\s`'\")]*", "<run>", text)
     return text.replace(str(Path.home()), "~")
 
 
@@ -272,14 +272,14 @@ def tables(summary):
         rows.append(f"| {label} | " + " | ".join(fmt.format(c[n][key] / scale) for n in CONFIGS) + " |")
     cost_table = "\n".join(rows)
 
-    rows = ["| Compared with | Mean score difference | `code-design` higher / lower / equal | Wilcoxon p |",
+    rows = ["| Compared with | Mean score difference | `design-code` higher / lower / equal | Wilcoxon p |",
             "|---|---|---|---|"]
     for other, v in summary["pairwise_vs_target"].items():
         rows.append(f"| `{other}` | {v['score_mean_diff']:+.1f} | {v['score_wins']} / {v['score_losses']} / "
                     f"{v['score_ties']} | {fmt_p(v['score_p'])} |")
     pairwise_table = "\n".join(rows)
 
-    rows = ["| Compared with | `code-design` ranked higher | ranked lower | Sign test p |", "|---|---|---|---|"]
+    rows = ["| Compared with | `design-code` ranked higher | ranked lower | Sign test p |", "|---|---|---|---|"]
     for other, v in summary["pairwise_vs_target"].items():
         rows.append(f"| `{other}` | {v['rank_wins']} | {v['rank_losses']} | {fmt_p(v['rank_p'])} |")
     rank_pairwise_table = "\n".join(rows)

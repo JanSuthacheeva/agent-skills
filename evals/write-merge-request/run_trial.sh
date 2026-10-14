@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run one merge-request eval trial headlessly with `claude -p`.
+# Run one write-merge-request eval trial headlessly with `claude -p`.
 # Usage: run_trial.sh <eval-name> <prompt> <config> <run-dir> <fixture-root>
 #   config: with_skill | without_skill. Runs are isolated from user and
 #   plugin settings; with_skill copies the skill into the fixture's project
@@ -15,7 +15,7 @@ ln -sfn "$fx/repo" "$run/repo"; ln -sfn "$fx/origin.git" "$run/origin.git"
 cp "$fx/base_sha" "$run/base_sha"; ln -sfn "$fx/calls.jsonl" "$run/calls.jsonl"
 if [ "$cfg" = with_skill ]; then
   mkdir -p "$fx/repo/.claude/skills"
-  cp -R "$here/../../skills/merge-request" "$fx/repo/.claude/skills/"
+  cp -R "$here/../../skills/write-merge-request" "$fx/repo/.claude/skills/"
   echo ".claude/" >> "$fx/repo/.git/info/exclude"
 fi
 args=(-p "$prompt" --output-format json --model "${MODEL:-claude-opus-5-5}" --effort "${EFFORT:-medium}"

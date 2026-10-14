@@ -1,19 +1,20 @@
 ---
-name: code-design
+name: design-code
 description: >-
-  Plan the code design of a feature or change before writing it: investigate
-  the codebase, compare implementation approaches in a lavish artifact for
-  the user to pick from, then lay out every class, method signature, data
-  structure and call chain with diagrams - no function bodies. Use whenever
+  Plans the code design of a feature or change before any code is written:
+  investigates the codebase, compares implementation approaches in a lavish
+  artifact for the user to pick from, then lays out every class, method
+  signature, data structure and call chain with diagrams - no function
+  bodies - and saves a Markdown plan ending in a task checklist. Use whenever
   the user asks to plan an implementation, design the code for a feature,
   figure out how something should be structured, which classes or methods
   are needed, or wants to discuss the design before any code is written,
   even if they just say "plan this" or "how would we build X". Not for
-  product specs, task checklists, or trivial one-file changes.
+  product specs or trivial one-file changes.
 compatibility: >-
   Requires the lavish skill (npx lavish-axi) for the review artifacts.
   Tested in Claude Code with Claude Opus 5.5 at medium effort, see
-  https://github.com/JanSuthacheeva/agent-skills/tree/main/evals/code-design/results/claude-code
+  https://github.com/JanSuthacheeva/agent-skills/tree/main/evals/design-code/results/claude-code
 metadata:
     author: Jan Suthacheeva
     version: "0.7"
@@ -22,12 +23,19 @@ metadata:
 Produce a code design the user can discuss and correct before any code
 exists. The design is about structure: which units exist, what they are
 called, what their signatures are, and in what order they call each other
-when something happens. It is not a task list and not an implementation -
-method bodies are deliberately left out so the discussion stays on the
-shape of the code, where changes are still cheap.
+when something happens. It is not an implementation - method bodies are
+deliberately left out so the discussion stays on the shape of the code,
+where changes are still cheap.
 
 The work has four phases. Phases 2 and 3 each end at a human decision;
-do not skip ahead of it.
+do not skip ahead of it. Copy this checklist and tick it off as you go:
+
+```
+- [ ] 1. Investigate the codebase
+- [ ] 2. Approaches page - the user chose one
+- [ ] 3. Implementation page - the user approved it
+- [ ] 4. Persist the Markdown plan
+```
 
 ## 1. Investigate
 

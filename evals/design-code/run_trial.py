@@ -1,4 +1,4 @@
-"""Run one code-design eval trial: the executor plans, a simulated user answers.
+"""Run one design-code eval trial: the executor plans, a simulated user answers.
 
 Usage: run_trial.py <eval-id> <config> <run-dir>
 
@@ -32,7 +32,7 @@ BILLED_INPUT = ("input_tokens", "cache_creation_input_tokens")
 TOKEN_KINDS = BILLED_INPUT + ("output_tokens", "cache_read_input_tokens")
 SKILL_SOURCES = {
     "lavish": Path.home() / ".claude" / "skills" / "lavish",
-    "code-design": HERE.parent.parent / "skills" / "code-design",
+    "design-code": HERE.parent.parent / "skills" / "design-code",
 }
 ALLOWED_TOOLS = ["Bash", "Read", "Glob", "Grep", "Write", "Edit", "Agent", "Skill", "WebFetch", "WebSearch", "ToolSearch"]
 DENIED_COMMANDS = ["Bash(git push:*)", "Bash(git remote:*)"]

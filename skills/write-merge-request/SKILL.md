@@ -1,9 +1,9 @@
 ---
-name: merge-request
+name: write-merge-request
 description: >-
-  Write the title and description of a GitLab merge request or GitHub pull
+  Writes the title and description of a GitLab merge request or GitHub pull
   request for the current branch - what changed and why, not a tour of the
-  diff - and create it once the user approves the push. Use when the user
+  diff - and creates it once the user approves the push. Use when the user
   asks to open, create or draft an MR or PR, write or improve an MR/PR
   description, or get a branch ready for review, even if they just say
   "MR please". Not for reviewing MRs or writing commit messages.
@@ -12,11 +12,12 @@ compatibility: >-
   the ticket title with clickup-axi when it is installed.
 metadata:
     author: Jan Suthacheeva
-    version: "0.2"
+    version: "0.3"
 allowed-tools: >-
   Bash(git status:*) Bash(git branch:*) Bash(git log:*) Bash(git diff:*)
   Bash(git remote:*) Bash(git symbolic-ref:*) Bash(git rev-parse:*)
-  Bash(clickup-axi tasks:*) Bash(glab mr list:*) Bash(gh pr view:*) Read
+  Bash(clickup-axi tasks:*) Bash(glab mr list:*) Bash(glab mr view:*)
+  Bash(gh pr view:*) Read
 ---
 
 Write an MR a reviewer can judge in a minute: what the branch does and why.
@@ -45,6 +46,12 @@ what breaks or stays open.
    URL. Never force-push. Pass the description through a quoted heredoc,
    `--description "$(cat <<'EOF' ... EOF)"`, so backticks and `$` reach
    the MR as written instead of escaped or expanded.
+6. Check the result with `glab mr view` or `gh pr view`. If the title or
+   description differs from what you showed - escaped characters, a lost
+   line - fix it with `glab mr update` or `gh pr edit` and check again.
+
+Without `glab` or `gh`, or without a login, stop after step 4: give the
+title and description to paste, and say which tool was missing.
 
 Uncommitted changes are not part of the MR. Mention them, do not commit
 them yourself.

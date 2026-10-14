@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Run every scenario in evals.json for every config, N runs each.
 # Usage: run_iteration.sh <iteration-dir> [runs=1] [parallel=4]
-# CONFIGS="code-design plain" limits which configs run (default: all).
+# CONFIGS="design-code plain" limits which configs run (default: all).
 # EVALS_FILE and CONFIGS_FILE point at other definitions (default: the ones here).
 # Runs that already have a timing.json are skipped, so an iteration can grow.
 set -euo pipefail

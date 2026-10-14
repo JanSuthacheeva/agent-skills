@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Grade merge-request eval runs from each run's response, repo, origin and
+"""Grade write-merge-request eval runs from each run's response, repo, origin and
 stub call log.
 
 Usage: grade.py <iteration-dir>

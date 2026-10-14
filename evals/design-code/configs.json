@@ -1,9 +1,9 @@
 {
-  "code-design": {
-    "invoke": "/code-design {task}",
+  "design-code": {
+    "invoke": "/design-code {task}",
     "skills": [
       "lavish",
-      "code-design"
+      "design-code"
     ],
     "plugins": []
   },

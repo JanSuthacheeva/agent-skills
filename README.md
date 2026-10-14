@@ -8,7 +8,7 @@ Trying to keep the evals up to date and run them for different harnesses and mod
 
 | Skill | What it does | Eval results |
 |---|---|---|
-| [code-design](skills/code-design/SKILL.md) | Plans the code design of a change before any code exists: investigates the codebase, lets you pick between structurally different approaches, then lays out units, typed signatures, data and call chains (no function bodies) as [lavish](https://www.npmjs.com/package/lavish-axi) review pages plus a Markdown plan. | [Claude Code, Opus 5.5 (medium effort)](evals/code-design/results/claude-code/README.md): judge score and assertions on par with `feature-dev` (34.7 vs 33.6 of 40, 77 vs 76 of 81) at about the same cost (2.90 vs 2.79 USD per run); most reviewable plans of four planning methods |
+| [design-code](skills/design-code/SKILL.md) | Plans the code design of a change before any code exists: investigates the codebase, lets you pick between structurally different approaches, then lays out units, typed signatures, data and call chains (no function bodies) as [lavish](https://www.npmjs.com/package/lavish-axi) review pages plus a Markdown plan. | [Claude Code, Opus 5.5 (medium effort)](evals/design-code/results/claude-code/README.md): judge score and assertions on par with `feature-dev` (34.7 vs 33.6 of 40, 77 vs 76 of 81) at about the same cost (2.90 vs 2.79 USD per run); most reviewable plans of four planning methods |
 | [commit](skills/commit/SKILL.md) | Writes + creates git commits in Scoped Commits format (`scope: description`): reuses scopes from log, adds a `Refs:` trailer from branch's ticket id (if available), keeps git's default revert and merge messages. Never pushes. | [Claude Code, Opus 5.5](evals/commit/results/claude-code/README.md): 55/55 trials pass with the skill, 40/55 without |
 
 ## Install
@@ -18,10 +18,10 @@ Codex and other supported agents:
 
 ```sh
 npx skills add JanSuthacheeva/agent-skills --skill commit
-npx skills add JanSuthacheeva/agent-skills --skill code-design
+npx skills add JanSuthacheeva/agent-skills --skill design-code
 ```
 
-`code-design` renders its review pages with the
+`design-code` renders its review pages with the
 [lavish](https://www.npmjs.com/package/lavish-axi) skill, which it expects to
 be installed as well.
 
@@ -41,7 +41,7 @@ under `evals/<skill>/results/`. The eval method is based on the evaluation
 workflow of Anthropic's
 [skill-creator](https://github.com/anthropics/skills/tree/main/skills/skill-creator)
 skill, adapted for repeated headless trials against git fixtures. The
-`code-design` evals add multi-turn runs against a simulated user and blind
+`design-code` evals add multi-turn runs against a simulated user and blind
 ranking against other planning methods.
 
 ## License

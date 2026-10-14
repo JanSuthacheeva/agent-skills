@@ -1,13 +1,13 @@
 ---
 name: implement-plan
 description: >-
-  Implement an approved implementation plan task by task: work through its
-  `- [ ]` task checklist in order, write each task's tests first, keep to
-  the plan's names, signatures and call chains, commit every task, and
-  finish with an end-to-end check and a short note on how the result
-  works. Use when the user asks to implement, build, execute or start on a
-  plan file, especially one written by code-design, or says "build it" or
-  "go" after approving a plan. Not for writing plans (use code-design) or
+  Implements an approved implementation plan task by task: works through
+  its `- [ ]` task checklist in order, writes each task's tests first,
+  keeps to the plan's names, signatures and call chains, commits every
+  task, and finishes with an end-to-end check and a short note on how the
+  result works. Use when the user asks to implement, build, execute or start on a
+  plan file, especially one written by design-code, or says "build it" or
+  "go" after approving a plan. Not for writing plans (use design-code) or
   for small changes that have no plan.
 metadata:
     author: Jan Suthacheeva
@@ -58,7 +58,7 @@ history reads like the plan.
 ## 3. When the design is wrong
 
 Building shows things the design missed. Sort each change by what it
-costs to reverse once shipped - the same rule code-design used to decide
+costs to reverse once shipped - the same rule design-code used to decide
 what to ask:
 
 - **Make it** when it is cheap to undo: an internal name, an extracted

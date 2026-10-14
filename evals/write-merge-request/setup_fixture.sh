@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build a throwaway repo, a bare "origin" and stub forge/ticket CLIs for one
-# merge-request eval.
+# write-merge-request eval.
 # Usage: setup_fixture.sh <eval-name> <dest-dir>
 # The remote looks like GitLab (url) but pushes land in origin.git (pushurl).
 # bin/ holds stubs for clickup-axi, glab and gh that log every call to

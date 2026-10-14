@@ -1,7 +1,7 @@
 ---
 name: commit
 description: >-
-  Write and create a git commit in Scoped Commits format (`scope:
+  Writes and creates a git commit in Scoped Commits format (`scope:
   description`). Use when the user says "commit" or asks for a commit
   message, or when a finished unit of work is ready to commit. Never pushes,
   pulls, merges or rebases.
@@ -10,7 +10,7 @@ compatibility: >-
   https://github.com/JanSuthacheeva/agent-skills/tree/main/evals/commit/results/claude-code
 metadata:
     author: Jan Suthacheeva
-    version: "2.8"
+    version: "2.9"
 allowed-tools: >-
   Bash(git status:*) Bash(git branch:*) Bash(git log:*) Bash(git diff:*)
   Bash(git add:*) Bash(git commit:*) Read

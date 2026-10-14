@@ -51,7 +51,7 @@ blind ranking by a judge model.
 
 ### 2.1 Methods compared
 
-- **`code-design`** ([`SKILL.md`](../../../../skills/code-design/SKILL.md), version 0.6), invoked as `/code-design <task>`.
+- **`code-design`** ([`SKILL.md`](../../../../skills/design-code/SKILL.md), version 0.6), invoked as `/code-design <task>`.
 - **`superpowers`** (plugin `superpowers@claude-plugins-official`), invoked as `/superpowers:brainstorming <task>`, which continues into its own plan-writing skill.
 - **`feature-dev`** (plugin `feature-dev@claude-plugins-official`), invoked as `/feature-dev:feature-dev <task>`.
 - **`plain`**: the task without a planning skill.
@@ -340,11 +340,11 @@ The private scenario is published with scores only. The run can be
 repeated with:
 
 ```sh
-evals/code-design/run_iteration.sh <run-dir> 3 4
+evals/design-code/run_iteration.sh <run-dir> 3 4
 # this evaluation: CONFIGS=code-design, with the other methods' runs linked in
 # grade every run with grader.md, then for each run index:
-evals/code-design/blind.py <run-dir> <run> <seed>
-evals/code-design/export_results.py export <run-dir> evals/code-design/results/claude-code --version 0.6 --model claude-opus-5-5 --effort medium
+evals/design-code/blind.py <run-dir> <run> <seed>
+evals/design-code/export_results.py export <run-dir> evals/design-code/results/claude-code --version 0.6 --model claude-opus-5-5 --effort medium
 ```
 
 ## Sources
