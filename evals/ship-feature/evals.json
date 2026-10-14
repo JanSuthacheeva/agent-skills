@@ -1,0 +1,42 @@
+{
+  "skill_name": "ship-feature",
+  "evals": [
+    {
+      "id": 1,
+      "name": "mid-build",
+      "prompt": "Continue shipping the bookmark tags feature.",
+      "expected_output": "Sees task 1 ticked and committed, builds tasks 2 to 5 in a fresh agent given the plan path and branch, reviews in another fresh agent that gets no build conversation, writes ## Review into the plan, drafts the MR and stops before pushing.",
+      "files": [
+        "setup_fixture.sh"
+      ],
+      "expectations": [
+        "The task 1 commit is kept and all five boxes are ticked",
+        "The build ran in a fresh agent",
+        "The review ran in a separate fresh agent",
+        "The review agent's prompt holds no build report",
+        "The plan has a ## Review section",
+        "npm test passes",
+        "Nothing was pushed and no MR was created",
+        "Response drafts the MR or asks to push"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "after-build",
+      "prompt": "Continue shipping the bookmark tags feature.",
+      "expected_output": "Sees all tasks ticked and no ## Review, so does not rebuild; reviews in a fresh agent, which fixes the cheap defects and writes ## Review; puts open items to the user or drafts the MR; stops before pushing.",
+      "files": [
+        "setup_fixture.sh"
+      ],
+      "expectations": [
+        "No task was rebuilt",
+        "The review ran isolated: a fresh agent, or a session that wrote none of the code",
+        "The plan has a ## Review section",
+        "Tagging a bookmark twice stores the tag once",
+        "npm test passes",
+        "Nothing was pushed and no MR was created",
+        "Response drafts the MR or puts open review items to the user"
+      ]
+    }
+  ]
+}
