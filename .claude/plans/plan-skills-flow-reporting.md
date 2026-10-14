@@ -238,7 +238,7 @@ The implementation page repeats this chain with "Review the implementation page"
 
 ## Tasks
 
-- [ ] Unset `FLOW_ID` in the commit, design-code, implement-plan and review-changes trial runners; check a trial started with `FLOW_ID` set reports nothing into it
+- [x] Unset `FLOW_ID` in the commit, design-code, implement-plan and review-changes trial runners; check a trial started with `FLOW_ID` set reports nothing into it
 - [ ] Add the `flow` stub to `evals/write-merge-request/setup_fixture.sh` `stubs()` and `FLOW=stub|absent` to the write-merge-request and ship-feature `run_trial.sh`; check both modes with one trial each
 - [ ] Add `flow_reports`, `review_counts` and the report expectations to `evals/ship-feature/grade.py`; check them against the stub and absent trials
 - [ ] design-code: reporting note, waiting before both polls, version 0.8
