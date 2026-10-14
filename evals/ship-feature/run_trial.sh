@@ -4,6 +4,8 @@
 #   config: with_skill | without_skill. Both configs get the four delivery
 #   skills in the fixture's project skills; with_skill adds ship-feature.
 #   Runs are isolated from user and plugin settings.
+#   FLOW=stub (default) gives the trial a flow id and the fixture's logging
+#   flow stub; FLOW=absent leaves it no flow command and no flow id.
 set -euo pipefail
 name=$1; prompt=$2; cfg=$3; run=$4; fixtures=$5
 here=$(cd "$(dirname "$0")" && pwd)
@@ -15,6 +17,13 @@ skills="design-code implement-plan review-changes write-merge-request commit"
 [ "$cfg" = with_skill ] && skills="$skills ship-feature"
 for s in $skills; do cp -R "$here/../../skills/$s" "$fx/repo/.claude/skills/"; done
 echo ".claude/" >> "$fx/repo/.git/info/exclude"
+case ${FLOW:-stub} in
+  stub) export FLOW_ID=eval-trial ;;
+  absent)
+    rm -f "$fx/bin/flow" "$fx/flow.log"; unset FLOW_ID
+    PATH=$(IFS=:; for d in $PATH; do [ -x "$d/flow" ] || printf '%s:' "$d"; done); PATH=${PATH%:} ;;
+  *) echo "FLOW must be stub or absent" >&2; exit 1 ;;
+esac
 args=(-p "$prompt" --output-format json --model "${MODEL:-claude-sonnet-5-5}" --effort "${EFFORT:-medium}"
       --setting-sources project,local --strict-mcp-config --mcp-config '{"mcpServers": {}}'
       --disallowedTools AskUserQuestion --permission-mode acceptEdits
