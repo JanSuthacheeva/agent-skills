@@ -23,7 +23,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "# duration_ms 87.697709"
+      "evidence": "# duration_ms 211.701791"
     },
     {
       "text": "Nothing was pushed and no MR was created",
@@ -33,13 +33,28 @@
     {
       "text": "Response drafts the MR or puts open review items to the user",
       "passed": true,
-      "evidence": "I reviewed the branch and fixed four bugs where the code didn't match the plan, each with a failing test first. All 14 t"
+      "evidence": "I reviewed the bookmark tags branch against the plan and fixed the four problems it turned up. All 16 tests pass, and a "
+    },
+    {
+      "text": "Reported the phase review, then merge-request only after a review with nothing open",
+      "passed": true,
+      "evidence": "phases: ['review']; expected ['review'] (3 open)"
+    },
+    {
+      "text": "Reported the review counts of the plan's ## Review",
+      "passed": true,
+      "evidence": "reported: --fixed 5 --open 3; plan: --fixed 5 --open 3"
+    },
+    {
+      "text": "Reported the final stop: blocked with open review items, else waiting with a question",
+      "passed": false,
+      "evidence": "3 open; stop: None"
     }
   ],
   "summary": {
-    "passed": 7,
-    "failed": 0,
-    "total": 7,
-    "pass_rate": 1.0
+    "passed": 9,
+    "failed": 1,
+    "total": 10,
+    "pass_rate": 0.9
   }
 }

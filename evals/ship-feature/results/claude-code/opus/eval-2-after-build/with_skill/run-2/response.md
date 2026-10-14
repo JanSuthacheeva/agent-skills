@@ -1,15 +1,15 @@
-Review finished. It fixed three bugs, each with a test that fails without the fix:
+The review is done, and it left three open items that need your decision before the merge request.
 
-- Tagging a bookmark twice with the same tag stored it twice. It now does nothing.
-- `bm tag` on an unknown id exited 2 instead of 1.
-- `bm list --tag` used the tag as typed. So `--tag Work` found nothing, and an invalid tag printed nothing and exited 0 instead of exiting 2. The store method is also renamed to `listByTag`, the name the plan uses.
+**Fixed by the reviewer.** Each fix came with a failing test first, and a second agent checked the fixes. There are now 16 tests and all pass.
+- `bm tag` with an unknown id exited 2; it now exits 1, as the plan says.
+- Tagging a bookmark with a tag it already had stored it twice; now nothing happens.
+- `list --tag` didn't normalize the tag, so `--tag Work` found nothing and `--tag 'to do'` was accepted. The store method is also renamed to the plan's `listByTag`.
 
-All 16 tests pass and the working tree is clean.
+**Open items:**
+1. **Bad ids in `bm tag`.** `bm tag '' work` is read as id 0 and prints `no bookmark 0` (exit 1) instead of the usage error (exit 2). `0x1` and `1e0` are accepted as id 1. I recommend accepting only plain digits (`/^\d+$/`) and showing the usage error otherwise. That's what the plan means by "non-numeric id".
+2. **`bm list --tag` with no value** lists every bookmark and exits 0. I recommend `usage: bm list [--tag <tag>]`, exit 2. This changes what users see, so it's your call.
+3. **Old duplicate tags.** Bookmarks tagged before the duplicate fix may already hold the same tag twice. Only data from development is affected, so I recommend doing nothing.
 
-**Stop: three open review items need your decision**
+**Your `~/.bookmarks.json` was changed.** The reviewer once ran the CLI without `BM_FILE` set, which wrote to your real bookmarks file. They put it back by hand. It now holds bookmark 1 (`https://a.dev`) with one `work` tag, but that is their best guess at what was there, so check it if the file matters to you.
 
-1. **`bm list --tag` with no value** currently lists every bookmark without saying anything. The reviewer recommends printing `usage: bm list [--tag <tag>]` and exiting 2. I agree: an option without its value is bad input, and quietly ignoring it hides typos.
-2. **The id in `bm tag` is parsed loosely.** `""` is read as id 0 and `0x1` as id 1. The reviewer recommends accepting digits only (`/^\d+$/`) and printing the usage message with exit 2 otherwise. I agree, because the plan already says a non-numeric id should get the usage message.
-3. **The tag is cleaned up twice**, once in the CLI and again in `BookmarkStore::tag`. The reviewer recommends keeping it: running it twice gives the same result, and it keeps the store safe for other callers. I agree, so no change.
-
-My recommendation: fix 1 and 2, keep 3. If you approve, I'll add 1 and 2 to the plan as tasks, commit, run a fresh build agent and then a second review. After that I'll write the merge request.
+Should I add tasks for 1 and 2 as recommended and skip 3? If so, I'll write them into the plan, build them, and run a second review on the new commits.

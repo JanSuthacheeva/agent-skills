@@ -1,6 +1,11 @@
 new commits:
-6377bb9 docs: add review to bookmark tags plan
-cb9e68a bm: match tag behaviour to the plan
+ab60950 docs: add review to bookmark tags plan
+b6b9a23 bm: fix tag exit code, duplicate tags, list --tag normalization and listByTag name
 
 agents:
-- Review bookmark tags branch: 572 chars
+- Isolated branch review: 865 chars
+flow reports:
+phase review
+phase review
+review --fixed 5 --open 3
+blocked 3 open review items

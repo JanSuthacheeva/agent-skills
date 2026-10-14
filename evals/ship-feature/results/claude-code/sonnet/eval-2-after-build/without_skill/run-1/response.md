@@ -1,23 +1,13 @@
-The review found four deviations from the plan, and I fixed all of them. All 16 tests pass.
+The bookmark tags feature is built and committed on `feature/bookmark-tags`, but I haven't reviewed the branch or opened a merge request. All 16 tests pass, and an end-to-end run against a temp store gave the expected output and exit codes.
 
-I haven't pushed or opened a merge request. The next step would be `write-merge-request`.
+The earlier commits had four gaps against the plan, which I fixed in one commit (`8e30201`):
+- **Unknown id:** `bm tag 9 x` exited 2. It now exits 1, as the plan says.
+- **Duplicate tags:** tagging a bookmark with a tag it already has added the tag twice. It is now a no-op.
+- **Case in the filter:** `list --tag WORK` found nothing because the filter wasn't normalized. It now matches.
+- **Name:** `listTagged` is now `listByTag`.
 
-**Fixed**
-- **Duplicate tags:** `bm tag 1 work` run twice stored `["work","work"]`. The plan says re-tagging is a no-op. Fixed in dc2258d.
-- **Method name:** `listTagged` didn't match the plan's `listByTag`. Renamed in dc2258d.
-- **Exit code:** an unknown id exited 2, but the plan and `AGENTS.md` say 1. Fixed in f976cb6.
-- **`list --tag`:** `list --tag Work` matched nothing, and `list --tag 'bad tag'` exited 0. The tag is now normalized, and an invalid one exits 2. Fixed in f976cb6.
-- **Tests:** I added the missing ones for a duplicate tag, an unknown id (store and CLI), a non-numeric id, and `list --tag` normalization and invalid input.
+The existing tests passed despite all four, so I added tests for the duplicate tag, the unknown id, a non-numeric id and the uppercase filter.
 
-A fresh agent reviewed the two fix commits and found no problems.
+**Mistake to know about:** I ran `bm add` without setting `BM_FILE`, so it wrote a stray bookmark (id 2, `https://a.com`) into your real `~/.bookmarks.json`. I removed that entry and left your existing bookmark 1 untouched. I only re-saved the file through Node with two-space indentation, so its formatting may differ slightly from before.
 
-**Open**
-- **`bm list --tag` with no value:** it lists every bookmark and exits 0, and the plan doesn't say what it should do. I'd print `usage: bm list [--tag <tag>]` and exit 2, but that adds user-visible behavior, so I left it for you.
-- **dc2258d on its own:** its tests don't pass end to end, because the CLI still calls the old method name until f976cb6. Squash the two commits if you want the history bisectable.
-
-**Where to look**
-- `src/store.ts`, `tag()` and `listByTag()`: the only code that writes the store file.
-- `src/cli.ts`, `run()` and the `tag` and `list` cases: argument parsing and error-to-exit-code mapping.
-- Everything else is routine and can be skimmed.
-
-The summary is also in the plan's `## Review` section (f769830).
+Next I'd run `/review-changes` on the branch, then `/write-merge-request`. Say if you want me to go ahead with those.

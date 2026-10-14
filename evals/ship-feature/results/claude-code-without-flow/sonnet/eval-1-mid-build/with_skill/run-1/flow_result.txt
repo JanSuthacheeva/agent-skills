@@ -1,0 +1,12 @@
+new commits:
+8208e48 bm: record the review in the plan
+8b1c8a0 bm: reject an empty tag id as bad input
+82d8d8b bm: keep tags last in the store file
+217a4ca bm: add tag command and list --tag
+8b3d42c bm: tag and filter bookmarks in the store
+30df3eb bm: add tags to bookmarks
+
+agents:
+- Isolated branch review: 670 chars
+flow reports:
+(ran without flow)

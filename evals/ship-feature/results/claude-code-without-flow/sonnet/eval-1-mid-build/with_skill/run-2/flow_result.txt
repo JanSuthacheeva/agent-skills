@@ -1,0 +1,12 @@
+new commits:
+d8137d7 docs: add review to bookmark tags plan
+fd3e8f3 bm: reject an empty tag id as a usage error
+edffee5 docs: tick bookmark tags end-to-end check
+332f993 bm: add tag command and list --tag
+2597776 bm: tag bookmarks and list them by tag
+b9b925e bm: store tags on bookmarks
+
+agents:
+- Isolated branch review: 732 chars
+flow reports:
+(ran without flow)

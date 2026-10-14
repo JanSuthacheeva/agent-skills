@@ -24,7 +24,8 @@ def check(text, msg, subj, body, n_new, pushed, staged, response, repo, new_shas
     if t.startswith("Exactly one new commit"): return n_new == 1, f"{n_new} new commit(s)"
     if t.startswith("No new commit"): return n_new == 0, f"{n_new} new commit(s)"
     if t.startswith("Subject starts with"):
-        return n_new > 0 and subj.startswith(re.search(r"`(.+?)`", t).group(1)), subj
+        prefix = re.search(r"`(.+?)`", t)
+        return n_new > 0 and prefix is not None and subj.startswith(prefix.group(1)), subj
     if t.startswith("Subject keeps the acronym MIT"):
         return n_new > 0 and ("mit" not in subj.lower().split() or "MIT" in subj), subj
     if t.startswith("Subject has a scope naming the touched area"):
@@ -58,8 +59,8 @@ def check(text, msg, subj, body, n_new, pushed, staged, response, repo, new_shas
     if t.startswith("Subject has no conventional type"): return n_new > 0 and not TYPE_RE.match(subj), subj
     if t.startswith("Subject is <=72"): return n_new > 0 and subject_ok(subj), f"{len(subj)} chars: {subj}"
     if t.startswith("Message contains the trailer"):
-        want = re.search(r"`(.+)`", t).group(1)
-        return any(l.strip() == want for l in msg.splitlines()), msg.splitlines()[-1] if msg else "no commit"
+        want = re.search(r"`(.+)`", t)
+        return want is not None and any(l.strip() == want.group(1) for l in msg.splitlines()), msg.splitlines()[-1] if msg else "no commit"
     if t.startswith("Message has no Co-Authored"): return n_new > 0 and "co-authored-by" not in msg.lower(), "checked message"
     if t.startswith("Message has no Refs"): return n_new > 0 and "refs:" not in msg.lower(), msg.splitlines()[-1] if msg else "no commit"
     if t.startswith("Nothing was pushed"): return not pushed, "origin refs: " + (", ".join(pushed) or "unchanged")

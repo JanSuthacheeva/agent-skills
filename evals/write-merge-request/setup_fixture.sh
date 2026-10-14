@@ -4,7 +4,8 @@
 # Usage: setup_fixture.sh <eval-name> <dest-dir>
 # The remote looks like GitLab (url) but pushes land in origin.git (pushurl).
 # bin/ holds stubs for clickup-axi, glab and gh that log every call to
-# calls.jsonl, so no run reaches a real service.
+# calls.jsonl, and for flow that logs every report to flow.jsonl, so no run
+# reaches a real service.
 set -euo pipefail
 name=$1; dest=$2
 here=$(cd "$(dirname "$0")" && pwd)
@@ -34,8 +35,13 @@ P
 python3 -c 'import json, sys; print(json.dumps(sys.argv[1:]))' gh "\$@" >> "$dest/calls.jsonl"
 echo "gh: this repository is not on GitHub" >&2; exit 1
 P
+  cat > "$dest/bin/flow" <<P
+#!/usr/bin/env bash
+python3 -c 'import json, sys; print(json.dumps(sys.argv[1:]))' "\$@" >> "$dest/flow.jsonl"
+echo "flow: stub"
+P
   chmod +x "$dest/bin/"*
-  touch "$dest/calls.jsonl"
+  touch "$dest/calls.jsonl" "$dest/flow.jsonl"
 }
 
 remote() {

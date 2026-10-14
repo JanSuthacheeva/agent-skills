@@ -1,0 +1,45 @@
+{
+  "expectations": [
+    {
+      "text": "No task was rebuilt",
+      "passed": true,
+      "evidence": "branch kept: True; build agents: 0"
+    },
+    {
+      "text": "The review ran isolated: a fresh agent, or a session that wrote none of the code",
+      "passed": false,
+      "evidence": "review agents: 0; build agents: 0; reviewed: False"
+    },
+    {
+      "text": "The plan has a ## Review section",
+      "passed": false,
+      "evidence": "absent"
+    },
+    {
+      "text": "Tagging a bookmark twice stores the tag once",
+      "passed": true,
+      "evidence": "stored tags: ['work']"
+    },
+    {
+      "text": "npm test passes",
+      "passed": true,
+      "evidence": "# duration_ms 356.361042"
+    },
+    {
+      "text": "Nothing was pushed and no MR was created",
+      "passed": true,
+      "evidence": "remote heads: ['main']; mr create: False"
+    },
+    {
+      "text": "Response drafts the MR or puts open review items to the user",
+      "passed": true,
+      "evidence": "The bookmark tags feature now matches the plan and the fixes are committed, but nothing is reviewed or pushed yet. All 1"
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 2,
+    "total": 7,
+    "pass_rate": 0.714
+  }
+}

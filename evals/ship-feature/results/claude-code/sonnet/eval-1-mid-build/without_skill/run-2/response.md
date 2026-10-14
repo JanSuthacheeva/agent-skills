@@ -1,23 +1,16 @@
-The bookmark tags feature is built and all five plan tasks are ticked. All 17 tests pass and the working tree is clean. The repo has no lint or type-check script, so I didn't run either. I haven't pushed anything.
+The bookmark tags feature is built and committed on `feature/bookmark-tags`, and all five plan tasks are checked off. All 20 tests pass, and I ran the real CLI against a temp store file.
 
-**Commits**
-- `6234ef4` adds the `tags` field to bookmarks. Files written before tags existed load as `tags: []`.
-- `5ffa512` adds `BookmarkNotFoundError`, `BookmarkStore.tag` and `BookmarkStore.listByTag`.
-- `42d29b0` adds `bm tag <id> <tag>` and `bm list --tag <tag>`.
-- A final docs commit ticks the end-to-end task.
+The CLI run covered these cases:
+- **Tagging:** `bm tag 2 " Work"` printed `tagged 2 work`. Tagging again with the same tag did nothing.
+- **Filtering:** `bm list --tag WORK` listed only bookmark 2.
+- **Errors:** an invalid tag exits 2, an unknown id exits 1, and bad usage exits 2.
 
-**End-to-end check** against a temp `BM_FILE`:
-- `tag 2 Work` printed `tagged 2 work`, and tagging `work` again was a no-op.
-- `list --tag work` printed only bookmark 2.
-- `tag 9 x` printed `no bookmark 9` (exit 1).
-- `tag 1 "to do"` printed `invalid tag: to do` (exit 2).
-- `tag x y` printed the usage line (exit 2).
-- The store file keeps its JSON-array format, with `tags` on each bookmark.
+This session's commits:
+- `ca8481d` adds `tags` to bookmarks. Old store files without a `tags` field load as empty.
+- `56fa246` adds `BookmarkNotFoundError`, `BookmarkStore.tag` and `BookmarkStore.listByTag`.
+- `28d479f` adds `bm tag <id> <tag>` and `bm list --tag <tag>`.
+- `67c9085` marks the plan done.
 
-**Deviations from the plan**
-- I added a usage error, `usage: bm list [--tag <tag>]` with exit 2, for `list --tag` with no value. The plan didn't cover that case.
-- `run` now wraps a private `dispatch` function in one `try/catch`. That `try/catch` maps `InvalidTagError` to exit 2 and `BookmarkNotFoundError` to exit 1.
-
-**How it works:** `main` calls `run`, which calls `dispatch`. For `tag`, it calls `store.tag(id, tag)`, which normalizes the tag with `normalizeTag`, loads the bookmarks, adds the tag if it's missing, and saves. For `list --tag`, `store.listByTag(tag)` normalizes the tag and filters the loaded bookmarks.
-
-Nothing is blocked or left open.
+- **Plan deviation:** the store also normalizes tags itself, not just the CLI, so no caller can save an invalid tag. The CLI still normalizes first, as the plan says, because it needs the normalized tag for its output.
+- **Extra usage message:** `bm list --tag` with no value prints `usage: bm list [--tag <tag>]`. The plan didn't specify that case.
+- **Branch not reviewed:** I haven't run `/review-changes` or opened a merge request. Say if you want either.

@@ -23,7 +23,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "# duration_ms 88.884459"
+      "evidence": "# duration_ms 210.051"
     },
     {
       "text": "Nothing was pushed and no MR was created",
@@ -33,13 +33,28 @@
     {
       "text": "Response drafts the MR or puts open review items to the user",
       "passed": true,
-      "evidence": "Flow status: the build is done and the review is done. The suite is green at 15 tests, and the branch has the review com"
+      "evidence": "The review is done and the tests pass (15 of 15). It fixed five problems and left three items open for you to decide.  *"
+    },
+    {
+      "text": "Reported the phase review, then merge-request only after a review with nothing open",
+      "passed": true,
+      "evidence": "phases: ['review']; expected ['review'] (3 open)"
+    },
+    {
+      "text": "Reported the review counts of the plan's ## Review",
+      "passed": true,
+      "evidence": "reported: --fixed 5 --open 3; plan: --fixed 5 --open 3"
+    },
+    {
+      "text": "Reported the final stop: blocked with open review items, else waiting with a question",
+      "passed": true,
+      "evidence": "3 open; stop: blocked 3 open review items"
     }
   ],
   "summary": {
-    "passed": 7,
+    "passed": 10,
     "failed": 0,
-    "total": 7,
+    "total": 10,
     "pass_rate": 1.0
   }
 }

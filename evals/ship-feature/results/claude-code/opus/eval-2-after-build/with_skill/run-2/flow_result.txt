@@ -1,8 +1,13 @@
 new commits:
-0767724 docs: plans: add review of bookmark tags
-1c7c147 bm: normalize the tag in list --tag and name it listByTag
-e01adfa bm: exit 1 when tagging an unknown bookmark
-97d9efa bm: ignore a tag the bookmark already has
+c972c0c docs: plans: add review of bookmark tags
+50ea83d bm: normalize the list --tag filter and name it listByTag
+74a287b bm: store: make tagging with an existing tag a no-op
+41dc792 bm: exit 1 for an unknown bookmark id in tag
 
 agents:
-- Review bookmark tags branch: 640 chars
+- Isolated review of bookmark tags: 798 chars
+flow reports:
+phase review
+phase review
+review --fixed 4 --open 3
+blocked review left 3 open items

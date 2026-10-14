@@ -1,10 +1,23 @@
 new commits:
-1549705 docs: record bookmark tags review
-d8a667d docs: tick bookmark tags end-to-end check
-c769ffb bm: add tag command and list --tag
-cd57b24 bm: tag bookmarks and list them by tag
-7fbc6b2 bm: store tags on bookmarks
+93c3115 docs: review bookmark tags
+1547fd0 bm: cli: reject extra arguments to tag and list --tag
+50a6428 docs: check bookmark tags end to end
+01e78c5 bm: cli: add tag command and list --tag
+26dc292 bm: tag bookmarks and list them by tag
+49eaf7c bm: store tags on bookmarks
 
 agents:
-- Build bookmark tags plan: 781 chars
-- Review bookmark tags branch: 487 chars
+- Isolated review of bookmark tags: 823 chars
+flow reports:
+phase implement
+tasks 2 5
+tasks 3 5
+decision run() delegates to a private dispatch() so error-to-exit-code mapping lives in one place
+decision missing tag or bad list option prints usage, exit 2, like the existing bad-input cases
+tasks 4 5
+tasks 5 5
+phase review
+phase review
+review --fixed 1 --open 0
+phase merge-request
+waiting Push and open the merge request?

@@ -1,16 +1,18 @@
-The bookmark tags feature is reviewed and fixed. I haven't pushed or opened a merge request, so say if you want that next. All 16 tests pass.
+The review is done and I fixed four deviations from the plan. All 16 tests pass, and there is no lint or type-check script in the project. The branch is not pushed and no merge request is open.
 
-All plan tasks were already done, so I ran the review. The review found these problems against the plan, and I fixed them in `9ee3c1c`, each with a failing test first:
-- **Exit code:** `bm tag` with an unknown id exited 2, but the plan says 1.
-- **Duplicate tags:** tagging twice stored the tag twice, but the plan says it's a no-op.
-- **Tag filter:** `list --tag Work` found nothing, and `list --tag "to do"` wasn't rejected. The CLI now normalizes and validates the filter.
-- **Naming:** `listTagged` is now `listByTag`, as the plan says.
-- **Missing tests:** I added tests for the unknown id, the duplicate tag and a non-numeric id.
+**Fixed**
+- **Duplicate tags:** a repeated tag was stored again, so a bookmark ended up with `work` three times. Tagging with an existing tag is now a no-op (`8f677f8`).
+- **Store method name:** `listTagged` is now `listByTag`, as the plan names it (`8f677f8`).
+- **Exit code:** tagging an unknown bookmark exited 2. It now exits 1, as the plan and `AGENTS.md` say (`99f9f36`).
+- **`list --tag` input:** it did not normalize or validate its tag, so `Work` found nothing and `to do` exited 0. It now normalizes the tag and rejects an invalid one with exit 2 (`99f9f36`).
 
-A fresh agent reviewed the fix commit and found no problems.
+I wrote a failing test for each of these first. The fixes were not reviewed by an independent agent. I re-read them myself.
 
-Two small things are left open, and I recorded both in the plan's `## Review` section (`62f41a1`):
-- `bm list --tag` with no value lists everything instead of printing usage. I recommend a usage error with exit 2.
-- `bm tag "" x` reads the empty id as 0 and reports `no bookmark 0`. I recommend rejecting empty ids as usage.
+**Open**
+- `bm list --tag` with no value silently lists everything. I recommend a usage error with exit 2. I left it alone because it changes user-visible behaviour.
 
-To review it yourself, read `src/store.ts` `load()` first. Old store files get empty tags in memory and are only rewritten on the next save. Then read the `run()` error mapping and the `tag` and `list` cases in `src/cli.ts`. `src/tags.ts` and the tests are routine.
+**Mistake during the review:** my manual check ran without `BM_FILE` set, so it wrote to your real `~/.bookmarks.json`. It added bookmark 2 and two extra `work` tags on bookmark 1. I reverted those; the file now holds only bookmark 1 with a single `work` tag, which was already there before my run.
+
+**Where to look:** `src/cli.ts` `dispatch` (the `tag` and `list` cases) for exit codes and messages, and `src/store.ts` `tag()` for the no-op rule. The tags module and the tests are routine. The review summary is also written into the plan under `## Review` (committed in the last commit on the branch).
+
+If you want it, the next step is the merge request.

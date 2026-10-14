@@ -1,11 +1,22 @@
 new commits:
-454ac8b docs: add review to bookmark tags plan
-7707ef6 bm: reject extra arguments to list --tag
-2fcecf4 docs: mark bookmark tags plan done
-1d3b344 bm: add tag command and list --tag
-585f25c bm: tag bookmarks and list them by tag
-8b3fa9d bm: store tags on bookmarks
+3890186 docs: add review of bookmark tags
+c4057ee bm: reject non-digit ids and extra arguments in tag
+6b71c63 bm: test usage errors of tag and list --tag
+2cf2a1b docs: check bookmark tags end to end
+c9611d0 bm: add tag command and list --tag
+d197cc3 bm: tag bookmarks and list them by tag
+840be20 bm: store tags on bookmarks
 
 agents:
-- Build bookmark tags plan: 592 chars
-- Review bookmark tags branch: 400 chars
+- Isolated review of bookmark tags: 868 chars
+flow reports:
+phase implement
+tasks 2 5
+tasks 3 5
+decision list with a malformed --tag prints usage, exit 2, matching add
+tasks 4 5
+tasks 5 5
+phase review
+phase review
+review --fixed 2 --open 3
+blocked review left 3 open items to decide

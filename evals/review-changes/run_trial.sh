@@ -24,7 +24,7 @@ args=(-p "$prompt" --output-format json --model "${MODEL:-claude-opus-5-5}" --ef
       --disallowedTools AskUserQuestion --permission-mode acceptEdits
       --settings '{"permissions": {"deny": ["Bash(git push:*)"]}}'
       --allowedTools Skill Bash Read Edit Write Glob Grep Agent)
-(cd "$fx/repo" && claude "${args[@]}" < /dev/null) > "$run/outputs/raw.json" 2> "$run/outputs/stderr.txt" || true
+(cd "$fx/repo" && env -u FLOW_ID claude "${args[@]}" < /dev/null) > "$run/outputs/raw.json" 2> "$run/outputs/stderr.txt" || true
 python3 - "$run" <<'P'
 import json, sys, pathlib
 run = pathlib.Path(sys.argv[1])

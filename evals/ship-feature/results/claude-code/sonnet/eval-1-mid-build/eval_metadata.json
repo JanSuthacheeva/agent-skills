@@ -4,12 +4,18 @@
   "prompt": "Continue shipping the bookmark tags feature.",
   "assertions": [
     "The task 1 commit is kept and all five boxes are ticked",
-    "The build ran in a fresh agent",
+    "The build ran in this session, not in an agent",
     "The review ran in a separate fresh agent",
     "The review agent's prompt holds no build report",
     "The plan has a ## Review section",
     "npm test passes",
     "Nothing was pushed and no MR was created",
     "Response drafts the MR or asks to push"
+  ],
+  "flow_assertions": [
+    "Reported the phases implement and review, then merge-request only after a review with nothing open",
+    "Reported tasks 5 5",
+    "Reported the review counts of the plan's ## Review",
+    "Reported the final stop: blocked with open review items, else waiting with a question"
   ]
 }

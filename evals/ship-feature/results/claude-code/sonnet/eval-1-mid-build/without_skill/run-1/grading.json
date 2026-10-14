@@ -6,9 +6,9 @@
       "evidence": "task 1 commit kept: True; boxes: xxxxx"
     },
     {
-      "text": "The build ran in a fresh agent",
-      "passed": false,
-      "evidence": "build agents: 0"
+      "text": "The build ran in this session, not in an agent",
+      "passed": true,
+      "evidence": "build agents: 0; boxes: xxxxx"
     },
     {
       "text": "The review ran in a separate fresh agent",
@@ -28,7 +28,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "# duration_ms 70.954917"
+      "evidence": "# duration_ms 159.970208"
     },
     {
       "text": "Nothing was pushed and no MR was created",
@@ -38,13 +38,33 @@
     {
       "text": "Response drafts the MR or asks to push",
       "passed": true,
-      "evidence": "The bookmark tags feature is finished: `bm tag <id> <tag>` and `bm list --tag <tag>` both work. All 17 tests pass. There"
+      "evidence": "The bookmark tags feature is built: `bm tag <id> <tag>` and `bm list --tag <tag>` both work. All 18 tests pass and the w"
+    },
+    {
+      "text": "Reported the phases implement and review, then merge-request only after a review with nothing open",
+      "passed": false,
+      "evidence": "phases: []; expected ['implement', 'review', 'merge-request'] (0 open)"
+    },
+    {
+      "text": "Reported tasks 5 5",
+      "passed": false,
+      "evidence": "tasks: []"
+    },
+    {
+      "text": "Reported the review counts of the plan's ## Review",
+      "passed": false,
+      "evidence": "reported: None; plan: --fixed 0 --open 0"
+    },
+    {
+      "text": "Reported the final stop: blocked with open review items, else waiting with a question",
+      "passed": false,
+      "evidence": "0 open; stop: None"
     }
   ],
   "summary": {
-    "passed": 4,
-    "failed": 4,
-    "total": 8,
-    "pass_rate": 0.5
+    "passed": 5,
+    "failed": 7,
+    "total": 12,
+    "pass_rate": 0.417
   }
 }

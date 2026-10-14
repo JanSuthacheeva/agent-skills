@@ -13,18 +13,24 @@ compatibility: >-
   the ticket title with clickup-axi when it is installed.
 metadata:
     author: Jan Suthacheeva
-    version: "0.7"
+    version: "0.8"
 allowed-tools: >-
   Bash(git status:*) Bash(git branch:*) Bash(git log:*) Bash(git diff:*)
   Bash(git remote:*) Bash(git symbolic-ref:*) Bash(git rev-parse:*)
   Bash(clickup-axi tasks:*) Bash(glab mr list:*) Bash(glab mr view:*)
-  Bash(gh pr view:*) Read
+  Bash(gh pr view:*) Bash(flow report:*) Read
 ---
 
 Write an MR a reviewer can judge in a minute: what the branch does and why.
 The diff is one click away, so the description carries what the diff
 cannot show - the reason, the decisions a reviewer would question, and
 what breaks or stays open.
+
+If a `flow` command is available, report this skill's progress to it with
+`flow report`: `phase merge-request` now, `waiting "<the question>"` before
+every question you put to the user and `working` once it is answered, and
+the reports the steps below name. Otherwise, or when a report fails, go on -
+the skill works the same without them.
 
 ## Workflow
 
@@ -40,13 +46,15 @@ what breaks or stays open.
 3. Check for an open MR of the branch (`glab mr list --source-branch
    <branch>` or `gh pr view`). If one exists, say so and offer to rewrite
    its description instead of creating a second one.
-4. Write the title and description (below) and show them. Stop there.
+4. Write the title and description (below), show them and report
+   `waiting "Push and open the merge request?"`. Stop there.
 5. Create the MR only when the user's latest message asks to push or
    create it - pushing publishes the branch, so earlier approval does not
    count. Then `git push -u origin <branch>` and
    `glab mr create --target-branch <target> --title ... --description ...`
-   or `gh pr create --base <target> --title ... --body ...`, and give the
-   URL. Never force-push. Pass the description through a quoted heredoc,
+   or `gh pr create --base <target> --title ... --body ...`, give the
+   URL and report `merge-request <url>`. Never force-push. Pass the
+   description through a quoted heredoc,
    `--description "$(cat <<'EOF' ... EOF)"`, so backticks and `$` reach
    the MR as written instead of escaped or expanded.
 6. Check the result with `glab mr view` or `gh pr view`. If the title or

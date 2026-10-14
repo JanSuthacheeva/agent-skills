@@ -1,5 +1,11 @@
 new commits:
-cad1609 bm: align tag behaviour with the plan
+50d05df docs: add review to bookmark tags plan
+3ba2066 bm: align tags with the plan
 
 agents:
-- Review bookmark tags branch: 801 chars
+- Isolated branch review: 759 chars
+flow reports:
+phase review
+phase review
+review --fixed 4 --open 3
+blocked review has open items

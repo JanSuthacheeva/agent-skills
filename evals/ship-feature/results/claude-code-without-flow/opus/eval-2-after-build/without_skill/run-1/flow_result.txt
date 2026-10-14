@@ -1,0 +1,11 @@
+new commits:
+52cf46a docs: plan: record bookmark tags review
+1f37c08 bm: cli: normalize the tag given to list --tag
+dda3500 bm: cli: exit 1 when tagging an unknown bookmark
+09eec76 bm: store: ignore a tag the bookmark already has
+9908a2e bm: rename listTagged to listByTag as planned
+
+agents:
+- Review fix commits: 1153 chars
+flow reports:
+(ran without flow)

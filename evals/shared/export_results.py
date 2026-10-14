@@ -3,15 +3,16 @@
 its results report, for one or more models.
 
 Usage:
-  export_results.py export <suite> <out> --version V --effort E --run MODEL=RUN_DIR ... [--harness H]
+  export_results.py export <suite> <out> --version V --effort E --run MODEL=RUN_DIR ... [--harness H] [--template T]
   export_results.py render <suite> <out>
 
 `export` copies per run grading.json, timing.json, the agent's reply and
 the grader's *_result.txt (no repositories, raw transcripts or session
 ids), and the unblinded judge verdicts if the run was judged, into
 <out>/<model>/. Local paths are scrubbed. It writes summary.json and renders
-README.md from <suite>/report.md. `render` rebuilds README.md from an
-existing export, e.g. after editing report.md.
+README.md from <suite>/report.md, or the template given, which summary.json
+records. `render` rebuilds README.md from an existing export, e.g. after
+editing the template.
 
 Configs found in the runs are compared against the first one, with_skill.
 """
@@ -58,11 +59,11 @@ def normalize_harness(line):
     return f"{m.group(2)} {m.group(1)}" if m else line.strip()
 
 
-def export(suite, out, version, effort, runs, harness):
+def export(suite, out, version, effort, runs, harness, template):
     skill = json.loads((suite / "evals.json").read_text())["skill_name"]
     if out.exists():
         shutil.rmtree(out)
-    meta = {"skill_version": version, "effort": effort, "date": date.today().isoformat(), "models": {}}
+    meta = {"skill_version": version, "effort": effort, "date": date.today().isoformat(), "template": template, "models": {}}
     for model, run_dir in runs:
         dest_root = out / slug(model)
         invoked = {}
@@ -231,10 +232,11 @@ def render(suite, out):
     values["table_cost"] = table(["Measure", *head], cost_rows)
     values["table_judge"] = table(["Model", "Condition", *[c.capitalize() for c in CRITERIA], "Total /40 (SD)", "Mean rank"],
                                   judge_rows) if judge_rows else ""
-    text = re.sub(r"<!--.*?-->\n", "", (suite / "report.md").read_text(), count=1, flags=re.S)
+    template = meta.get("template", "report.md")
+    text = re.sub(r"<!--.*?-->\n", "", (suite / template).read_text(), count=1, flags=re.S)
     missing = sorted(set(re.findall(r"\{\{(\w+)\}\}", text)) - set(values))
     if missing:
-        raise SystemExit(f"report.md uses unknown placeholders: {missing}")
+        raise SystemExit(f"{template} uses unknown placeholders: {missing}")
     (out / "README.md").write_text(re.sub(r"\{\{(\w+)\}\}", lambda m: str(values[m.group(1)]), text))
 
 
@@ -248,6 +250,7 @@ if __name__ == "__main__":
     ex.add_argument("--effort", required=True, help="reasoning effort all runs used, e.g. medium")
     ex.add_argument("--run", action="append", required=True, help="MODEL=RUN_DIR, repeatable")
     ex.add_argument("--harness")
+    ex.add_argument("--template", default="report.md", help="report template in the suite, default report.md")
     rd = sub.add_parser("render")
     rd.add_argument("suite", type=Path)
     rd.add_argument("out", type=Path)
@@ -255,6 +258,6 @@ if __name__ == "__main__":
     suite = args.suite.resolve()
     if args.cmd == "export":
         runs = [tuple(r.split("=", 1)) for r in args.run]
-        export(suite, args.out, args.version, args.effort, [(m, Path(d)) for m, d in runs], args.harness)
+        export(suite, args.out, args.version, args.effort, [(m, Path(d)) for m, d in runs], args.harness, args.template)
     render(suite, args.out)
     print(f"rendered {args.out / 'README.md'}")

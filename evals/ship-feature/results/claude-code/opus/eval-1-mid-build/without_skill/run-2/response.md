@@ -1,13 +1,19 @@
-The review is finished. It fixed two problems, committed the fixes, and left three questions for you. All 19 tests pass and the working tree is clean; nothing has been pushed.
+The bookmark tags feature is built: all 5 tasks in the plan are ticked and committed, and all 17 tests pass. The project has no lint or type-check setup, so tests are the only check.
 
-**Fixed:**
-- `92f78a4`: `bm tag 1 to do` used to save the tag `to`, silently drop `do` and report success. `bm list --tag work home` ignored `home`. Both now print their usage line and exit 2, and the plan is updated to match.
-- `f59222e`: the plan asked for tests of empty input and invalid characters in tags, and they were missing. They're added now.
-- `a4844a0`: the plan now has a review section listing the open items and where to look.
+**Commits**
+- `06df4cb bm: store tags on bookmarks` - bookmarks now have a `tags` field. Store files written before tags existed load with empty tags, so no migration is needed.
+- `a051e86 bm: tag bookmarks and list them by tag` - adds `BookmarkNotFoundError`, `BookmarkStore::tag` and `listByTag`. Adding a tag a bookmark already has does nothing and doesn't rewrite the file.
+- `490f563 bm: add tag command and list --tag` - the two new commands, with CLI tests for success, invalid tag, unknown id, a bad id and a tag added twice.
+- `7b3729d docs: tick bookmark tags end-to-end check`
 
-**Decisions for you:**
-1. **Tags made only of hyphens are accepted.** `bm tag 1 -` saves the tag `-`, and `bm list --tag --tag` searches for a tag literally called `--tag` instead of showing usage. I recommend requiring tags to start with a letter or digit. It's a one-line change, but it decides which tags can ever be saved, so it's best done before release. Once odd tags are in people's files, tightening the rule leaves tags the CLI no longer accepts.
-2. **A broken store file crashes with a stack trace.** This already happens on `main`, and no data is lost because nothing is saved after a failed read. I'd add a proper error with a clear message and exit code, in a separate change.
-3. **The plan links a review page that isn't in the repo** (`.lavish/bookmark-tags-implementation.html`). Should I remove the link, or do you have the page somewhere to add?
+**End-to-end check:** I ran the real CLI against a temp store that started as a pre-tags file:
+- `bm tag 2 " Work "` printed `tagged 2 work`.
+- `bm list --tag WORK` listed only the tagged bookmarks.
+- An unknown id gave `no bookmark 9` (exit 1). An invalid tag gave `invalid tag: to do` (exit 2). A non-numeric id gave `usage: bm tag <id> <tag>` (exit 2).
+- The old bookmark gained a `tags` field when the file was next saved.
 
-Should I go ahead with 1 and 2 and remove the link in 3? After that, the next step is writing the pull request description for you to approve before anything is pushed.
+**Deviation from the plan:** the plan didn't say what `bm list --tag` with no value (or any other extra argument) should do. It now prints `usage: bm list [--tag <tag>]` and exits 2, matching how `add` handles bad input. I added this to the plan's error list.
+
+**How it works:** `run()` in `src/cli.ts` checks the arguments, cleans up the tag with `normalizeTag` (trim, lowercase), and calls `BookmarkStore::tag` or `listByTag`. Those read the file, filter or update, and save. The two error classes are turned into a message and exit code in one place in `run()`, as `AGENTS.md` describes.
+
+Nothing is blocked. I committed with plain `git commit` in the `/commit` skill's format rather than invoking the skill. Nothing has been pushed.

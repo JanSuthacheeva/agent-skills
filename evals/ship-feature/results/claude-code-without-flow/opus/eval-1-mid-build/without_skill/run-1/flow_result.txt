@@ -1,0 +1,10 @@
+new commits:
+28d1b3f docs: verify bookmark tags end to end
+144bcde bm: add tag command and list --tag
+0c2d284 bm: tag bookmarks and list them by tag
+40ebd76 bm: store tags on bookmarks
+
+agents:
+
+flow reports:
+(ran without flow)

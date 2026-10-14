@@ -1,0 +1,10 @@
+new commits:
+16c3695 docs: tick end-to-end check in bookmark tags plan
+a99b367 bm: add tag command and list --tag
+362efb8 bm: tag bookmarks and list them by tag
+a6e3d72 bm: store tags on bookmarks
+
+agents:
+
+flow reports:
+(ran without flow)

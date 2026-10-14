@@ -1,8 +1,17 @@
 new commits:
-d2e9507 docs: mark bookmark tags plan done
-3023b65 bm: add tag command and list --tag
-941df2e bm: tag bookmarks and list them by tag
-dce3cac bm: store tags on bookmarks
+4be652c docs: check bookmark tags end to end
+70a5568 bm: add tag command and list --tag
+7cfa368 bm: tag bookmarks and list them by tag
+18bccfa bm: store tags on bookmarks
 
 agents:
 
+flow reports:
+phase implement
+tasks 1 5
+tasks 2 5
+tasks 3 5
+decision extracted private dispatch() in cli.ts so run() maps tag/not-found errors in one place
+decision list --tag without a value prints usage, exit 2
+tasks 4 5
+tasks 5 5

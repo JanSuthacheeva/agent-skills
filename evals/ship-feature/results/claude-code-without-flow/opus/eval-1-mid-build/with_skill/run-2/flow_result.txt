@@ -1,0 +1,12 @@
+new commits:
+d29388d docs: review bookmark tags
+c7f25e9 bm: test list with an option other than --tag
+3176251 docs: check bookmark tags end to end
+bd06767 bm: add tag command and list --tag
+df3051f bm: tag bookmarks and list them by tag
+84e28f8 bm: store tags on bookmarks
+
+agents:
+- Isolated review of bookmark tags: 597 chars
+flow reports:
+(ran without flow)

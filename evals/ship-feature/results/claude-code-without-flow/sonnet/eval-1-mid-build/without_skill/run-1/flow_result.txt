@@ -1,0 +1,10 @@
+new commits:
+1f83e54 docs: tick bookmark tags e2e check
+8de8b56 bm: add tag command and list --tag
+8a90f8d bm: tag bookmarks and filter by tag in the store
+5277088 bm: store tags on bookmarks
+
+agents:
+
+flow reports:
+(ran without flow)

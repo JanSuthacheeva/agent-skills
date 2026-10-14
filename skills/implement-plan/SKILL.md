@@ -11,13 +11,19 @@ description: >-
   for small changes that have no plan.
 metadata:
     author: Jan Suthacheeva
-    version: "0.1"
+    version: "0.2"
 ---
 
 Build what the plan says, in the order its tasks say, so the user gets the
 design they approved - not one that drifted task by task. The plan is the
 record: it stays true to the code, and its checkboxes show how far the
 build is.
+
+If a `flow` command is available, report this skill's progress to it with
+`flow report`: `phase implement` now, `waiting "<the question>"` before every
+question you put to the user and `working` once it is answered, and the
+reports the steps below name. Otherwise, or when a report fails, go on -
+the skill works the same without them.
 
 ## 1. Load
 
@@ -49,8 +55,9 @@ One task at a time, in order:
    the conventions the plan cites.
 4. Run the task's tests, then the affected suite, lint and type checks.
    Do not start the next task while anything is red.
-5. Tick it and commit it as one commit, with the project's commit
-   convention or skill. Plan updates from this task go in the same commit.
+5. Tick it, report `tasks <done> <total>`, and commit it as one commit,
+   with the project's commit convention or skill. Plan updates from this
+   task go in the same commit.
 
 Small, green, committed steps mean a wrong turn costs one task, and the
 history reads like the plan.
@@ -65,12 +72,14 @@ what to ask:
   helper, a private method, the parameter order of an internal call, an
   extra test. Update the plan where it changed - unit, signature, call
   chain - and note it for the summary, so the plan stays the record.
+  Report `decision "<the change and why, in one line>"`.
 - **Stop and ask** when it is expensive to undo or the user would notice:
   what is stored and in what format, migrations, the public surface
   (commands, flags, endpoints, payloads), user-visible behaviour, a new
   dependency, or a different approach than the one chosen. Mark the task
-  blocked if you can, explain what you found, and give your recommendation. Do not
-  build a workaround in the meantime.
+  blocked if you can, report `blocked "<what you found, in one line>"`,
+  explain what you found, and give your recommendation. Do not build a
+  workaround in the meantime.
 
 A task that turns out much larger than it looked gets split: add the new
 tasks as checkboxes in its place before building them.

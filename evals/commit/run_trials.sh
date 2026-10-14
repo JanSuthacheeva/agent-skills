@@ -23,7 +23,7 @@ if [ "$cfg" = without_skill ]; then
   args+=(--append-system-prompt \
     "Write commit messages in Scoped Commits format: \`<scope>: <description>\`.")
 fi
-(cd "$fx/repo" && claude "${args[@]}" < /dev/null) > "$run/outputs/raw.json" 2> "$run/outputs/stderr.txt" || true
+(cd "$fx/repo" && env -u FLOW_ID claude "${args[@]}" < /dev/null) > "$run/outputs/raw.json" 2> "$run/outputs/stderr.txt" || true
 python3 - "$run" <<'P'
 import json, sys, pathlib
 run = pathlib.Path(sys.argv[1])

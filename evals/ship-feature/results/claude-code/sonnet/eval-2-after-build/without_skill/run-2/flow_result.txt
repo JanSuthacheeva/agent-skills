@@ -1,6 +1,10 @@
 new commits:
-62f41a1 docs: record review of bookmark tags in the plan
-9ee3c1c bm: match tag behaviour to the plan
+0265427 docs: record bookmark tags review in plan
+99f9f36 bm: fix tag exit code and normalize list --tag
+8f677f8 bm: make tagging idempotent and name listByTag as planned
 
 agents:
-- Review fix commit: 586 chars
+
+flow reports:
+phase review
+review --fixed 4 --open 1

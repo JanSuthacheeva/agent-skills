@@ -1,25 +1,17 @@
-I reviewed the bookmark tags branch against its plan and fixed six problems that broke what the plan says. All 16 tests pass, and I checked the fixed behaviour by running the real CLI. Nothing is pushed.
+All five plan tasks were already done when I started. I've reviewed the branch: I fixed four bugs, and two smaller problems are still open and need your decision. All 15 tests pass. There's no lint or type checker in the project, so the tests are the only automated check.
 
-**Fixed:**
-- **Duplicate tags:** tagging a bookmark twice saved the tag twice in the file. Re-tagging now does nothing, as the plan says. (f6ae3b7)
-- **Method name:** the store method was called `listTagged`; it's now `listByTag`, the plan's name. (2bb024f)
-- **Unknown id:** `bm tag 9 work` exited with code 2 instead of 1. (9c2dff2)
-- **Bad ids:** an empty or hex id was read as a number, so `tag '' work` printed `no bookmark 0` instead of the usage message. (9c2dff2)
-- **`list --tag` ignored normalization:** `--tag Work` found nothing, and an invalid tag like `'to do'` exited 0 instead of 2. (9c2dff2)
-- **Missing tests:** added the ones the plan asked for: duplicate tag, unknown id (store and CLI), non-numeric id, and `list --tag` normalizing and rejecting tags.
+**Fixed** (I reproduced each one through the CLI first, and each has a test):
+- **Duplicate tags:** tagging a bookmark with a tag it already had saved the tag twice in the file. It now does nothing, as the plan says (2133a7f).
+- **Unknown id exit code:** `bm tag 9 work` on a missing bookmark exited 2. It now exits 1, as `AGENTS.md` and the plan require (886a5ff).
+- **`list --tag` not normalized:** `--tag Work` found nothing, and `--tag "to do"` silently printed an empty list. The tag is now normalized like in `tag`, and invalid tags exit 2 (0190d72).
+- **Method name:** renamed `listTagged` to `listByTag` to match the plan (3e4bea2).
 
-A separate agent reviewed the fix commits. It confirmed each fix, and that each has a test that fails without it.
+A separate agent reviewed these fixes.
 
-**Open, for you to decide:**
-- **`bm list --tag` with no value** lists every bookmark and exits 0. The plan doesn't cover this. I recommend printing `usage: bm list [--tag <tag>]` and exiting 2, and treating any other unknown `list` argument the same way. I left it because it changes how the command behaves for users.
-- **Negative ids:** `tag -1 work` now prints the usage message rather than `no bookmark -1`. Ids are always positive, so I'd keep it.
-- **No lint or type check:** the project has neither, so only the tests catch type errors. I recommend adding `tsc --noEmit`.
+**Open:**
+- **Loose id parsing:** `bm tag '' work` prints `no bookmark 0`, and `bm tag 0x1 work` tags bookmark 1. The plan says a non-numeric id is a usage error with exit 2. This was in the original code; the exit-code fix made it visible. I recommend checking the id against `/^\d+$/`.
+- **`bm list --tag` with no value:** it lists every bookmark and exits 0. The plan doesn't cover this case. I recommend printing a usage error and exiting 2.
 
-**Where to look:**
-1. `src/store.ts`, from `load()` through `tag()` to `save()`: how files saved before tags existed are read, and that a rejected tag never writes the file.
-2. `src/cli.ts`, the catch block in `run()`: which errors map to which messages and exit codes.
-3. `src/cli.ts`, the `list` case: where the open `--tag` item lives.
+I wrote the full review into the plan as a `## Review` section (`docs/plans/2026-10-14-bookmark-tags.md`) and committed it.
 
-The rest (`src/tags.ts`, `src/bookmark.ts` and the tests) is routine and can be skimmed.
-
-This summary is also saved as a `## Review` section in the plan (b7c5c3b). Should I fix the `list --tag` case as recommended, and then write the merge request?
+Should I fix both open items? Once they're in, the next step is writing the merge request. Nothing has been pushed.

@@ -1,13 +1,12 @@
-Build and review are done, and I need a decision from you on two open review items before the merge request.
+The review is done and needs a decision from you before I open the merge request. It found one bug, which it fixed, and left three items open. All 20 tests pass. There is no lint or type check in this repo, so tests were the only gate.
 
-**State:** the branch `feature/bookmark-tags` has all 5 plan tasks ticked and committed. The 17 tests pass and the tree is clean. The review found and fixed one bug: `bm tag "" work` reported `no bookmark 0` with exit 1, and now prints the usage error with exit 2 (`d4abd7c`). The reviewer did not run a second review of that one-line fix. It also noted it was not a fresh, isolated context.
+**Fixed:** `bm tag "" work` read the blank id as 0 and printed "no bookmark 0" with exit 1. It now prints the usage message with exit 2, as the plan says. The fix is commit `23a07f2` and has a test.
 
 **Open items:**
-1. `bm list --bogus` ignores unknown options and lists everything. This was already the case before this branch and the plan doesn't cover it. The reviewer recommends rejecting unknown `list` options in a follow-up. I agree: leave it out of this merge request and don't add a task.
-2. The CLI and `BookmarkStore` both normalize the tag. It's harmless and the plan allows it. I recommend leaving it.
+1. **Unknown flags on `list`:** `bm list --bogus` ignores the flag and lists everything. The plan doesn't cover it. The reviewer recommends rejecting unknown flags with exit 2.
+2. **Double normalization:** both `run` and the store normalize the tag. It is harmless and follows the plan's call chain. The reviewer recommends keeping it.
+3. **Independent check of the fix:** the reviewer re-read its own fix, and nobody else did. This is only for you to know.
 
-**Options:**
-- **A (recommended):** accept both as-is, and I go on to draft the merge request title and description. I'll show them to you and push only on your say-so.
-- **B:** add tasks for either item, and I go back to Build, followed by a second review.
+**My recommendation:** keep item 2 as it is. For item 1, I'd add a task now: it's a small, user-visible behaviour, and it's easier to do before the merge request than after. That means a task under `## Tasks`, a build, and a second review of the new commits. Or you can defer it to a follow-up and I go straight to the merge request.
 
-Which do you want?
+Which do you want: add the unknown-flag task now, or defer it?

@@ -17,7 +17,7 @@ compatibility: >-
   https://github.com/JanSuthacheeva/agent-skills/tree/main/evals/design-code/results/claude-code
 metadata:
     author: Jan Suthacheeva
-    version: "0.7"
+    version: "0.8"
 ---
 
 Produce a code design the user can discuss and correct before any code
@@ -36,6 +36,12 @@ do not skip ahead of it. Copy this checklist and tick it off as you go:
 - [ ] 3. Implementation page - the user approved it
 - [ ] 4. Persist the Markdown plan
 ```
+
+If a `flow` command is available, report this skill's progress to it with
+`flow report`: `phase design` now, `waiting "<the question>"` before every
+question you put to the user and `working` once it is answered, and the
+reports the steps below name. Otherwise, or when a report fails, go on -
+the skill works the same without them.
 
 ## 1. Investigate
 
@@ -106,9 +112,10 @@ native radio form (one option per approach plus a rationale/notes
 textarea) that queues exactly one prompt on submit, as the `input` playbook
 describes.
 
-Open it with `npx -y lavish-axi <file>`, poll for the decision, and answer
-follow-up annotations until the user has chosen. The chosen approach may
-be a mix - take what they say literally.
+Open it with `npx -y lavish-axi <file>`, report `waiting "Pick an approach
+on the page"` before each poll for the decision, and answer follow-up
+annotations until the user has chosen. The chosen approach may be a mix -
+take what they say literally.
 
 ## 3. Implementation page - the user reviews
 
@@ -172,10 +179,11 @@ appears in the overview, every DTO used in a signature is defined in Data
 or already exists. Mismatches here are what makes a design review go in
 circles.
 
-Open it, poll, and iterate on the user's annotations. Apply all changes
-from one round of feedback in a single message, as parallel edits: every
-separate tool call re-reads the whole conversation, so many sequential
-small edits cost more than the page itself. Rewrite the page only when
+Open it, report `waiting "Review the implementation page"` before each
+poll, and iterate on the user's annotations. Apply all changes from one
+round of feedback in a single message, as parallel edits: every separate
+tool call re-reads the whole conversation, so many sequential small
+edits cost more than the page itself. Rewrite the page only when
 the changes touch most of it. Rename consistently everywhere, remove
 resolved open questions and fold the answer into the design. Continue
 until the user approves.

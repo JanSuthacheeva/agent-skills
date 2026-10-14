@@ -1,0 +1,12 @@
+new commits:
+1a231b5 docs: add review of bookmark tags
+38deacb bm: cli: test usage errors for tag without a tag and list options
+680aef0 docs: tick bookmark tags end-to-end check
+6f0d3d9 bm: cli: add tag command and list --tag
+084e5b7 bm: store: tag bookmarks and list by tag
+57a957e bm: store tags on bookmarks
+
+agents:
+- Isolated review of bookmark tags: 786 chars
+flow reports:
+(ran without flow)

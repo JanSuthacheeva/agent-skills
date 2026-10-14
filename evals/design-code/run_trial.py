@@ -88,7 +88,8 @@ def page_text(path: Path) -> str:
 
 
 def claude(args: list[str], cwd: Path) -> dict:
-    proc = subprocess.run(["claude", *args], cwd=cwd, stdin=subprocess.DEVNULL,
+    env = {k: v for k, v in os.environ.items() if k != "FLOW_ID"}
+    proc = subprocess.run(["claude", *args], cwd=cwd, env=env, stdin=subprocess.DEVNULL,
                           capture_output=True, text=True, timeout=TURN_TIMEOUT)
     try:
         return json.loads(proc.stdout)

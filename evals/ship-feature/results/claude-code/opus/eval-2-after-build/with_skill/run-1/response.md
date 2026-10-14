@@ -1,13 +1,14 @@
-The review is finished and the repository matches its report. It added 3 commits on top of the build: two fixes (`29b53f0`, `b01f874`) and the review notes in the plan (`9c36cc8`). The fixes were all places where the code didn't do what the plan said:
-- Adding a tag a bookmark already had stored it twice.
-- `bm tag` with an unknown id exited 2 instead of 1.
-- `bm list --tag` didn't normalize the tag, so `--tag Work` found nothing.
+The review has finished, and it left two items open that need your decision.
 
-The fixes include the tests the plan asked for, and 16/16 tests now pass. The plan's `## Review` section has two open items, so this is a stop for your decision:
+The reviewer, working in a fresh context, found and fixed three bugs. Tests went from 10 to 15 and all pass:
+- **Duplicate tags:** tagging a bookmark with a tag it already had added the tag again. It now does nothing (`7954891`).
+- **Wrong exit code:** `bm tag` on an unknown id exited 2 instead of 1 (`1841e35`).
+- **`list --tag` didn't clean up the tag:** it skipped `normalizeTag`, so `--tag Work` found nothing and an invalid tag exited 0. The same commit renames the store method from `listTagged` to `listByTag`, the name the plan uses (`7410730`).
 
-1. **`bm list --tag` with no value** lists every bookmark and exits 0. The plan doesn't cover this. I recommend making it print `usage: bm list [--tag <tag>]` and exit 2. That matches how the CLI already handles bad input, and silently ignoring a flag hides mistakes.
-2. **The store normalizes the tag again** after the CLI already has. It's harmless and protects other code that calls the store directly. I recommend leaving it as is.
+**Open:**
+1. **`bm list --tag` with no value** lists every bookmark and exits 0. The plan doesn't cover this case. The reviewer recommends printing `usage: bm list [--tag <tag>]` and exiting 2, like the other commands.
+2. **`bm tag "" work`** reads the empty id as 0 and prints `no bookmark 0` (exit 1) instead of the usage message. The reviewer recommends rejecting any id that isn't a positive whole number, so it prints `usage: bm tag <id> <tag>` and exits 2.
 
-There's also something outside the branch: your real `~/.bookmarks.json` has a test bookmark ("A / https://a.dev", tagged `work`). It was most likely written by the build's end-to-end check, which didn't point the CLI at a temporary file. I can delete it if that file holds nothing else of yours. Right now it holds only that one entry.
+I agree with both. They're small, and each makes the CLI behave the same way it already does for other bad input. If you approve, I'll add them as two new tasks in the plan, build them, have a second review check the new commits, and then write the merge request.
 
-If you agree with both recommendations, I'll add task 1 to the plan, commit it, run a fresh build agent for it and then a second review. After that comes the merge request, which I'll show you before pushing.
+Should I do both as recommended?
