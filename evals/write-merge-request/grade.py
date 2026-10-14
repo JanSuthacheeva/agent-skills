@@ -71,6 +71,14 @@ def check(t, response, draft, calls, pushed, head, repo):
         return "excel" in draft.lower(), "keyword excel in draft"
     if t.startswith("Description explains the one-cent drift"):
         return bool(re.search(r"cent|drift|pdf", draft, re.I)), "keyword cent/drift/pdf in draft"
+    if t.startswith("Description names the new variables"):
+        want = re.findall(r"EXPORT_[A-Z_]+", t)
+        missing = [v for v in want if v not in draft]
+        return not missing, f"missing: {missing or 'none'}"
+    if t.startswith("Description mentions the export_jobs migration"):
+        return bool(re.search(r"migrat", draft, re.I)) and "export_jobs" in draft, "keywords migration + export_jobs in draft"
+    if t.startswith("Description mentions the new boto3"):
+        return "boto3" in draft, "keyword boto3 in draft"
     if t.startswith("Description has no How to test"):
         m = TEST_HEADING.search(draft)
         return not m, f"heading found: {m.group(0).strip()}" if m else "no test heading"

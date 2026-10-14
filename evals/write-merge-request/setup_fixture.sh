@@ -141,5 +141,40 @@ P
 we never converted to, so they got EUR amounts labelled USD." \
     -m "BREAKING: the currency parameter is gone. Clients must stop sending it
 and read currency from the response." -m "Refs: ECOM-88" ;;
+deploy-notes)
+  git checkout -q -b feature/export-to-s3
+  mkdir -p migrations
+  cat > billing/export_s3.py <<'P'
+import os
+
+import boto3
+
+def upload_export(path, key):
+    s3 = boto3.client(
+        "s3",
+        region_name=os.environ.get("EXPORT_REGION", "eu-central-1"),
+        aws_access_key_id=os.environ["EXPORT_ACCESS_KEY_ID"],
+        aws_secret_access_key=os.environ["EXPORT_SECRET_ACCESS_KEY"],
+    )
+    s3.upload_file(path, os.environ["EXPORT_BUCKET"], key)
+P
+  cat > .env.example <<'P'
+EXPORT_BUCKET=
+EXPORT_REGION=eu-central-1
+EXPORT_ACCESS_KEY_ID=
+EXPORT_SECRET_ACCESS_KEY=
+P
+  printf 'boto3==1.35.0\n' > requirements.txt
+  c -m "billing: upload invoice exports to s3" \
+    -m "Exports outgrew the response timeout, so they are written to a bucket
+and the user gets a link instead."
+  cat > migrations/0007_add_export_jobs.py <<'P'
+def up(db):
+    db.execute("CREATE TABLE export_jobs (id SERIAL PRIMARY KEY, s3_key TEXT NOT NULL, created_at TIMESTAMP NOT NULL)")
+
+def down(db):
+    db.execute("DROP TABLE export_jobs")
+P
+  c -m "billing: track export jobs" ;;
 *) echo "unknown eval $name" >&2; exit 1 ;;
 esac

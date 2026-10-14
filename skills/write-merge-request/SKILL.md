@@ -12,7 +12,7 @@ compatibility: >-
   the ticket title with clickup-axi when it is installed.
 metadata:
     author: Jan Suthacheeva
-    version: "0.3"
+    version: "0.4"
 allowed-tools: >-
   Bash(git status:*) Bash(git branch:*) Bash(git log:*) Bash(git diff:*)
   Bash(git remote:*) Bash(git symbolic-ref:*) Bash(git rev-parse:*)
@@ -74,6 +74,10 @@ first, then the change that addresses it.>
 
 - <A decision a reviewer would question, with its reason.>
 
+Deploy:
+- <A change outside the code this MR needs, when it must happen, and
+  whether it is required.>
+
 <Breaking changes and how to migrate, if any.>
 <What is deliberately left out or follows later, if anything.>
 
@@ -83,10 +87,19 @@ Refs: <ID>
 - Scale it to the change: a one-commit fix can be a single sentence.
 - Bullets only for decisions that are not obvious from the code: a
   trade-off, a rejected alternative, a deviation from a convention or
-  plan, a migration or data change, a new dependency. Each one says why.
+  plan, a change to the data model. Each one says why.
 - Take the reasons from the commits, the plan, the ticket or the code.
   A reason you would have to guess is not one: leave the decision out, or
   ask. A reviewer trusts the description as the author's intent.
+- Deploy lists what someone has to do outside the code for the MR to
+  work: new or changed environment variables, migrations and backfills,
+  new services, queues, workers or cron jobs, new dependencies or system
+  packages, infrastructure, CI or permission changes, and manual steps.
+  Find them in the diff - `.env.example` and config files, code that
+  reads the environment, migrations, dependency manifests, infrastructure
+  and CI files - since commits rarely mention them. Name each variable or
+  step, say whether it has to happen before or after the deploy, and never
+  include a secret value. Leave the section out when there is nothing.
 - Leave out what the diff already shows or reviewers do not need: a
   file-by-file or commit-by-commit list, a "How to test" section or test
   checklist, generic checklists, empty template headings, screenshots
