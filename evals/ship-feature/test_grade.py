@@ -8,11 +8,13 @@ PLAN_OPEN = "## Review\n\n**Fixed**\n\n- A.\n\n**Open**\n\n- B.\n"
 FINAL_STOP = "Reported the final stop"
 
 
-def reports(*calls):
+def reports(*calls) -> list[list[str]]:
     with tempfile.TemporaryDirectory() as tmp:
         fx = Path(tmp)
         (fx / "flow.jsonl").write_text("".join(json.dumps(c) + "\n" for c in calls))
-        return flow_reports(fx)
+        got = flow_reports(fx)
+        assert got is not None
+        return got
 
 
 class FlowReportsTest(unittest.TestCase):
