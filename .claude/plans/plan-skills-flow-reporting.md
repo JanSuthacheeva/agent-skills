@@ -288,7 +288,7 @@ The implementation page repeats this chain with "Review the implementation page"
 
 ### After the second review (decided by the user)
 
-- [ ] `review_counts` treats a whole-line "nothing" item under a label (`- No open items.`, `- No findings.`, `- Nothing open.`) like `- None.`, while an item naming a thing (`- No test for X`) stays a finding; tests for both
+- [x] `review_counts` treats a whole-line "nothing" item under a label (`- No open items.`, `- No findings.`, `- Nothing open.`) like `- None.`, while an item naming a thing (`- No test for X`) stays a finding; tests for both
 - [ ] `flow_reports` fails loudly when a fixture holds the old `flow.log` and no `flow.jsonl`, naming the file and the conversion needed, instead of grading the trial as run without flow; test for it
 
 ## Review

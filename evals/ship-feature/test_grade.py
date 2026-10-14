@@ -58,6 +58,15 @@ class ReviewCountsTest(unittest.TestCase):
         body = "Fixed:\n\n- A.\n\nOpen:\n\n- None.\n\nWhere to look:\n\n1. grade.py\n"
         self.assertEqual(review_counts(review(body)), (1, 0))
 
+    def test_items_saying_there_is_nothing_are_no_findings(self):
+        body = ("**Fixed**\n\n- No findings.\n\n**Open**\n\n- No open items.\n- Nothing open.\n"
+                "- No open questions remain.\n\nOpen: no open items.\n")
+        self.assertEqual(review_counts(review(body)), (0, 0))
+
+    def test_items_naming_a_missing_thing_are_findings(self):
+        body = "**Open**\n\n- No test for `list --tag`.\n- No items cap on `tag`, so a bookmark can hold any number.\n"
+        self.assertEqual(review_counts(review(body)), (0, 2))
+
     def test_labels_with_a_note_before_the_colon(self):
         body = "Fixed (`0e06f9c`):\n- A.\n- B.\n\nOpen (asked the user):\n- C.\n"
         self.assertEqual(review_counts(review(body)), (2, 1))
