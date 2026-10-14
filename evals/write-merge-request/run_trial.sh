@@ -20,13 +20,7 @@ if [ "$cfg" = with_skill ]; then
   cp -R "$here/../../skills/write-merge-request" "$fx/repo/.claude/skills/"
   echo ".claude/" >> "$fx/repo/.git/info/exclude"
 fi
-case ${FLOW:-stub} in
-  stub) export FLOW_ID=eval-trial ;;
-  absent)
-    rm -f "$fx/bin/flow" "$fx/flow.log"; unset FLOW_ID
-    PATH=$(IFS=:; for d in $PATH; do [ -x "$d/flow" ] || printf '%s:' "$d"; done); PATH=${PATH%:} ;;
-  *) echo "FLOW must be stub or absent" >&2; exit 1 ;;
-esac
+. "$here/../shared/flow_mode.sh"
 args=(-p "$prompt" --output-format json --model "${MODEL:-claude-opus-5-5}" --effort "${EFFORT:-medium}"
       --setting-sources project,local --strict-mcp-config --mcp-config '{"mcpServers": {}}'
       --disallowedTools AskUserQuestion

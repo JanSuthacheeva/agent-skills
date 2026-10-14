@@ -136,10 +136,13 @@ ship-feature fixtures inherit it (its setup calls this one).
 
 ### evals/ship-feature/run_trial.sh, evals/write-merge-request/run_trial.sh
 
+Both source `evals/shared/flow_mode.sh` once the fixture is built:
+
 ```
 FLOW=stub     # default: FLOW_ID=eval-trial, the stub logs every report
-FLOW=absent   # removes bin/flow, unsets FLOW_ID and drops every PATH entry
-              # holding a `flow` executable
+FLOW=absent   # removes bin/flow, unsets FLOW_ID and replaces every PATH
+              # entry holding a `flow` with a directory linking the rest of
+              # it, so the tools next to it stay reachable
 ```
 
 ### evals/{commit,implement-plan,review-changes}/run_trial.sh, evals/design-code/run_trial.py
