@@ -4,14 +4,14 @@ description: >-
   Reviews the changes on a branch in an isolated context - without the
   conversation that wrote them - against the plan and the project's rules,
   proves each finding, fixes the ones that are cheap to reverse, reviews
-  the fixes again, and leaves a short summary of the risks and where a
-  human should look. Use when the user asks to review a branch, an
+  the production-code fixes again, and leaves a short summary of the
+  risks and where a human should look. Use when the user asks to review a branch, an
   implementation or the current changes before a merge request, or after
   implement-plan has finished, even if they just say "review this". Not
   for commenting on someone else's merge request or for lint-only passes.
 metadata:
     author: Jan Suthacheeva
-    version: "0.1"
+    version: "0.2"
 ---
 
 An agent reviewing code it just wrote tends to confirm its own choices, so
@@ -78,8 +78,13 @@ Sort findings by what they cost to reverse once shipped:
 
 ## 5. Review the fixes
 
-Review the fix commits once more, isolated again if you can. Stop after
-two rounds; whatever is still open goes into the summary.
+Fixes that only add or change tests are proven by running them; skip this
+step for them. When a fix changed production code, review those commits
+once more, by a fresh agent if you can - you wrote them, so the same bias
+applies. Give it only the fix commits and the findings they address. It
+checks a small diff against named findings, so a smaller, faster model is
+enough. Stop after this one round; whatever is still open goes into the
+summary.
 
 ## 6. Summary
 
