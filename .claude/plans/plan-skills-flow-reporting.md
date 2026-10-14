@@ -297,41 +297,43 @@ The implementation page repeats this chain with "Review the implementation page"
 
 ## Review
 
-Reviewed in isolation against `main` and this plan, including the two
-follow-ups. The five skill edits, versions, `allowed-tools` and README
-sentence match the plan, and every `flow report` argument matches the
-real CLI's `--help`. Regrading copies of the local workspace, with the old
-`flow.log` text converted to argv, reproduced every published
-`grading.json` (only `npm test` timings differ), before and after the fix
-below; the README numbers match the gradings. `FLOW=absent` checked with a
-PATH holding `flow` next to another tool. No paid suites were rerun.
+Third isolated review, against `main` and this plan, including both
+rounds of follow-ups. The five skill edits, versions, `allowed-tools`
+and README sentence match the plan. Tests (unittest), pyright and
+`bash -n` were green before and after. Regrading copies of the local
+workspace, with the old `flow.log` converted to argv, reproduced every
+published `grading.json` at the branch head and after each fix below.
+No paid suites were rerun.
 
 **Fixed**
 
-- `review_counts` missed bold labels with the colon inside: a review
-  written with `**Fixed:**` and `**Open:**` counted (0, 0), and
-  `- **Open:** none` counted as a finding. Shown with two new tests;
-  published results unchanged - 5dae6bf.
+- `review_counts` dropped any item starting with "none" or "nothing",
+  so `- Nothing validates the tag length` and `- None of the error paths
+  are tested` were not counted, against the plan's "an item naming a
+  thing stays a finding". Shown with a new test - ff9053c, narrowed in
+  e24ec41 after the fix review showed ff9053c turned `- None (all
+  fixed)`, `- Nothing to report.` and `- None identified` into findings.
+  e24ec41 was not reviewed again independently.
 
 **Open**
 
-- `review_counts` still counts `- No open items.` as one open finding,
-  where an agent would report `--open 0`. No published trial wrote it.
-  Recommendation: leave it; widening "none" to "no ..." would drop real
-  findings like `- No test for X`.
-- The local workspace fixtures hold the old `flow.log`, so regrading them
-  as they are now grades stub trials as if run without flow, silently.
-  Only the gitignored workspace is affected. Recommendation: leave it.
+- `review_counts` stays a heuristic: `- Nothing in tag checks the
+  length` (verb not right after "nothing") and `- Open: nothing
+  validates X` on a label line still count as no finding. No published
+  trial wrote either. Recommendation: leave it; the published counts
+  are verified by regrading.
+- `.lavish/` (the design pages the plan links) is untracked in the
+  worktree. Recommendation: leave it out of the branch, as on `main`.
 
 **Where to look**
 
-1. `evals/ship-feature/grade.py` `REVIEW_LABEL` and `flow_check()`: the
-   label heuristic and the four report checks behind the published
-   numbers.
+1. `evals/ship-feature/grade.py` `EMPTY`, `REVIEW_LABEL` and
+   `flow_check()`: the heuristic and the four report checks behind the
+   published numbers.
 2. `skills/ship-feature/SKILL.md` reporting note and `## Stops`: which
    stops are `blocked` and which `waiting`.
-3. `evals/shared/flow_mode.sh`: the absent mode the "works without flow"
-   results rely on.
+3. `evals/shared/flow_mode.sh`: the absent mode the "works without
+   flow" results rely on.
 
 Routine, skim: the `env -u FLOW_ID` runners, `--template` in
 `export_results.py`, the result files.
