@@ -1,5 +1,5 @@
 ---
-name: build-plan
+name: implement-plan
 description: >-
   Implement an approved implementation plan task by task: work through its
   `- [ ]` task checklist in order, write each task's tests first, keep to
@@ -26,21 +26,21 @@ build is.
 - Find the tasks: the `## Tasks` section, or the plan's checkboxes. Ticked
   ones are done - resume at the first open task, and check `git log`
   agrees.
-- Read the project rules (`CLAUDE.md`, `AGENTS.md`, `.claude/rules/`,
-  lint configs) and the existing code the plan cites, and find how tests,
-  lint and type checks are run.
+- Read the project's agent and contributor rules (such as `AGENTS.md`
+  and lint configs) and the existing code the plan cites, and find how
+  tests, lint and type checks are run.
 - Run the tests once before changing anything. Failures that exist before
   you start are not yours, but they hide yours, so report them up front.
-- If the harness has a plan progress tool (such as the `report` tool of
-  the plan-progress mod), use it: `doing` before a task, `done` after it -
-  which ticks the box - and `blocked` when stuck. Otherwise tick the
-  checkbox in the plan yourself when a task is done.
+- Tick each task's checkbox in the plan when it is done, so the file
+  shows how far the build is. If your environment offers a tool for
+  reporting plan progress, use it instead - doing, done, blocked - and
+  let it tick the boxes.
 
 ## 2. Build each task
 
 One task at a time, in order:
 
-1. Mark it doing.
+1. Mark it as in progress, if your progress tool has that state.
 2. Write the tests the task names, run them, and see them fail for the
    expected reason - a missing method, a wrong value - not a typo or an
    import error. A task without a test of its own (wiring, a migration)
@@ -49,7 +49,7 @@ One task at a time, in order:
    the conventions the plan cites.
 4. Run the task's tests, then the affected suite, lint and type checks.
    Do not start the next task while anything is red.
-5. Mark it done and commit it as one commit, with the project's commit
+5. Tick it and commit it as one commit, with the project's commit
    convention or skill. Plan updates from this task go in the same commit.
 
 Small, green, committed steps mean a wrong turn costs one task, and the
@@ -69,7 +69,7 @@ what to ask:
   what is stored and in what format, migrations, the public surface
   (commands, flags, endpoints, payloads), user-visible behaviour, a new
   dependency, or a different approach than the one chosen. Mark the task
-  blocked, explain what you found, and give your recommendation. Do not
+  blocked if you can, explain what you found, and give your recommendation. Do not
   build a workaround in the meantime.
 
 A task that turns out much larger than it looked gets split: add the new
