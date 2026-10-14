@@ -14,7 +14,8 @@ PLAN = "docs/plans/2026-10-14-bookmark-tags.md"
 REVIEW_LABEL = re.compile(r"""^\s*(?:
       \#+\s*                                           # ### Fixed
     | (?:[-*]\s+)?(?:\*\*|__)                          # **Fixed**, - **Open questions**
-    | (?:[-*]\s+)?(?=(?:Fixed|Open|Where\ to\ look)\b[^:\n]{0,20}(?::|$)))  # Fixed:, Open
+    | (?:[-*]\s+)?(?=(?:Fixed|Open|Where\ to\ look)\b[^:\n]{0,20}(?::|$))   # Fixed:, Open, - Open: none
+    | (?=(?:Fixed|Open|Where\ to\ look)\b.*:\s*$))      # Fixed (re-checked by an agent):
     (Fixed|Open|Where\ to\ look)\b""", re.I | re.X)
 LIST_ITEM = re.compile(r"^(\s*)(?:[-*]|\d+[.)])\s+(?!(?:none|nothing)\b)\S", re.I)
 BUILD_REPORT = re.compile(r"deviation|I (built|implemented)|has been (built|implemented)|tasks? \d+ (to|-) \d+ (are|were) (done|built)", re.I)
