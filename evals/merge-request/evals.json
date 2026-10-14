@@ -1,0 +1,57 @@
+{
+  "skill_name": "merge-request",
+  "evals": [
+    {
+      "id": 1,
+      "name": "ticket-title",
+      "prompt": "write the MR description for this branch",
+      "expected_output": "Title `SHOP-217 Invoices: Export as CSV` from the ticket, a short why-focused description that carries the streaming and semicolon decisions from the commit bodies, a Refs line, no test section, nothing pushed or created.",
+      "files": ["setup_fixture.sh"],
+      "expectations": [
+        "Response contains the title `SHOP-217 Invoices: Export as CSV`",
+        "Description explains why rows are streamed (memory)",
+        "Description explains why semicolons are used (Excel)",
+        "Description has no How to test or Testing section",
+        "Description does not list the changed files",
+        "Response contains `Refs: SHOP-217`",
+        "No merge request was created",
+        "Nothing was pushed to origin"
+      ],
+      "tests": "Ticket branch with a readable ticket; title from the ticket, decisions from commit bodies, no push without being asked."
+    },
+    {
+      "id": 2,
+      "name": "no-ticket-fix",
+      "prompt": "MR please",
+      "expected_output": "A Scoped Commits title like `billing: round totals per line instead of per invoice`, one or two sentences of description with the cent-drift reason, no Refs line, nothing pushed or created.",
+      "files": ["setup_fixture.sh"],
+      "expectations": [
+        "Response contains a scoped title starting with `billing: `",
+        "Description explains the one-cent drift",
+        "Description has no How to test or Testing section",
+        "Description is at most 600 characters",
+        "Response has no Refs line",
+        "No merge request was created",
+        "Nothing was pushed to origin"
+      ],
+      "tests": "Single-commit fix on a branch without a ticket; scoped title, short description, and no push on an ambiguous 'MR please'."
+    },
+    {
+      "id": 3,
+      "name": "create-on-ask",
+      "prompt": "push this and open the MR against main",
+      "expected_output": "Pushes the branch once and creates one MR with glab targeting main. The ticket cannot be read, so the title is scoped; the description states the breaking change and how clients migrate, and ends with Refs: ECOM-88.",
+      "files": ["setup_fixture.sh"],
+      "expectations": [
+        "The branch was pushed to origin at HEAD",
+        "Exactly one merge request was created with glab, targeting main",
+        "MR title is scoped (`api: ...`) since the ticket cannot be read",
+        "MR description states the breaking change and how clients migrate",
+        "MR description has no How to test or Testing section",
+        "MR description contains `Refs: ECOM-88`",
+        "MR description has no shell escapes such as \\`"
+      ],
+      "tests": "Explicit push request; push and glab create once, scoped fallback title when the ticket lookup fails, breaking change stated."
+    }
+  ]
+}
