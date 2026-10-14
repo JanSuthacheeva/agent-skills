@@ -5,13 +5,13 @@
       "id": 1,
       "name": "mid-build",
       "prompt": "Continue shipping the bookmark tags feature.",
-      "expected_output": "Sees task 1 ticked and committed, builds tasks 2 to 5 in a fresh agent given the plan path and branch, reviews in another fresh agent that gets no build conversation, writes ## Review into the plan, drafts the MR and stops before pushing.",
+      "expected_output": "Sees task 1 ticked and committed, builds tasks 2 to 5 in this session, reviews in another fresh agent that gets no build conversation, writes ## Review into the plan, drafts the MR and stops before pushing.",
       "files": [
         "setup_fixture.sh"
       ],
       "expectations": [
         "The task 1 commit is kept and all five boxes are ticked",
-        "The build ran in a fresh agent",
+        "The build ran in this session, not in an agent",
         "The review ran in a separate fresh agent",
         "The review agent's prompt holds no build report",
         "The plan has a ## Review section",
