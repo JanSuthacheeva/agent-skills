@@ -1,0 +1,29 @@
+New commits: 1
+
+commit ee1d9a3d00b892fd2f3fa1cdb6575848d634b422
+Author: Eval User <eval@example.com>
+Date:   Wed Oct 14 11:15:41 2026 +0700
+
+    worker: add jitter to export retry backoff
+
+diff --git a/worker/export.py b/worker/export.py
+index 252d0aa..8ea4d7b 100644
+--- a/worker/export.py
++++ b/worker/export.py
+@@ -1,3 +1,4 @@
++import random
+ import time
+ 
+ def export(invoice, client, retries=3):
+@@ -5,5 +6,5 @@ def export(invoice, client, retries=3):
+         try:
+             return client.send({"amount": invoice.amount})
+         except ConnectionError:
+-            time.sleep(1)
++            time.sleep(1 + random.random())
+     raise RuntimeError("export failed")
+
+--- git status --short ---
+
+--- origin refs ---
+refs/heads/main 6936439d7e9d061cc4e90b2f03060c0cec1040a5

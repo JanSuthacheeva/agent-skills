@@ -1,12 +1,12 @@
 <!--
-Template for results/<harness>/README.md, rendered by export_results.py.
-{{placeholders}} are filled from the exported results. The prose in the
-Question, Discussion and Limitations interprets one specific
-run: review it by hand after every new export.
+Template for results/<harness>/README.md, rendered by
+evals/shared/export_results.py. {{placeholders}} are filled from the
+exported results. The prose in the Summary, Discussion and Limitations
+interprets one specific run: review it by hand after every new export.
 -->
 # Evaluation of the `commit` skill v{{version}} in Claude Code
 
-{{harness}}, `{{model}}`, {{n_scenarios}} scenarios, {{trials}} trials per scenario and condition, {{date_long}}.
+{{harness}}, `{{opus_model}}` and `{{sonnet_model}}` at {{effort}} effort, {{n_scenarios}} scenarios, {{trials}} trials per scenario, condition and model, {{date_long}}.
 
 ## Summary
 
@@ -15,15 +15,19 @@ follow a specific workflow. It is not self-evident that such a file changes
 behavior once the agent is already told which output format is expected. The
 `commit` skill specifies how commits are written in the Scoped Commits format;
 it is evaluated against a baseline that is informed of the same format but
-has no access to the skill. Across {{n_scenarios}} scenarios with
-{{trials}} trials each ({{n_trials}} trials per condition), trials
-with the skill satisfied every check in {{skill_pass}} of {{n_trials}} cases
-({{skill_rate}}; 95% CI {{skill_ci}}), compared with {{base_pass}} of
-{{n_trials}} cases ({{base_rate}}; 95% CI {{base_ci}}) for the baseline. The
-differences concentrate in conventions that the format name does not convey:
-keeping git's default revert and merge messages, adding a ticket trailer, and
-keeping one logical change in one commit. Mean cost per trial was comparable
-({{skill_cost}} versus {{base_cost}}).
+has no access to the skill, in {{n_scenarios}} scenarios with two models.
+With `{{opus_model}}`, {{opus_skill_pass}} of {{opus_n_trials}} skill trials
+({{opus_skill_rate}}; 95% CI {{opus_skill_ci}}) and {{opus_base_pass}} of
+{{opus_n_trials}} baseline trials ({{opus_base_rate}}; 95% CI
+{{opus_base_ci}}) satisfied every check; with `{{sonnet_model}}`,
+{{sonnet_skill_pass}} ({{sonnet_skill_rate}}; 95% CI {{sonnet_skill_ci}})
+and {{sonnet_base_pass}} ({{sonnet_base_rate}}; 95% CI {{sonnet_base_ci}}).
+The differences concentrate in conventions that the format name does not
+convey: keeping git's default revert and merge messages, adding a ticket
+trailer, and keeping one logical change in one commit; the smaller model
+additionally followed the style of a history that contradicts the
+format, in Conventional Commits style or with capitalized subjects. Mean cost per trial was comparable in both
+conditions.
 
 ## 1 Question
 
@@ -73,24 +77,25 @@ without scopes, as well as reverts, merges and multiple independent changes.
 
 ### 2.3 Conditions
 
-In the **skill** condition, the skill is installed in the user's
-environment and loaded through the harness's normal mechanism. In the
-**baseline** condition, the environment is identical except that the skill is
-hidden through the harness setting `skillOverrides`, and the system prompt is
-extended by one sentence asking for commit messages in Scoped Commits format
-(`<scope>: <description>`). The baseline is thereby informed of the target
-format, and the comparison isolates what the skill contributes beyond the
-format name. Both conditions otherwise run in the author's full working
-environment, including other installed skills and global instructions.
+Every trial ran in a fresh headless session restricted to project and local
+settings, without plugins or MCP servers. In the **skill** condition, the
+skill was copied into the fixture's project skills. In the **baseline**
+condition it was absent, and the system prompt was extended by one sentence
+asking for commit messages in Scoped Commits format (`<scope>:
+<description>`). The baseline is thereby informed of the target format, and
+the comparison isolates what the skill contributes beyond the format name.
 
 ### 2.4 Procedure
 
-All trials ran in {{harness}} in headless mode (`claude -p`) with the model
-`{{model}}` on {{date_long}}. Each trial started from a freshly generated
-repository. Agents were permitted git commands and read-only file tools
-(Read, Glob, Grep); other shell commands were denied. Trials ran eight at a
-time. In the skill condition, the skill was invoked in {{skill_invoked}}
-trials, verified from the session transcripts.
+All trials ran in {{harness}} in headless mode (`claude -p`) at {{effort}}
+effort with the models `{{opus_model}}` and `{{sonnet_model}}` on
+{{date_long}}. Each trial started from a freshly generated repository.
+Agents were permitted git commands and read-only file tools (Read, Glob,
+Grep); other shell commands were denied. Trials ran eight at a time per
+model. In the skill condition, the skill was invoked in
+{{opus_skill_invoked}} trials with `{{opus_model}}` and in
+{{sonnet_skill_invoked}} with `{{sonnet_model}}`, verified from the session
+transcripts.
 
 ### 2.5 Measures and analysis
 
@@ -105,20 +110,29 @@ output tokens, agent turns and wall-clock duration.
 Success rates are reported with Wilson score intervals [2]. The conditions
 are compared with Fisher's exact test [3] on trial-level success, which
 treats trials as independent, and with a two-sided sign test over scenarios
-that differ between conditions, which does not.
+that differ between conditions, which does not. Both are computed per model.
 
 ## 3 Results
 
 ### 3.1 Success rates
 
-With the skill, {{skill_pass}} of {{n_trials}} trials succeeded ({{skill_rate}};
-95% CI {{skill_ci}}) and {{skill_checks}} checks passed. In the baseline,
-{{base_pass}} of {{n_trials}} trials succeeded ({{base_rate}}; 95% CI
-{{base_ci}}) and {{base_checks}} checks passed. Fisher's exact test yields
-p = {{fisher_p}}. At scenario level, the skill condition performed better in
-{{sign_wins}} scenarios, worse in {{sign_losses}} and equally in
-{{sign_ties}}; the sign test yields p = {{sign_p}}. Table 2 lists successful
-trials per scenario.
+With `{{opus_model}}`, {{opus_skill_pass}} of {{opus_n_trials}} skill trials
+succeeded ({{opus_skill_rate}}; 95% CI {{opus_skill_ci}};
+{{opus_skill_checks}} checks) and {{opus_base_pass}} of {{opus_n_trials}}
+baseline trials ({{opus_base_rate}}; 95% CI {{opus_base_ci}};
+{{opus_base_checks}} checks). Fisher's exact test yields
+p = {{opus_vs_base_fisher_p}}; the skill condition did better in
+{{opus_vs_base_wins}} scenarios, worse in {{opus_vs_base_losses}} and
+equally in {{opus_vs_base_ties}} (sign test p = {{opus_vs_base_sign_p}}).
+
+With `{{sonnet_model}}`, {{sonnet_skill_pass}} of {{sonnet_n_trials}} skill
+trials succeeded ({{sonnet_skill_rate}}; 95% CI {{sonnet_skill_ci}};
+{{sonnet_skill_checks}} checks) and {{sonnet_base_pass}} of
+{{sonnet_n_trials}} baseline trials ({{sonnet_base_rate}}; 95% CI
+{{sonnet_base_ci}}; {{sonnet_base_checks}} checks). Fisher's exact test
+yields p = {{sonnet_vs_base_fisher_p}}; the skill condition did better in
+{{sonnet_vs_base_wins}} scenarios, worse in {{sonnet_vs_base_losses}} and
+equally in {{sonnet_vs_base_ties}} (sign test p = {{sonnet_vs_base_sign_p}}).
 
 **Table 2.** Successful trials per scenario (all checks passed).
 
@@ -129,7 +143,7 @@ trials per scenario.
 Table 3 lists every check that failed at least once, with the number of
 trials in which it failed.
 
-**Table 3.** Failed checks by condition.
+**Table 3.** Failed checks, by model and condition (number of trials).
 
 {{table_failures}}
 
@@ -141,46 +155,62 @@ trials in which it failed.
 
 ## 4 Discussion
 
-The baseline reproduced the surface form of the format reliably once it was
-named: subjects with a scope, without a type prefix, lowercase and within 72
-characters. Its failures instead concern conventions that the name "Scoped
-Commits" does not imply. Asked to revert, it rewrote git's default message
-into a scoped subject in every trial. It split a single change that spans two
-directories into two commits, omitted the `Refs:` trailer on ticket branches,
-and rewrote the default merge message. Each of these corresponds to an
-explicit rule in the skill, and none failed with the skill.
+With `{{opus_model}}`, the baseline reproduced the surface form of the
+format reliably once it was named: subjects with a scope, without a type
+prefix, lowercase and within 72 characters. Its failures concern
+conventions that the name "Scoped Commits" does not imply. Asked to revert,
+it rewrote git's default message into a scoped subject in every trial. It
+split a single change that spans two directories into two commits in three
+of five trials, and once each omitted the `Refs:` trailer on a ticket
+branch and rewrote the default merge message. Each of these corresponds to
+an explicit rule in the skill, and none failed with the skill.
+
+With `{{sonnet_model}}`, the baseline also lost the surface form: it
+adopted the Conventional Commits prefix from the log in three of five
+trials and, against a history of capitalized subjects without scopes,
+capitalized its own subject after the scope in every trial. It also split
+the change spanning two directories, omitted the ticket trailer and
+rewrote the default merge message in every trial. The skill held the smaller model to the convention in all but
+one trial, whose breaking-change body named the removed parameter but not
+how clients should migrate.
+
+The skill version evaluated here, {{version}}, differs from its predecessor
+by one rule. With the predecessor, `{{sonnet_model}}` passed each paragraph
+of a breaking-change body as a single `-m` argument and left it unwrapped
+in all five trials, since git does not wrap `-m` text; the rule now says to
+break lines inside the argument. The baseline runs did not depend on the
+skill and were not repeated.
 
 The scenarios that did not differentiate are informative as well. Staging
 only finished work, leaving an unrelated edit untouched, splitting
-independent changes and resisting a Conventional Commits history were
-handled by both conditions. In an earlier iteration, not included in the
-published artifacts, a variant of the skill without its subject, scope and
-body rules adopted the Conventional Commits prefix from the log in all five
-trials and left breaking-change bodies unwrapped in two of five. Those rules
-were therefore retained in a shortened form, while rules the model followed
-unprompted, such as the imperative mood, were removed.
+independent changes and a tree-wide change were handled by both conditions
+and both models. In an earlier iteration, not included in the published
+artifacts, a variant of the skill without its subject, scope and body rules
+adopted the Conventional Commits prefix from the log in all five trials
+with `{{opus_model}}`. Those rules were therefore retained in a shortened
+form, while rules the model followed unprompted, such as the imperative
+mood, were removed.
 
-Loading the skill added roughly {{turn_delta}} agent turns per trial without
-increasing cost, since the skill condition produced fewer output tokens.
+Loading the skill added about two agent turns per trial and increased mean
+cost by under a cent with both models.
 
 ## 5 Limitations
 
 - **Sample size.** Five trials per scenario cannot establish low failure
-  rates. The interval for the skill condition still admits a failure rate of
+  rates. The intervals for the skill condition still admit failure rates of
   several percent.
 - **Dependence between trials.** Trials within a scenario share a prompt and
   a repository. Fisher's exact test assumes independence and overstates the
   evidence; the scenario-level sign test is the conservative estimate.
-- **Single harness, model and date.** Results may not transfer to other
-  harnesses, other models or later versions of the same model.
+- **Single harness and date.** Results may not transfer to other
+  harnesses or later versions of the same models.
 - **Scenario design.** The scenarios were written in the same process in
   which the skill was revised, without a held-out set. The skill may be
   fitted to these scenarios.
 - **Synthetic repositories.** Fixtures are small and uniform. Real
   repositories have longer, less consistent histories.
-- **Environment.** Both conditions ran in the author's working environment.
-  In the baseline, another installed git skill was invoked in
-  {{base_other_skill}} trials, which is realistic but uncontrolled.
+- **Author's environment.** The author's global instruction file was
+  loaded in both conditions.
 - **Heuristic checks.** Two checks inspect the agent's reply by keyword and
   can misjudge phrasing. Cost figures are estimates reported by the harness.
 
@@ -188,16 +218,16 @@ increasing cost, since the skill condition produced fewer output tokens.
 
 Scenario definitions are in [`evals.json`](../../evals.json), fixtures in
 [`setup_fixture.sh`](../../setup_fixture.sh), and the grader in
-[`grade.py`](../../grade.py). Each directory `eval-*/<condition>/run-*/`
+[`grade.py`](../../grade.py). Each directory `<model>/eval-*/<condition>/run-*/`
 contains the graded checks with evidence (`grading.json`), resource use
 (`timing.json`), the agent's final reply (`response.md`) and the resulting
 commits (`git_result.txt`). Aggregates are in `summary.json`. The run can be
 repeated with:
 
 ```sh
-evals/commit/run_iteration.sh <run-dir> <fixture-dir> 5 8
+MODEL={{opus_model}} EFFORT={{effort}} evals/commit/run_iteration.sh <run-dir> <fixture-dir> 5 8
 evals/commit/grade.py <run-dir>
-evals/commit/export_results.py export <run-dir> {{out_dir}} --version {{version}} --model {{model}}
+evals/shared/export_results.py export evals/commit {{out_dir}} --version {{version}} --effort {{effort}} --run {{opus_model}}=<opus-run-dir> --run {{sonnet_model}}=<sonnet-run-dir>
 ```
 
 ## Sources

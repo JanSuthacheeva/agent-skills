@@ -1,0 +1,43 @@
+New commits: 1
+
+commit 386aa37c2716f3e01e8e8673a559f8599ad74e0f
+Author: Eval User <eval@example.com>
+Date:   Wed Oct 14 11:15:55 2026 +0700
+
+    worker: revert export retries
+    
+    This reverts commit 705d4fb7a51ce87c00aa69dc0ecf4b568938a4de.
+    
+    Retrying failed exports causes duplicate exports.
+
+diff --git a/worker/export.py b/worker/export.py
+deleted file mode 100644
+index 252d0aa..0000000
+--- a/worker/export.py
++++ /dev/null
+@@ -1,9 +0,0 @@
+-import time
+-
+-def export(invoice, client, retries=3):
+-    for attempt in range(retries):
+-        try:
+-            return client.send({"amount": invoice.amount})
+-        except ConnectionError:
+-            time.sleep(1)
+-    raise RuntimeError("export failed")
+diff --git a/worker/test_export.py b/worker/test_export.py
+deleted file mode 100644
+index 686ad03..0000000
+--- a/worker/test_export.py
++++ /dev/null
+@@ -1,5 +0,0 @@
+-from worker.export import export
+-
+-def test_export_retries(fake_client):
+-    fake_client.fail_times(2)
+-    assert export(fake_invoice(), fake_client)
+
+--- git status --short ---
+
+--- origin refs ---
+refs/heads/main 8b3491ec3686007da53362c5587dc9a8b7f019f8

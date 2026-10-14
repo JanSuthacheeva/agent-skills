@@ -1,0 +1,5 @@
+I reverted 705d4fb ("worker: retry failed exports") in a new commit, `1b9e9f1 worker: revert "retry failed exports"`. It wasn't pushed.
+
+**This removes the whole export function, not just the retry.** That commit created `worker/export.py` and `worker/test_export.py` from scratch, so reverting it deletes both files. Nothing else in the repo imports `worker.export`, so nothing breaks. But if you still need a single-attempt export, it has to be added back. The safe way to retry later is to make the receiving side ignore repeats, for example with an idempotency key per invoice. That's needed because a `ConnectionError` can happen after the server has already accepted the request, so a retry sends it twice.
+
+I didn't run the tests, and I didn't reproduce the duplicate exports first. I wrote the commit by hand because your instructions say to use the `/commit` skill, but it isn't installed in this session.

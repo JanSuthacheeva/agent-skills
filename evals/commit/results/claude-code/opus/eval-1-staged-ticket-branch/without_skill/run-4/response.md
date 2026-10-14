@@ -1,0 +1,3 @@
+I committed the staged change as `e36b4f9 api: auth: allow clock skew leeway on token expiry`. It lets tokens through for up to 60 seconds after they expire, so mobile clients whose clocks drift don't get fresh tokens rejected. The commit message body includes `Refs: HGAI-3187`, taken from the branch name.
+
+Your instructions say to use the `/commit` skill, but it isn't installed in this session. I wrote the message myself, following the repo's existing `<scope>: <description>` style.

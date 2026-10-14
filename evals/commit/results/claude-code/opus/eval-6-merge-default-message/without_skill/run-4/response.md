@@ -1,0 +1,3 @@
+I finished the merge as commit `de8296f`, using git's default message: "Merge branch 'feature/invoice-currency'". Before committing, I checked that `api/invoices.py` had no leftover conflict markers.
+
+I kept git's standard merge message rather than switching to the `<scope>: <description>` format. Your instructions also say to use the `/commit` skill, but it isn't available in this session, so I ran `git commit` directly.

@@ -1,0 +1,4 @@
+I committed the change as `50fdb49 worker: add jitter to export retry delay`. In `worker/export.py`, the wait between export retries changes from exactly 1s to a random 1-2s.
+
+- **No `/commit` skill:** your CLAUDE.md says to always use it, but it isn't installed in this environment, so I made the commit with plain git.
+- **Message format:** I used the `<scope>: <description>` format this session is set to. Earlier commits in this repo use Conventional Commits, so this one doesn't match them. In that style it would be `fix(worker): add jitter to export retry delay`. I can reword it if you want it to match.

@@ -1,0 +1,3 @@
+I committed the staged change to `worker/export.py` as `ee1d9a3`: `worker: add jitter to export retry backoff`. The change makes the export retry sleep `1 + random.random()` seconds instead of a flat 1 second.
+
+The `/commit` skill your CLAUDE.md asks for isn't available in this session, so I ran `git commit` directly. I used the `<scope>: <description>` format, with `worker` as the scope. Earlier commits in the history put a type in front (for example `fix(worker): ...`), so this one doesn't match them.

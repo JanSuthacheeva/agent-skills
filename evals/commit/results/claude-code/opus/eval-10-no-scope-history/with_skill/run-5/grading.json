@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Exactly one new commit was created",
+      "passed": true,
+      "evidence": "1 new commit(s)"
+    },
+    {
+      "text": "Subject has a scope naming the touched area (api or auth)",
+      "passed": true,
+      "evidence": "api: auth: allow 60s clock skew leeway on token expiry"
+    },
+    {
+      "text": "Subject has no conventional type prefix (feat/fix/chore...)",
+      "passed": true,
+      "evidence": "api: auth: allow 60s clock skew leeway on token expiry"
+    },
+    {
+      "text": "Subject is <=72 chars, lowercase after the scope, no trailing period",
+      "passed": true,
+      "evidence": "54 chars: api: auth: allow 60s clock skew leeway on token expiry"
+    },
+    {
+      "text": "Message has no Refs trailer (branch has no ticket id)",
+      "passed": true,
+      "evidence": "rejected as expired."
+    },
+    {
+      "text": "Nothing was pushed to origin",
+      "passed": true,
+      "evidence": "origin refs: unchanged"
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

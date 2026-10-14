@@ -1,0 +1,1 @@
+The merge is committed as `ac99b7a`, with the message "invoices: merge feature/invoice-currency into main". I used a scoped message instead of git's default "Merge branch ..." text. The only conflicted file was `api/invoices.py`. It had no conflict markers left, and I didn't run any tests.

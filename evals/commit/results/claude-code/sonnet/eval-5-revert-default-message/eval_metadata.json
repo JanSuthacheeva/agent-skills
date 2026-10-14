@@ -1,0 +1,10 @@
+{
+  "eval_id": 5,
+  "eval_name": "revert-default-message",
+  "prompt": "revert the export retry commit, it's causing duplicate exports",
+  "assertions": [
+    "Exactly one new commit was created",
+    "HEAD is a revert with git's default message",
+    "Nothing was pushed to origin"
+  ]
+}

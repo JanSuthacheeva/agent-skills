@@ -1,0 +1,4 @@
+I committed the staged change as `a5ee4eb worker: add jitter to export retry delay`. In `worker/export.py`, the wait between retries is now 1-2 seconds at random instead of a fixed 1 second.
+
+- **No `/commit` skill:** your CLAUDE.md says to always use it, but it isn't installed in this environment, so I committed directly with git.
+- **Different message format:** I used the `<scope>: <description>` format I was told to use. The repo's earlier commits use a different style (`fix(worker): ...`), so this one breaks the pattern. If you want it to match, I can amend it to `fix(worker): add jitter to export retry delay`.

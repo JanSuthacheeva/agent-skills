@@ -1,0 +1,48 @@
+New commits: 1
+
+commit 243fd51d100f02939e1d86687412f761c656b4dd
+Author: Eval User <eval@example.com>
+Date:   Wed Oct 14 11:18:52 2026 +0700
+
+    api: drop currency param from invoice endpoint
+    
+    The query parameter let clients request totals in a currency we
+    never converted to. The currency now always comes from the owning
+    account.
+    
+    BREAKING CHANGE: GET /invoices/<id> ignores the currency query
+    parameter. Clients must stop sending it and read currency from the
+    response instead.
+    
+    Refs: ECOM-88
+
+diff --git a/README.md b/README.md
+index 310f398..f7071f9 100644
+--- a/README.md
++++ b/README.md
+@@ -1 +1,7 @@
+ # shop
++
++## API
++
++`GET /invoices/<id>` returns the invoice in the account's currency.
++The `currency` query parameter was removed; clients that sent it must drop it
++and read `currency` from the response instead.
+diff --git a/api/invoices.py b/api/invoices.py
+index 9103f89..43cf57b 100644
+--- a/api/invoices.py
++++ b/api/invoices.py
+@@ -1,5 +1,6 @@
+ from billing.totals import invoice_total
+ 
+ def get_invoice(request, invoice):
+-    currency = request.args.get("currency", "EUR")
+-    return {"id": invoice.id, "amount": invoice_total(invoice.lines), "currency": currency}
++    # Currency now always comes from the owning account; the query
++    # parameter let clients request totals in a currency we never converted to.
++    return {"id": invoice.id, "amount": invoice_total(invoice.lines), "currency": invoice.account.currency}
+
+--- git status --short ---
+
+--- origin refs ---
+refs/heads/main eaa9ca8b1b4c789c4505dbe2201ce564a6a150e7

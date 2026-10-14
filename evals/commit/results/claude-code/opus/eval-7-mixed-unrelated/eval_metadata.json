@@ -1,0 +1,15 @@
+{
+  "eval_id": 7,
+  "eval_name": "mixed-unrelated",
+  "prompt": "pagination for the invoice list endpoint is done, commit it",
+  "assertions": [
+    "Exactly one new commit was created",
+    "Commit contains exactly api/invoices.py and api/test_invoices.py",
+    "Unrelated worker/export.py change was left uncommitted and unstaged",
+    "Response mentions the left-out worker/export.py change",
+    "Subject starts with `api` scope",
+    "Subject has no conventional type prefix (feat/fix/chore...)",
+    "Subject is <=72 chars, lowercase after the scope, no trailing period",
+    "Nothing was pushed to origin"
+  ]
+}

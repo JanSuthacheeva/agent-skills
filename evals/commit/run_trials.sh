@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Run one commit-skill eval trial headlessly with `claude -p`.
 # Usage: run_trials.sh <eval-name> <prompt> <config> <run-dir> <fixture-root>
-#   config: with_skill | without_skill. Both run in the user's normal
-#   environment; without_skill hides only the commit skill via
-#   skillOverrides, so its presence is the only difference.
+#   config: with_skill | without_skill. Runs are isolated from user and
+#   plugin settings; with_skill copies the skill into the fixture's project
+#   skills, so its presence is the only difference.
 set -euo pipefail
 name=$1; prompt=$2; cfg=$3; run=$4; fixtures=$5
 here=$(cd "$(dirname "$0")" && pwd)
@@ -11,10 +11,16 @@ fx="$fixtures/$(echo "$run" | tr / _)"
 "$here/setup_fixture.sh" "$name" "$fx" >/dev/null
 mkdir -p "$run/outputs"
 ln -sfn "$fx/repo" "$run/repo"; ln -sfn "$fx/origin.git" "$run/origin.git"; cp "$fx/base_sha" "$run/base_sha"
-args=(-p "$prompt" --output-format json --model "${MODEL:-claude-opus-5-5}"
+if [ "$cfg" = with_skill ]; then
+  mkdir -p "$fx/repo/.claude/skills"
+  cp -R "$here/../../skills/commit" "$fx/repo/.claude/skills/"
+  echo ".claude/" >> "$fx/repo/.git/info/exclude"
+fi
+args=(-p "$prompt" --output-format json --model "${MODEL:-claude-opus-5-5}" --effort "${EFFORT:-medium}"
+      --setting-sources project,local --strict-mcp-config --mcp-config '{"mcpServers": {}}'
       --allowedTools Skill "Bash(git *)" "Bash(git:*)" Read Glob Grep)
 if [ "$cfg" = without_skill ]; then
-  args+=(--settings '{"skillOverrides":{"commit":"off"}}' --append-system-prompt \
+  args+=(--append-system-prompt \
     "Write commit messages in Scoped Commits format: \`<scope>: <description>\`.")
 fi
 (cd "$fx/repo" && claude "${args[@]}" < /dev/null) > "$run/outputs/raw.json" 2> "$run/outputs/stderr.txt" || true

@@ -1,0 +1,4 @@
+I committed the staged changes as `18c1622 treewide: add MIT license`. The commit adds a `LICENSE` file, a License section in the README, and SPDX headers on all five Python files.
+
+- **`/commit` skill:** your instructions say to use it, but it isn't available in this session, so I wrote the commit by hand in the same style as earlier commits.
+- **Incomplete license file:** `LICENSE` only contains the line "MIT License". It's missing the copyright line and the standard permission and warranty text, so it isn't a complete MIT license yet. I can add the full text if you tell me the copyright holder and year.

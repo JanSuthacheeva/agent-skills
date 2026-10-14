@@ -1,0 +1,11 @@
+{
+  "eval_id": 11,
+  "eval_name": "split-unrelated",
+  "prompt": "all of these changes are done, commit them",
+  "assertions": [
+    "Three new commits were created, one per change",
+    "Each commit touches only one of billing/, worker/ or README.md",
+    "All new commit subjects are scoped with no type prefix, <=72 chars, lowercase, no period",
+    "Nothing was pushed to origin"
+  ]
+}

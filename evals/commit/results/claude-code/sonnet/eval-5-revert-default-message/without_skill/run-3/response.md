@@ -1,0 +1,3 @@
+I reverted `aa8789c` ("worker: retry failed exports") as `382a7a6`, with the message `worker: revert retry failed exports`. The revert applied cleanly and the working tree is clean. I didn't run any tests or check that the duplicate exports are gone.
+
+Your instructions say to commit through the `/commit` skill, but it isn't available in this session. I used `git revert` and wrote the message in the `<scope>: <description>` format.

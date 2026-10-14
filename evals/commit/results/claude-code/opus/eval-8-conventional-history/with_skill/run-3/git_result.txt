@@ -1,0 +1,32 @@
+New commits: 1
+
+commit 3c5ce392a8e8ba121e615039a288cddae40e575d
+Author: Eval User <eval@example.com>
+Date:   Wed Oct 14 11:19:57 2026 +0700
+
+    worker: add jitter to export retry delay
+    
+    A fixed one-second delay makes concurrent failed exports retry in
+    lockstep and hit the client again at the same moment.
+
+diff --git a/worker/export.py b/worker/export.py
+index 252d0aa..8ea4d7b 100644
+--- a/worker/export.py
++++ b/worker/export.py
+@@ -1,3 +1,4 @@
++import random
+ import time
+ 
+ def export(invoice, client, retries=3):
+@@ -5,5 +6,5 @@ def export(invoice, client, retries=3):
+         try:
+             return client.send({"amount": invoice.amount})
+         except ConnectionError:
+-            time.sleep(1)
++            time.sleep(1 + random.random())
+     raise RuntimeError("export failed")
+
+--- git status --short ---
+
+--- origin refs ---
+refs/heads/main 1046f0223d0096e62e956e1d75309ab94ffaf582

@@ -1,6 +1,6 @@
-# Evaluation of the `commit` skill v2.8 in Claude Code
+# Evaluation of the `commit` skill v2.10 in Claude Code
 
-Claude Code 2.1.283, `claude-opus-5-5`, 11 scenarios, 5 trials per scenario and condition, 27 September 2026.
+Claude Code 2.1.299, `claude-opus-5-5` and `claude-sonnet-5-5` at medium effort, 11 scenarios, 5 trials per scenario, condition and model, 14 October 2026.
 
 ## Summary
 
@@ -9,15 +9,19 @@ follow a specific workflow. It is not self-evident that such a file changes
 behavior once the agent is already told which output format is expected. The
 `commit` skill specifies how commits are written in the Scoped Commits format;
 it is evaluated against a baseline that is informed of the same format but
-has no access to the skill. Across 11 scenarios with
-5 trials each (55 trials per condition), trials
-with the skill satisfied every check in 55 of 55 cases
-(100.0%; 95% CI 93.5%-100.0%), compared with 40 of
-55 cases (72.7%; 95% CI 59.8%-82.7%) for the baseline. The
-differences concentrate in conventions that the format name does not convey:
-keeping git's default revert and merge messages, adding a ticket trailer, and
-keeping one logical change in one commit. Mean cost per trial was comparable
-($0.205 versus $0.210).
+has no access to the skill, in 11 scenarios with two models.
+With `claude-opus-5-5`, 55 of 55 skill trials
+(100.0%; 95% CI 93.5%-100.0%) and 45 of
+55 baseline trials (81.8%; 95% CI
+69.7%-89.8%) satisfied every check; with `claude-sonnet-5-5`,
+54 (98.2%; 95% CI 90.4%-99.7%)
+and 27 (49.1%; 95% CI 36.4%-61.9%).
+The differences concentrate in conventions that the format name does not
+convey: keeping git's default revert and merge messages, adding a ticket
+trailer, and keeping one logical change in one commit; the smaller model
+additionally followed the style of a history that contradicts the
+format, in Conventional Commits style or with capitalized subjects. Mean cost per trial was comparable in both
+conditions.
 
 ## 1 Question
 
@@ -44,7 +48,7 @@ repeated headless trials against generated git repositories.
 ### 2.1 Skill under test
 
 The skill ([`SKILL.md`](../../../../skills/commit/SKILL.md), version
-2.8) instructs the agent to inspect the repository state, stage the
+2.10) instructs the agent to inspect the repository state, stage the
 files of the finished work when nothing is staged, and commit with one
 message per logical change. It prescribes the subject form `scope:
 description` without a Conventional Commits type prefix, scopes taken from
@@ -79,24 +83,25 @@ without scopes, as well as reverts, merges and multiple independent changes.
 
 ### 2.3 Conditions
 
-In the **skill** condition, the skill is installed in the user's
-environment and loaded through the harness's normal mechanism. In the
-**baseline** condition, the environment is identical except that the skill is
-hidden through the harness setting `skillOverrides`, and the system prompt is
-extended by one sentence asking for commit messages in Scoped Commits format
-(`<scope>: <description>`). The baseline is thereby informed of the target
-format, and the comparison isolates what the skill contributes beyond the
-format name. Both conditions otherwise run in the author's full working
-environment, including other installed skills and global instructions.
+Every trial ran in a fresh headless session restricted to project and local
+settings, without plugins or MCP servers. In the **skill** condition, the
+skill was copied into the fixture's project skills. In the **baseline**
+condition it was absent, and the system prompt was extended by one sentence
+asking for commit messages in Scoped Commits format (`<scope>:
+<description>`). The baseline is thereby informed of the target format, and
+the comparison isolates what the skill contributes beyond the format name.
 
 ### 2.4 Procedure
 
-All trials ran in Claude Code 2.1.283 in headless mode (`claude -p`) with the model
-`claude-opus-5-5` on 27 September 2026. Each trial started from a freshly generated
-repository. Agents were permitted git commands and read-only file tools
-(Read, Glob, Grep); other shell commands were denied. Trials ran eight at a
-time. In the skill condition, the skill was invoked in 55 of 55
-trials, verified from the session transcripts.
+All trials ran in Claude Code 2.1.299 in headless mode (`claude -p`) at medium
+effort with the models `claude-opus-5-5` and `claude-sonnet-5-5` on
+14 October 2026. Each trial started from a freshly generated repository.
+Agents were permitted git commands and read-only file tools (Read, Glob,
+Grep); other shell commands were denied. Trials ran eight at a time per
+model. In the skill condition, the skill was invoked in
+55 of 55 trials with `claude-opus-5-5` and in
+55 of 55 with `claude-sonnet-5-5`, verified from the session
+transcripts.
 
 ### 2.5 Measures and analysis
 
@@ -111,107 +116,136 @@ output tokens, agent turns and wall-clock duration.
 Success rates are reported with Wilson score intervals [2]. The conditions
 are compared with Fisher's exact test [3] on trial-level success, which
 treats trials as independent, and with a two-sided sign test over scenarios
-that differ between conditions, which does not.
+that differ between conditions, which does not. Both are computed per model.
 
 ## 3 Results
 
 ### 3.1 Success rates
 
-With the skill, 55 of 55 trials succeeded (100.0%;
-95% CI 93.5%-100.0%) and 300 of 300 checks passed. In the baseline,
-40 of 55 trials succeeded (72.7%; 95% CI
-59.8%-82.7%) and 282 of 300 checks passed. Fisher's exact test yields
-p = 2.0e-05. At scenario level, the skill condition performed better in
-5 scenarios, worse in 0 and equally in
-6; the sign test yields p = 0.0625. Table 2 lists successful
-trials per scenario.
+With `claude-opus-5-5`, 55 of 55 skill trials
+succeeded (100.0%; 95% CI 93.5%-100.0%;
+300 of 300 checks) and 45 of 55
+baseline trials (81.8%; 95% CI 69.7%-89.8%;
+287 of 300 checks). Fisher's exact test yields
+p = 0.001; the skill condition did better in
+4 scenarios, worse in 0 and
+equally in 7 (sign test p = 0.1250).
+
+With `claude-sonnet-5-5`, 54 of 55 skill
+trials succeeded (98.2%; 95% CI 90.4%-99.7%;
+299 of 300 checks) and 27 of
+55 baseline trials (49.1%; 95% CI
+36.4%-61.9%; 262 of 300 checks). Fisher's exact test
+yields p = 1.4e-09; the skill condition did better in
+6 scenarios, worse in 0 and
+equally in 5 (sign test p = 0.0312).
 
 **Table 2.** Successful trials per scenario (all checks passed).
 
-| # | Scenario | Skill | Baseline |
-|---|---|---|---|
-| 1 | `staged-ticket-branch` | 5/5 | 4/5 |
-| 2 | `nothing-staged-mixed` | 5/5 | 5/5 |
-| 3 | `push-multi-scope` | 5/5 | 2/5 |
-| 4 | `breaking-change` | 5/5 | 2/5 |
-| 5 | `revert-default-message` | 5/5 | 0/5 |
-| 6 | `merge-default-message` | 5/5 | 2/5 |
-| 7 | `mixed-unrelated` | 5/5 | 5/5 |
-| 8 | `conventional-history` | 5/5 | 5/5 |
-| 9 | `treewide` | 5/5 | 5/5 |
-| 10 | `no-scope-history` | 5/5 | 5/5 |
-| 11 | `split-unrelated` | 5/5 | 5/5 |
-|  | **Total** | **55/55** | **40/55** |
+| # | Scenario | Opus Skill | Opus Baseline | Sonnet Skill | Sonnet Baseline |
+|---|---|---|---|---|---|
+| 1 | `staged-ticket-branch` | 5/5 | 5/5 | 5/5 | 5/5 |
+| 2 | `nothing-staged-mixed` | 5/5 | 5/5 | 5/5 | 5/5 |
+| 3 | `push-multi-scope` | 5/5 | 2/5 | 5/5 | 0/5 |
+| 4 | `breaking-change` | 5/5 | 4/5 | 4/5 | 0/5 |
+| 5 | `revert-default-message` | 5/5 | 0/5 | 5/5 | 0/5 |
+| 6 | `merge-default-message` | 5/5 | 4/5 | 5/5 | 0/5 |
+| 7 | `mixed-unrelated` | 5/5 | 5/5 | 5/5 | 5/5 |
+| 8 | `conventional-history` | 5/5 | 5/5 | 5/5 | 2/5 |
+| 9 | `treewide` | 5/5 | 5/5 | 5/5 | 5/5 |
+| 10 | `no-scope-history` | 5/5 | 5/5 | 5/5 | 0/5 |
+| 11 | `split-unrelated` | 5/5 | 5/5 | 5/5 | 5/5 |
+|  | **Total** | **55/55** | **45/55** | **54/55** | **27/55** |
 
 ### 3.2 Failure analysis
 
 Table 3 lists every check that failed at least once, with the number of
 trials in which it failed.
 
-**Table 3.** Failed checks by condition.
+**Table 3.** Failed checks, by model and condition (number of trials).
 
-| Check | Skill | Baseline |
-|---|---|---|
-| HEAD is a revert with git's default message | 0 | 5 |
-| Exactly one new commit was created | 0 | 3 |
-| HEAD is a merge commit with git's default message | 0 | 3 |
-| Message contains the trailer `Refs: ECOM-88` | 0 | 3 |
-| Subject scope covers both areas (e.g. `api, worker:`) | 0 | 3 |
-| Message contains the trailer `Refs: HGAI-3187` | 0 | 1 |
+| Check | Opus Skill | Opus Baseline | Sonnet Skill | Sonnet Baseline |
+|---|---|---|---|---|
+| HEAD is a revert with git's default message | 0 | 5 | 0 | 5 |
+| Exactly one new commit was created | 0 | 3 | 0 | 5 |
+| Subject scope covers both areas (e.g. `api, worker:`) | 0 | 3 | 0 | 5 |
+| HEAD is a merge commit with git's default message | 0 | 1 | 0 | 5 |
+| Message contains the trailer `Refs: ECOM-88` | 0 | 1 | 0 | 5 |
+| Subject is <=72 chars, lowercase after the scope, no trailing period | 0 | 0 | 0 | 5 |
+| Subject has no conventional type prefix (feat/fix/chore...) | 0 | 0 | 0 | 3 |
+| Subject starts with `worker:` | 0 | 0 | 0 | 3 |
+| Body lines wrapped at <=72 chars | 0 | 0 | 0 | 2 |
+| Body gives the client migration (drop the param / read currency from response) | 0 | 0 | 1 | 0 |
 
 ### 3.3 Cost
 
 **Table 4.** Resource use per trial, mean (standard deviation).
 
-| Measure | Skill | Baseline |
-|---|---|---|
-| Cost (USD) | 0.205 (0.011) | 0.210 (0.021) |
-| Output tokens | 719 (221) | 864 (239) |
-| Agent turns | 6.2 (0.7) | 4.8 (1.3) |
-| Duration (s) | 15.3 (3.9) | 14.8 (3.5) |
+| Measure | Opus Skill | Opus Baseline | Sonnet Skill | Sonnet Baseline |
+|---|---|---|---|---|
+| Cost (USD) | 0.096 (0.010) | 0.088 (0.016) | 0.045 (0.004) | 0.041 (0.007) |
+| Output tokens | 705 (226) | 695 (235) | 514 (122) | 503 (140) |
+| Agent turns | 6.1 (0.7) | 3.9 (1.1) | 6.0 (0.7) | 3.6 (0.8) |
+| Duration (s) | 16.2 (4.2) | 13.3 (5.0) | 13.8 (2.6) | 11.0 (2.6) |
 
 ## 4 Discussion
 
-The baseline reproduced the surface form of the format reliably once it was
-named: subjects with a scope, without a type prefix, lowercase and within 72
-characters. Its failures instead concern conventions that the name "Scoped
-Commits" does not imply. Asked to revert, it rewrote git's default message
-into a scoped subject in every trial. It split a single change that spans two
-directories into two commits, omitted the `Refs:` trailer on ticket branches,
-and rewrote the default merge message. Each of these corresponds to an
-explicit rule in the skill, and none failed with the skill.
+With `claude-opus-5-5`, the baseline reproduced the surface form of the
+format reliably once it was named: subjects with a scope, without a type
+prefix, lowercase and within 72 characters. Its failures concern
+conventions that the name "Scoped Commits" does not imply. Asked to revert,
+it rewrote git's default message into a scoped subject in every trial. It
+split a single change that spans two directories into two commits in three
+of five trials, and once each omitted the `Refs:` trailer on a ticket
+branch and rewrote the default merge message. Each of these corresponds to
+an explicit rule in the skill, and none failed with the skill.
+
+With `claude-sonnet-5-5`, the baseline also lost the surface form: it
+adopted the Conventional Commits prefix from the log in three of five
+trials and, against a history of capitalized subjects without scopes,
+capitalized its own subject after the scope in every trial. It also split
+the change spanning two directories, omitted the ticket trailer and
+rewrote the default merge message in every trial. The skill held the smaller model to the convention in all but
+one trial, whose breaking-change body named the removed parameter but not
+how clients should migrate.
+
+The skill version evaluated here, 2.10, differs from its predecessor
+by one rule. With the predecessor, `claude-sonnet-5-5` passed each paragraph
+of a breaking-change body as a single `-m` argument and left it unwrapped
+in all five trials, since git does not wrap `-m` text; the rule now says to
+break lines inside the argument. The baseline runs did not depend on the
+skill and were not repeated.
 
 The scenarios that did not differentiate are informative as well. Staging
 only finished work, leaving an unrelated edit untouched, splitting
-independent changes and resisting a Conventional Commits history were
-handled by both conditions. In an earlier iteration, not included in the
-published artifacts, a variant of the skill without its subject, scope and
-body rules adopted the Conventional Commits prefix from the log in all five
-trials and left breaking-change bodies unwrapped in two of five. Those rules
-were therefore retained in a shortened form, while rules the model followed
-unprompted, such as the imperative mood, were removed.
+independent changes and a tree-wide change were handled by both conditions
+and both models. In an earlier iteration, not included in the published
+artifacts, a variant of the skill without its subject, scope and body rules
+adopted the Conventional Commits prefix from the log in all five trials
+with `claude-opus-5-5`. Those rules were therefore retained in a shortened
+form, while rules the model followed unprompted, such as the imperative
+mood, were removed.
 
-Loading the skill added roughly 1.4 agent turns per trial without
-increasing cost, since the skill condition produced fewer output tokens.
+Loading the skill added about two agent turns per trial and increased mean
+cost by under a cent with both models.
 
 ## 5 Limitations
 
 - **Sample size.** Five trials per scenario cannot establish low failure
-  rates. The interval for the skill condition still admits a failure rate of
+  rates. The intervals for the skill condition still admit failure rates of
   several percent.
 - **Dependence between trials.** Trials within a scenario share a prompt and
   a repository. Fisher's exact test assumes independence and overstates the
   evidence; the scenario-level sign test is the conservative estimate.
-- **Single harness, model and date.** Results may not transfer to other
-  harnesses, other models or later versions of the same model.
+- **Single harness and date.** Results may not transfer to other
+  harnesses or later versions of the same models.
 - **Scenario design.** The scenarios were written in the same process in
   which the skill was revised, without a held-out set. The skill may be
   fitted to these scenarios.
 - **Synthetic repositories.** Fixtures are small and uniform. Real
   repositories have longer, less consistent histories.
-- **Environment.** Both conditions ran in the author's working environment.
-  In the baseline, another installed git skill was invoked in
-  25 of 55 trials, which is realistic but uncontrolled.
+- **Author's environment.** The author's global instruction file was
+  loaded in both conditions.
 - **Heuristic checks.** Two checks inspect the agent's reply by keyword and
   can misjudge phrasing. Cost figures are estimates reported by the harness.
 
@@ -219,16 +253,16 @@ increasing cost, since the skill condition produced fewer output tokens.
 
 Scenario definitions are in [`evals.json`](../../evals.json), fixtures in
 [`setup_fixture.sh`](../../setup_fixture.sh), and the grader in
-[`grade.py`](../../grade.py). Each directory `eval-*/<condition>/run-*/`
+[`grade.py`](../../grade.py). Each directory `<model>/eval-*/<condition>/run-*/`
 contains the graded checks with evidence (`grading.json`), resource use
 (`timing.json`), the agent's final reply (`response.md`) and the resulting
 commits (`git_result.txt`). Aggregates are in `summary.json`. The run can be
 repeated with:
 
 ```sh
-evals/commit/run_iteration.sh <run-dir> <fixture-dir> 5 8
+MODEL=claude-opus-5-5 EFFORT=medium evals/commit/run_iteration.sh <run-dir> <fixture-dir> 5 8
 evals/commit/grade.py <run-dir>
-evals/commit/export_results.py export <run-dir> evals/commit/results/claude-code --version 2.8 --model claude-opus-5-5
+evals/shared/export_results.py export evals/commit evals/commit/results/claude-code --version 2.10 --effort medium --run claude-opus-5-5=<opus-run-dir> --run claude-sonnet-5-5=<sonnet-run-dir>
 ```
 
 ## Sources

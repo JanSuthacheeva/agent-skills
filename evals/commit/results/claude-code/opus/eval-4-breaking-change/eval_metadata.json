@@ -1,0 +1,16 @@
+{
+  "eval_id": 4,
+  "eval_name": "breaking-change",
+  "prompt": "commit",
+  "assertions": [
+    "Exactly one new commit was created",
+    "Subject starts with `api` scope",
+    "Subject has no conventional type prefix (feat/fix/chore...)",
+    "Subject is <=72 chars, lowercase after the scope, no trailing period",
+    "Body states the breaking removal of the `currency` query parameter",
+    "Body gives the client migration (drop the param / read currency from response)",
+    "Body lines wrapped at <=72 chars",
+    "Message contains the trailer `Refs: ECOM-88`",
+    "Nothing was pushed to origin"
+  ]
+}

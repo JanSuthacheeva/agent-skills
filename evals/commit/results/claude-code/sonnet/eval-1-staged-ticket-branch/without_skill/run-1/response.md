@@ -1,0 +1,3 @@
+I committed the staged change to `api/auth.py` as `fbd6d7c`: `api: auth: allow 60s clock skew when validating token expiry`.
+
+The commit body explains that mobile clients drift by up to a minute, so fresh tokens were being rejected as expired. It also has a `Refs: HGAI-3187` footer taken from the branch name. The `/commit` skill from your instructions isn't in the available skills list, so I ran `git commit` directly.

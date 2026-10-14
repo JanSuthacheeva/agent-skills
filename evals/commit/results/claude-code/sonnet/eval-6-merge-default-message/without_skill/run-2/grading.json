@@ -1,0 +1,20 @@
+{
+  "expectations": [
+    {
+      "text": "HEAD is a merge commit with git's default message",
+      "passed": false,
+      "evidence": "2 parents: api: merge feature/invoice-currency"
+    },
+    {
+      "text": "Nothing was pushed to origin",
+      "passed": true,
+      "evidence": "origin refs: unchanged"
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 1,
+    "total": 2,
+    "pass_rate": 0.5
+  }
+}

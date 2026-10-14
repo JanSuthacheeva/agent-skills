@@ -1,0 +1,12 @@
+{
+  "eval_id": 8,
+  "eval_name": "conventional-history",
+  "prompt": "commit",
+  "assertions": [
+    "Exactly one new commit was created",
+    "Subject starts with `worker:`",
+    "Subject has no conventional type prefix (feat/fix/chore...)",
+    "Subject is <=72 chars, lowercase after the scope, no trailing period",
+    "Nothing was pushed to origin"
+  ]
+}

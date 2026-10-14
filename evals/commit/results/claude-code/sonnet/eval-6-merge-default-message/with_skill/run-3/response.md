@@ -1,0 +1,1 @@
+The merge is finished. I kept git's default message, "Merge branch 'feature/invoice-currency'", with the conflict note for `api/invoices.py`. The merge commit is `8c23281` on `main`. Nothing else was left unstaged.

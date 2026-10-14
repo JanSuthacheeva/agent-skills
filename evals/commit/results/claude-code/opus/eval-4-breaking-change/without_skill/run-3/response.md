@@ -1,0 +1,3 @@
+I committed the staged changes as `782d2fa api: invoices: drop currency query parameter`. Your instructions say to use the `/commit` skill, but it isn't installed in this session, so I wrote the message myself in the repo's scoped style.
+
+This is a breaking change: `GET /invoices/<id>` no longer accepts the `currency` query parameter, and the currency now always comes from the invoice's account. The commit message has a `BREAKING CHANGE:` footer explaining this, plus `Refs: ECOM-88` from the branch name. The README update went into the same commit.

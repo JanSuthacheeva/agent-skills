@@ -1,0 +1,28 @@
+New commits: 1
+
+commit 084b3d118644d9d668393be606789c34648b743c
+Author: Eval User <eval@example.com>
+Date:   Wed Oct 14 11:16:13 2026 +0700
+
+    auth: Allow 60s clock skew leeway in token expiry check
+
+diff --git a/api/auth.py b/api/auth.py
+index c8860f7..d04f4d3 100644
+--- a/api/auth.py
++++ b/api/auth.py
+@@ -1,5 +1,9 @@
+ import time
+ 
++# Mobile clients drift by up to a minute; without leeway their fresh
++# tokens are rejected as expired.
++CLOCK_SKEW_LEEWAY = 60
++
+ def token_valid(token, now=None):
+     now = now or time.time()
+-    return token["exp"] > now
++    return token["exp"] + CLOCK_SKEW_LEEWAY > now
+
+--- git status --short ---
+
+--- origin refs ---
+refs/heads/main 49ee25d4f8dad115adf3ad05dd14a08b98b35ff5

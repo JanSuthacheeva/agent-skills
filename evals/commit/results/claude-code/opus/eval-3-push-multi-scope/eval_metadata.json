@@ -1,0 +1,12 @@
+{
+  "eval_id": 3,
+  "eval_name": "push-multi-scope",
+  "prompt": "commit and push this",
+  "assertions": [
+    "Exactly one new commit was created",
+    "Subject scope covers both areas (e.g. `api, worker:`)",
+    "Subject has no conventional type prefix (feat/fix/chore...)",
+    "Subject is <=72 chars, lowercase after the scope, no trailing period",
+    "Message has no Refs trailer (branch has no ticket id)"
+  ]
+}

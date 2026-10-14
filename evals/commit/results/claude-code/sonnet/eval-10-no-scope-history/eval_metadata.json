@@ -1,0 +1,13 @@
+{
+  "eval_id": 10,
+  "eval_name": "no-scope-history",
+  "prompt": "commit",
+  "assertions": [
+    "Exactly one new commit was created",
+    "Subject has a scope naming the touched area (api or auth)",
+    "Subject has no conventional type prefix (feat/fix/chore...)",
+    "Subject is <=72 chars, lowercase after the scope, no trailing period",
+    "Message has no Refs trailer (branch has no ticket id)",
+    "Nothing was pushed to origin"
+  ]
+}

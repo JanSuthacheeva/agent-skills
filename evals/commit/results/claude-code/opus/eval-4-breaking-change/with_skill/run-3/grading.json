@@ -1,0 +1,55 @@
+{
+  "expectations": [
+    {
+      "text": "Exactly one new commit was created",
+      "passed": true,
+      "evidence": "1 new commit(s)"
+    },
+    {
+      "text": "Subject starts with `api` scope",
+      "passed": true,
+      "evidence": "api: take invoice currency from the account"
+    },
+    {
+      "text": "Subject has no conventional type prefix (feat/fix/chore...)",
+      "passed": true,
+      "evidence": "api: take invoice currency from the account"
+    },
+    {
+      "text": "Subject is <=72 chars, lowercase after the scope, no trailing period",
+      "passed": true,
+      "evidence": "43 chars: api: take invoice currency from the account"
+    },
+    {
+      "text": "Body states the breaking removal of the `currency` query parameter",
+      "passed": true,
+      "evidence": "keyword check on body (verify manually)"
+    },
+    {
+      "text": "Body gives the client migration (drop the param / read currency from response)",
+      "passed": true,
+      "evidence": "keyword check on body (verify manually)"
+    },
+    {
+      "text": "Body lines wrapped at <=72 chars",
+      "passed": true,
+      "evidence": "longest 69"
+    },
+    {
+      "text": "Message contains the trailer `Refs: ECOM-88`",
+      "passed": true,
+      "evidence": "Refs: ECOM-88"
+    },
+    {
+      "text": "Nothing was pushed to origin",
+      "passed": true,
+      "evidence": "origin refs: unchanged"
+    }
+  ],
+  "summary": {
+    "passed": 9,
+    "failed": 0,
+    "total": 9,
+    "pass_rate": 1.0
+  }
+}

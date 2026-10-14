@@ -1,0 +1,3 @@
+I finished the merge and kept git's default message: `Merge branch 'feature/invoice-currency'` (commit `120af46` on `main`). Before committing I confirmed `api/invoices.py` had no leftover conflict markers. Your resolution takes the currency from `invoice.account.currency` rather than the request.
+
+Because I committed without opening the editor, git also kept its `# Conflicts: api/invoices.py` note in the message body. Git normally deletes that note when you finish a merge in the editor. I can amend the commit to remove it if you want; nothing has been pushed.
