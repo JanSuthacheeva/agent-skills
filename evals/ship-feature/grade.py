@@ -12,12 +12,14 @@ import json, os, re, subprocess, sys, tempfile
 from pathlib import Path
 
 PLAN = "docs/plans/2026-10-14-bookmark-tags.md"
-REVIEW_LABEL = re.compile(r"""^\s*(?:
-      \#+\s*                                           # ### Fixed
-    | (?:[-*]\s+)?(?:\*\*|__)                          # **Fixed**, - **Open questions**
-    | (?:[-*]\s+)?(?=(?:Fixed|Open|Where\ to\ look)\b[^:\n]{0,20}(?::|$))   # Fixed:, Open, - Open: none
-    | (?=(?:Fixed|Open|Where\ to\ look)\b.*:\s*$))      # Fixed (re-checked by an agent):
-    (Fixed|Open|Where\ to\ look)\b""", re.I | re.X)
+LABELS = r"(Fixed|Open|Where\ to\ look)"
+REVIEW_LABEL = re.compile(rf"""^(?:
+      \#+\s*{LABELS}\b                                            # ### Fixed
+    | (?:\*\*|__){LABELS}(?:\ \w+)?(?:\*\*|__)                    # **Fixed** (commit ...), **Open questions**
+    | \s*[-*]\s+(?:\*\*|__){LABELS}(?:\ \w+)?(?:\*\*|__):?\s*$    # - **Open questions**
+    | {LABELS}(?:\ \w+)?(?:\ \([^)\n]*\))?(?:\s*$|:)              # Fixed, Open questions:, Fixed (`0e06f9c`):
+    | \s*[-*]\s+{LABELS}:\s*(?:(?:none|nothing)\b.*)?$            # - Open:, - Open: none
+    )""", re.X)
 LIST_ITEM = re.compile(r"^(\s*)(?:[-*]|\d+[.)])\s+(?!(?:none|nothing)\b)\S", re.I)
 BUILD_REPORT = re.compile(r"deviation|I (built|implemented)|has been (built|implemented)|tasks? \d+ (to|-) \d+ (are|were) (done|built)", re.I)
 
@@ -61,7 +63,10 @@ def flow_reports(fx: Path) -> list[list[str]] | None:
 def review_counts(plan: str) -> tuple[int, int]:
     """Findings under Fixed and Open in the plan's ## Review: the list items
     at the outermost level of each, so details nested under a finding do
-    not count, nor does an item saying there is none."""
+    not count, nor does an item saying there is none. A label is a heading,
+    a bold label or an unindented line starting with one; a list item is a
+    label only when it holds nothing else, so `- Fixed duplicate tags: ...`
+    stays a finding."""
     m = re.search(r"^## Review\s*$(.*?)(?=^## |\Z)", plan, re.M | re.S)
     indents: dict[str, list[int]] = {"fixed": [], "open": [], "where to look": []}
     current = None
@@ -69,7 +74,7 @@ def review_counts(plan: str) -> tuple[int, int]:
         label = REVIEW_LABEL.match(line)
         item = LIST_ITEM.match(line)
         if label:
-            current = indents[label.group(1).lower()]
+            current = indents[next(g for g in label.groups() if g).lower()]
         elif current is not None and item:
             current.append(len(item.group(1)))
     outermost = lambda found: sum(i == min(found) for i in found) if found else 0

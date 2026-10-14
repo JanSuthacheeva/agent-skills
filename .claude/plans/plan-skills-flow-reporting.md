@@ -158,7 +158,10 @@ def flow_reports(fx: Path) -> list[list[str]] | None
     # flow.jsonl as argument lists in order; None when the trial ran with FLOW=absent
 
 def review_counts(plan: str) -> tuple[int, int]
-    # number of lines under Fixed and Open in the plan's ## Review
+    # outermost list items under Fixed and Open in the plan's ## Review, not
+    # "none"; a label is a heading, a bold label or an unindented line, and a
+    # list item only when it holds nothing else, so `- Fixed duplicate tags: ...`
+    # and an indented continuation line starting with "open" stay findings
 
 def flow_check(t: str, reports: list[list[str]], plan: str) -> tuple[bool, str]
     # grades one report expectation, like check() does the others
@@ -281,7 +284,7 @@ The implementation page repeats this chain with "Review the implementation page"
 ### After review (decided by the user)
 
 - [x] `flow` stub logs each call's argv as one JSON array per line, like the forge stubs, and `flow_reports` parses it, so an unquoted multi-word report no longer passes as quoted; regrade the published trials' workspace copies to show the results are unchanged (no paid rerun)
-- [ ] Harden `review_counts` in `evals/ship-feature/grade.py` so a finding line shaped like a label (`- Fixed duplicate tags: ...`) is counted as a finding, with checks for that case, `- None.` and labels with a note before the colon; regrade to show the published counts are unchanged
+- [x] Harden `review_counts` in `evals/ship-feature/grade.py` so a finding line shaped like a label (`- Fixed duplicate tags: ...`) is counted as a finding, with checks for that case, `- None.` and labels with a note before the colon; regrade to show the published counts are unchanged
 
 ## Review
 
