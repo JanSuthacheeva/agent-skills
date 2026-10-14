@@ -115,6 +115,7 @@ class ReviewCountsTest(unittest.TestCase):
         forms = ["None.", "nothing", "N/A", "None (all fixed)", "None from this branch.",
                  "None identified", "None found.", "None left", "None open.", "None remaining",
                  "Nothing to report.", "Nothing open.", "Nothing left", "Nothing remaining.",
+                 "Nothing to fix.", "Nothing needed fixing.",
                  "No items.", "No findings", "No questions.", "No issues.", "No open items.",
                  "No open questions remain.", "No findings left.", "No issues remaining",
                  "No items open.", "No open findings."]

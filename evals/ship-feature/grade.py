@@ -15,7 +15,7 @@ PLAN = "docs/plans/2026-10-14-bookmark-tags.md"
 LABELS = r"(Fixed|Open|Where\ to\ look)"
 NOTHING = re.compile(r"""(?:none|nothing|n/a|none\ \([^)]*\)|none\ from\ this\ branch
     | none\ (?:identified|found|left|open|remaining)
-    | nothing\ (?:to\ report|open|left|remaining)
+    | nothing\ (?:to\ report|open|left|remaining|to\ fix|needed\ fixing)
     | no\ (?:open\ )?(?:items|findings|questions|issues)(?:\ (?:left|remain|remaining|open))?)""", re.X | re.I)
 REVIEW_LABEL = re.compile(rf"""^(?P<bullet>\s*[-*]\s+)?(?:
       \#+\s*{LABELS}\b(?:[^:\n]*(?=:))?                   # ### Fixed, ### Open questions: ...
