@@ -79,12 +79,14 @@ class ReviewCountsTest(unittest.TestCase):
 
     def test_items_starting_with_none_or_nothing_that_name_a_thing_are_findings(self):
         body = ("**Open**\n\n- Nothing validates the tag length, so a 10 kB tag is stored.\n"
-                "- None of the error paths in `tag` are tested.\n")
-        self.assertEqual(review_counts(review(body)), (0, 2))
+                "- None of the error paths in `tag` are tested.\n- Nothing checks the store's version.\n")
+        self.assertEqual(review_counts(review(body)), (0, 3))
 
     def test_items_saying_there_is_nothing_with_a_note_are_no_findings(self):
         body = ("**Open**\n\n- None - all fixed.\n- Nothing open, see Fixed.\n- No issues found.\n"
-                "- None from this branch. Pre-existing on `main`: a corrupt store throws.\n")
+                "- None from this branch. Pre-existing on `main`: a corrupt store throws.\n"
+                "- None (all fixed)\n- None — all fixed\n- Nothing to report.\n- None identified\n"
+                "- Nothing blocking\n- Nothing remains open.\n")
         self.assertEqual(review_counts(review(body)), (0, 0))
 
     def test_labels_with_a_note_before_the_colon(self):

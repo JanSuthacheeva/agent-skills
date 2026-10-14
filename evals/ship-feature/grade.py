@@ -13,9 +13,9 @@ from pathlib import Path
 
 PLAN = "docs/plans/2026-10-14-bookmark-tags.md"
 LABELS = r"(Fixed|Open|Where\ to\ look)"
-EMPTY = r"""(?i:(?:none|nothing|no\ (?:\w+\ )?(?:items?|findings?|questions?|issues?))
-    (?:\ (?:left|open|found|outstanding|remain(?:s|ing)?))?
-    (?:\W*$|[.,;:]\s|\s[-–]\s|\ (?:from|for|in|on|at|yet|so\ far)\b))"""
+EMPTY = r"""(?i:(?:none|nothing)\b(?!\ of\b|\ (?!(?:is|was|this|as|across|remains)\b)\w+s\b).*
+    | no\ (?:\w+\ )?(?:items?|findings?|questions?|issues?)
+      (?:\ (?:left|open|found|outstanding|remain(?:s|ing)?))?(?:\W*$|[.,;:(]\s|\s[-–—]\s))"""
 NONE = rf"(?:{EMPTY})?"
 REVIEW_LABEL = re.compile(rf"""^(?:
       \#+\s*{LABELS}\b                                            # ### Fixed
