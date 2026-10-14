@@ -12,7 +12,7 @@ compatibility: >-
   the ticket title with clickup-axi when it is installed.
 metadata:
     author: Jan Suthacheeva
-    version: "0.1"
+    version: "0.2"
 allowed-tools: >-
   Bash(git status:*) Bash(git branch:*) Bash(git log:*) Bash(git diff:*)
   Bash(git remote:*) Bash(git symbolic-ref:*) Bash(git rev-parse:*)
@@ -42,7 +42,9 @@ what breaks or stays open.
    count. Then `git push -u origin <branch>` and
    `glab mr create --target-branch <target> --title ... --description ...`
    or `gh pr create --base <target> --title ... --body ...`, and give the
-   URL. Never force-push.
+   URL. Never force-push. Pass the description through a quoted heredoc,
+   `--description "$(cat <<'EOF' ... EOF)"`, so backticks and `$` reach
+   the MR as written instead of escaped or expanded.
 
 Uncommitted changes are not part of the MR. Mention them, do not commit
 them yourself.
@@ -75,6 +77,9 @@ Refs: <ID>
 - Bullets only for decisions that are not obvious from the code: a
   trade-off, a rejected alternative, a deviation from a convention or
   plan, a migration or data change, a new dependency. Each one says why.
+- Take the reasons from the commits, the plan, the ticket or the code.
+  A reason you would have to guess is not one: leave the decision out, or
+  ask. A reviewer trusts the description as the author's intent.
 - Leave out what the diff already shows or reviewers do not need: a
   file-by-file or commit-by-commit list, a "How to test" section or test
   checklist, generic checklists, empty template headings, screenshots
