@@ -150,14 +150,22 @@ def flow_reports(fx: Path) -> list[list[str]] | None
 
 def review_counts(plan: str) -> tuple[int, int]
     # number of lines under Fixed and Open in the plan's ## Review
+
+def flow_check(t: str, reports: list[list[str]], plan: str) -> tuple[bool, str]
+    # grades one report expectation, like check() does the others
 ```
 
-New expectations, only when `flow_reports` is not None:
+New expectations, as `flow_expectations` in `evals.json` (copied to
+`flow_assertions` in each eval's metadata), graded only when `flow_reports`
+is not None:
 
-- Reported the phases implement (mid-build only), review and merge-request, in that order
+- Reported the phases implement (mid-build only) and review, then
+  merge-request only after a review with nothing open
 - Reported `tasks 5 5` (mid-build)
 - Reported `review --fixed F --open O` matching `review_counts` of the plan
-- Reported `waiting` with a question ending in "?" after the last phase
+- Reported the final stop: `blocked` after the review report when items are
+  open (assumption 3), else `waiting` with a question ending in "?" after
+  the merge-request phase
 
 ### README.md
 
@@ -240,7 +248,7 @@ The implementation page repeats this chain with "Review the implementation page"
 
 - [x] Unset `FLOW_ID` in the commit, design-code, implement-plan and review-changes trial runners; check a trial started with `FLOW_ID` set reports nothing into it
 - [x] Add the `flow` stub to `evals/write-merge-request/setup_fixture.sh` `stubs()` and `FLOW=stub|absent` to the write-merge-request and ship-feature `run_trial.sh`; check both modes with one trial each
-- [ ] Add `flow_reports`, `review_counts` and the report expectations to `evals/ship-feature/grade.py`; check them against the stub and absent trials
+- [x] Add `flow_reports`, `review_counts` and the report expectations to `evals/ship-feature/grade.py`; check them against the stub and absent trials
 - [ ] design-code: reporting note, waiting before both polls, version 0.8
 - [ ] implement-plan: reporting note, `tasks`, `decision`, `blocked`, version 0.2
 - [ ] review-changes: reporting note, `review` counts, version 0.5

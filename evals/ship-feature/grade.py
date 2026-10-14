@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Grade ship-feature eval runs from each run's repository, the forge stub
-log, the bare remote and the session transcript (for which steps ran in a
-fresh agent and what that agent was told).
+log, the bare remote, the session transcript (for which steps ran in a
+fresh agent and what that agent was told) and the flow stub's log. The
+eval's flow_assertions are graded only for trials run with the flow stub.
 
 Usage: grade.py <iteration-dir>
 Writes <run>/grading.json and <run>/outputs/flow_result.txt for every run.
@@ -10,6 +11,12 @@ import json, os, re, subprocess, sys, tempfile
 from pathlib import Path
 
 PLAN = "docs/plans/2026-10-14-bookmark-tags.md"
+REVIEW_LABEL = re.compile(r"""^\s*(?:
+      \#+\s*                                           # ### Fixed
+    | (?:[-*]\s+)?(?:\*\*|__)                          # **Fixed**, - **Open questions**
+    | (?:[-*]\s+)?(?=(?:Fixed|Open|Where\ to\ look)\b[^:\n]{0,20}(?::|$)))  # Fixed:, Open
+    (Fixed|Open|Where\ to\ look)\b""", re.I | re.X)
+LIST_ITEM = re.compile(r"^(\s*)(?:[-*]|\d+[.)])\s+\S")
 BUILD_REPORT = re.compile(r"deviation|I (built|implemented)|has been (built|implemented)|tasks? \d+ (to|-) \d+ (are|were) (done|built)", re.I)
 
 
@@ -37,6 +44,67 @@ def agent_calls(sid):
 def boxes(repo):
     plan = (repo / PLAN).read_text() if (repo / PLAN).exists() else ""
     return re.findall(r"^- \[([ x])\]", plan, re.M), plan
+
+
+def flow_reports(fx: Path) -> list[list[str]] | None:
+    """The flow stub's log as argument lists after `report`, in order;
+    None when the trial ran without flow."""
+    log = fx / "flow.log"
+    if not log.exists():
+        return None
+    reports = []
+    for line in log.read_text().splitlines():
+        args = line.split()
+        reports.append(args[1:] if args[:1] == ["report"] else args)
+    return reports
+
+
+def review_counts(plan: str) -> tuple[int, int]:
+    """Findings under Fixed and Open in the plan's ## Review: the list items
+    at the outermost level of each, so details nested under a finding do
+    not count."""
+    m = re.search(r"^## Review\s*$(.*?)(?=^## |\Z)", plan, re.M | re.S)
+    indents: dict[str, list[int]] = {"fixed": [], "open": [], "where to look": []}
+    current = None
+    for line in (m.group(1) if m else "").splitlines():
+        label = REVIEW_LABEL.match(line)
+        item = LIST_ITEM.match(line)
+        if label:
+            current = indents[label.group(1).lower()]
+        elif current is not None and item:
+            current.append(len(item.group(1)))
+    outermost = lambda found: sum(i == min(found) for i in found) if found else 0
+    return outermost(indents["fixed"]), outermost(indents["open"])
+
+
+def flow_check(t: str, reports: list[list[str]], plan: str) -> tuple[bool, str]:
+    phases = []
+    for i, r in enumerate(reports):
+        if r[:1] == ["phase"] and len(r) > 1 and (not phases or phases[-1][1] != r[1]):
+            phases.append((i, r[1]))
+    reviews = [(i, r) for i, r in enumerate(reports) if r[:1] == ["review"]]
+    fixed, open_ = review_counts(plan)
+    if t.startswith("Reported the phase"):
+        expected = ["implement", "review"] if "implement" in t else ["review"]
+        expected += ["merge-request"] if open_ == 0 else []
+        seen = [p for _, p in phases]
+        return seen == expected, f"phases: {seen}; expected {expected} ({open_} open)"
+    if t.startswith("Reported tasks 5 5"):
+        tasks = [" ".join(r[1:]) for r in reports if r[:1] == ["tasks"]]
+        return "5 5" in tasks, f"tasks: {tasks}"
+    if t.startswith("Reported the review counts"):
+        got = " ".join(reviews[-1][1][1:]) if reviews else None
+        want = f"--fixed {fixed} --open {open_}"
+        return got == want, f"reported: {got}; plan: {want}"
+    if t.startswith("Reported the final stop"):
+        if open_ > 0:
+            after = reviews[-1][0] if reviews else len(reports)
+            stop = [" ".join(r) for r in reports[after:] if r[:1] == ["blocked"]]
+        else:
+            after = max((i for i, p in phases if p == "merge-request"), default=len(reports))
+            stop = [" ".join(r) for r in reports[after:] if r[:1] == ["waiting"] and r[-1].endswith("?")]
+        return bool(stop), f"{open_} open; stop: {stop[-1] if stop else None}"
+    raise ValueError(t)
 
 
 def stored_tags(repo):
@@ -99,9 +167,11 @@ def check(t, ctx):
 def main(it):
     it = Path(it)
     for meta in sorted(it.glob("eval-*/eval_metadata.json")):
-        exps = json.loads(meta.read_text())["assertions"]
+        spec = json.loads(meta.read_text())
         for run in sorted(meta.parent.glob("*/run-*")):
             fx = (run / "fixture").resolve()
+            reports = flow_reports(fx)
+            exps = spec["assertions"] + (spec.get("flow_assertions", []) if reports is not None else [])
             timing = json.loads((run / "timing.json").read_text()) if (run / "timing.json").exists() else {}
             ctx = {"run": run, "fx": fx, "repo": fx / "repo",
                    "branch_sha": (run / "branch_sha").read_text().strip(),
@@ -109,7 +179,7 @@ def main(it):
                    "response": (run / "outputs/response.md").read_text() if (run / "outputs/response.md").exists() else ""}
             results = []
             for t in exps:
-                ok, ev = check(t, ctx)
+                ok, ev = check(t, ctx) if t in spec["assertions"] else flow_check(t, reports or [], boxes(ctx["repo"])[1])
                 results.append({"text": t, "passed": bool(ok), "evidence": ev})
             n = sum(r["passed"] for r in results)
             (run / "grading.json").write_text(json.dumps({"expectations": results, "summary": {
@@ -117,7 +187,8 @@ def main(it):
                 "pass_rate": round(n / len(results), 3)}}, indent=2))
             log = git(ctx["repo"], "log", "--format=%h %s", f"{ctx['branch_sha']}..HEAD")
             agents = "\n".join(f"- {d}: {len(p)} chars" for p, d in ctx["calls"])
-            (run / "outputs/flow_result.txt").write_text(f"new commits:\n{log}\nagents:\n{agents}\n")
+            flow = "\n".join(" ".join(r) for r in reports) if reports is not None else "(ran without flow)"
+            (run / "outputs/flow_result.txt").write_text(f"new commits:\n{log}\nagents:\n{agents}\nflow reports:\n{flow}\n")
             print(f"{run.relative_to(it)}: {n}/{len(results)}")
 
 
