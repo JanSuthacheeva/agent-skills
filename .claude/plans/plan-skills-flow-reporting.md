@@ -159,13 +159,23 @@ def flow_reports(fx: Path) -> list[list[str]] | None
     # ValueError naming the file and the conversion when only the old flow.log is there
 
 def review_counts(plan: str) -> tuple[int, int]
-    # outermost list items under Fixed and Open in the plan's ## Review, not
-    # an item saying there is nothing (`- None.`, `- No open items.`,
-    # `- None from this branch. ...`), while one naming a thing (`- No test for X`,
-    # `- Nothing validates X`, `- None of the paths are tested`) stays a finding;
+    # outermost list items under Fixed and Open in the plan's ## Review, plus
+    # the text after a label's colon (`Open: nothing validates X` is one);
+    # a text is no finding only when says_nothing(), any other is one;
     # a label is a heading, a bold label or an unindented line, and a
     # list item only when it holds nothing else, so `- Fixed duplicate tags: ...`
     # and an indented continuation line starting with "open" stay findings
+
+def says_nothing(text: str) -> bool
+    # the first sentence (up to the first ". ", without trailing punctuation)
+    # is one of the closed list: none, nothing, n/a, none (<note>), none from
+    # this branch, none identified|found|left|open|remaining, nothing to
+    # report|open|left|remaining, no (open )?items|findings|questions|issues
+    # ( left| remain| remaining| open)?
+
+def review_label(line: str) -> tuple[str, str] | None
+    # the label a line opens and the text after its colon; text after a
+    # label without a colon (`**Open** - none`) is not judged
 
 def flow_check(t: str, reports: list[list[str]], plan: str) -> tuple[bool, str]
     # grades one report expectation, like check() does the others
@@ -297,7 +307,7 @@ The implementation page repeats this chain with "Review the implementation page"
 
 ### After the third review (decided by the user)
 
-- [ ] `review_counts` decides "nothing" by a closed list of whole-line forms instead of word-by-word rules: an item, or the text after a label's colon, is empty only when its first sentence (the text up to the first `. `, without trailing punctuation) is one of `none`, `nothing`, `n/a`, `none (<note>)`, `none from this branch`, `none identified|found|left|open|remaining`, `nothing (to report|open|left|remaining)`, `no (open )?(items|findings|questions|issues)( left| remain| remaining| open)?`; every other text counts as one finding. This ends the phrasing chase: an unknown phrasing is a finding. Tests for `- Nothing in tag checks the length`, `Open: nothing validates X` (one finding on the label line), and every form in the list; regrade the workspace copy to show the published gradings are unchanged
+- [x] `review_counts` decides "nothing" by a closed list of whole-line forms instead of word-by-word rules: an item, or the text after a label's colon, is empty only when its first sentence (the text up to the first `. `, without trailing punctuation) is one of `none`, `nothing`, `n/a`, `none (<note>)`, `none from this branch`, `none identified|found|left|open|remaining`, `nothing (to report|open|left|remaining)`, `no (open )?(items|findings|questions|issues)( left| remain| remaining| open)?`; every other text counts as one finding. This ends the phrasing chase: an unknown phrasing is a finding. Tests for `- Nothing in tag checks the length`, `Open: nothing validates X` (one finding on the label line), and every form in the list; regrade the workspace copy to show the published gradings are unchanged
   - Decided after the build stopped (strict whole lines would have flipped three published trials whose agents reported correctly, e.g. `- None. The fixes were not reviewed independently ...`, `- None from this branch. Pre-existing on main: ...`): judge the first sentence only and add `none from this branch`. A bold label followed by a dash instead of a colon stays out of scope, as today. Existing tests expecting forms outside the list to be empty change to findings unless the first-sentence rule covers them.
 
 ## Review

@@ -13,18 +13,17 @@ from pathlib import Path
 
 PLAN = "docs/plans/2026-10-14-bookmark-tags.md"
 LABELS = r"(Fixed|Open|Where\ to\ look)"
-EMPTY = r"""(?i:(?:none|nothing)\b(?!\ of\b|\ (?!(?:is|was|this|as|across|remains)\b)\w+s\b).*
-    | no\ (?:\w+\ )?(?:items?|findings?|questions?|issues?)
-      (?:\ (?:left|open|found|outstanding|remain(?:s|ing)?))?(?:\W*$|[.,;:(]\s|\s[-–—]\s))"""
-NONE = rf"(?:{EMPTY})?"
-REVIEW_LABEL = re.compile(rf"""^(?:
-      \#+\s*{LABELS}\b                                            # ### Fixed
-    | (?:\*\*|__){LABELS}(?:\ \w+)?:?(?:\*\*|__)                  # **Fixed** (commit ...), **Open questions**, **Fixed:**
-    | \s*[-*]\s+(?:\*\*|__){LABELS}(?:\ \w+)?:?(?:\*\*|__):?\s*{NONE}$  # - **Open questions**, - **Open:** none
-    | {LABELS}(?:\ \w+)?(?:\ \([^)\n]*\))?(?:\s*$|:)              # Fixed, Open questions:, Fixed (`0e06f9c`):
-    | \s*[-*]\s+{LABELS}:\s*{NONE}$                                # - Open:, - Open: none
+NOTHING = re.compile(r"""(?:none|nothing|n/a|none\ \([^)]*\)|none\ from\ this\ branch
+    | none\ (?:identified|found|left|open|remaining)
+    | nothing\ (?:to\ report|open|left|remaining)
+    | no\ (?:open\ )?(?:items|findings|questions|issues)(?:\ (?:left|remain|remaining|open))?)""", re.X | re.I)
+REVIEW_LABEL = re.compile(rf"""^(?P<bullet>\s*[-*]\s+)?(?:
+      \#+\s*{LABELS}\b(?:[^:\n]*(?=:))?                   # ### Fixed, ### Open questions: ...
+    | (?:\*\*|__){LABELS}(?:\ \w+)?(?=:?(?:\*\*|__))       # **Fixed** (commit ...), **Open questions**, **Fixed:**, **Open**: ...
+    | {LABELS}(?:\ \w+)?(?:\ \([^)\n]*\))?(?=\s*$|:)       # Fixed, Open questions:, Fixed (`0e06f9c`):
     )""", re.X)
-LIST_ITEM = re.compile(rf"^(\s*)(?:[-*]|\d+[.)])\s+(?!{EMPTY})\S", re.X)
+AFTER_COLON = re.compile(r"(?:\*\*|__)?:(?:\*\*|__)?\s*(.*)")
+LIST_ITEM = re.compile(r"^(\s*)(?:[-*]|\d+[.)])\s+(\S.*)")
 BUILD_REPORT = re.compile(r"deviation|I (built|implemented)|has been (built|implemented)|tasks? \d+ (to|-) \d+ (are|were) (done|built)", re.I)
 
 
@@ -70,25 +69,53 @@ def flow_reports(fx: Path) -> list[list[str]] | None:
     return [args[1:] if args[:1] == ["report"] else args for args in calls]
 
 
+def says_nothing(text: str) -> bool:
+    """Whether the text's first sentence, without trailing punctuation, is
+    one of the closed list of forms saying there is nothing."""
+    first = text.split(". ", 1)[0].strip().rstrip(".,;:!?")
+    return NOTHING.fullmatch(first) is not None
+
+
+def review_label(line: str) -> tuple[str, str] | None:
+    """The label a line opens and the text after its colon. A list item is a
+    label only when it holds nothing else, so `- Fixed duplicate tags: ...`
+    stays a finding; text after a label without a colon is not judged."""
+    m = REVIEW_LABEL.match(line)
+    if not m:
+        return None
+    name = next(g for g in m.groups()[1:] if g).lower()
+    rest = line[m.end():]
+    said = AFTER_COLON.match(rest)
+    text = said.group(1).strip() if said else ""
+    holds_nothing = (not text or says_nothing(text)) if said else not rest.strip()
+    if m.group("bullet") and not holds_nothing:
+        return None
+    return name, text
+
+
 def review_counts(plan: str) -> tuple[int, int]:
     """Findings under Fixed and Open in the plan's ## Review: the list items
     at the outermost level of each, so details nested under a finding do
-    not count, nor does an item saying there is none. A label is a heading,
-    a bold label or an unindented line starting with one; a list item is a
-    label only when it holds nothing else, so `- Fixed duplicate tags: ...`
-    stays a finding."""
+    not count, plus text after a label's colon. Text whose first sentence
+    is a form saying there is nothing is no finding, any other is one. A
+    label is a heading, a bold label, an unindented line starting with one
+    or a list item holding nothing else."""
     m = re.search(r"^## Review\s*$(.*?)(?=^## |\Z)", plan, re.M | re.S)
     indents: dict[str, list[int]] = {"fixed": [], "open": [], "where to look": []}
+    inline = dict.fromkeys(indents, 0)
     current = None
     for line in (m.group(1) if m else "").splitlines():
-        label = REVIEW_LABEL.match(line)
+        label = review_label(line)
         item = LIST_ITEM.match(line)
         if label:
-            current = indents[next(g for g in label.groups() if g).lower()]
-        elif current is not None and item:
-            current.append(len(item.group(1)))
+            current, text = label
+            if text and not says_nothing(text):
+                inline[current] += 1
+        elif current is not None and item and not says_nothing(item.group(2)):
+            indents[current].append(len(item.group(1)))
     outermost = lambda found: sum(i == min(found) for i in found) if found else 0
-    return outermost(indents["fixed"]), outermost(indents["open"])
+    return (outermost(indents["fixed"]) + inline["fixed"],
+            outermost(indents["open"]) + inline["open"])
 
 
 def flow_check(t: str, reports: list[list[str]], plan: str) -> tuple[bool, str]:

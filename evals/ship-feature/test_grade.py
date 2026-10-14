@@ -68,9 +68,20 @@ class ReviewCountsTest(unittest.TestCase):
         body = "Fixed:\n\n- A.\n\nOpen:\n\n- None.\n\nWhere to look:\n\n1. grade.py\n"
         self.assertEqual(review_counts(review(body)), (1, 0))
 
-    def test_items_saying_there_is_nothing_are_no_findings(self):
-        body = ("**Fixed**\n\n- No findings.\n\n**Open**\n\n- No open items.\n- Nothing open.\n"
-                "- No open questions remain.\n\nOpen: no open items.\n")
+    def test_every_form_saying_there_is_nothing_is_no_finding(self):
+        forms = ["None.", "nothing", "N/A", "None (all fixed)", "None from this branch.",
+                 "None identified", "None found.", "None left", "None open.", "None remaining",
+                 "Nothing to report.", "Nothing open.", "Nothing left", "Nothing remaining.",
+                 "No items.", "No findings", "No questions.", "No issues.", "No open items.",
+                 "No open questions remain.", "No findings left.", "No issues remaining",
+                 "No items open.", "No open findings."]
+        body = "**Open**\n\n" + "".join(f"- {f}\n" for f in forms) + "\nOpen: no open items.\n"
+        self.assertEqual(review_counts(review(body)), (0, 0))
+
+    def test_only_the_first_sentence_is_judged(self):
+        body = ("**Open**\n\n- None. The fixes were not reviewed independently.\n"
+                "- None from this branch. Pre-existing on `main`: a corrupt store throws.\n"
+                "\nOpen: none. Not reviewed again.\n")
         self.assertEqual(review_counts(review(body)), (0, 0))
 
     def test_items_naming_a_missing_thing_are_findings(self):
@@ -79,15 +90,26 @@ class ReviewCountsTest(unittest.TestCase):
 
     def test_items_starting_with_none_or_nothing_that_name_a_thing_are_findings(self):
         body = ("**Open**\n\n- Nothing validates the tag length, so a 10 kB tag is stored.\n"
-                "- None of the error paths in `tag` are tested.\n- Nothing checks the store's version.\n")
-        self.assertEqual(review_counts(review(body)), (0, 3))
+                "- None of the error paths in `tag` are tested.\n- Nothing checks the store's version.\n"
+                "- Nothing in tag checks the length.\n")
+        self.assertEqual(review_counts(review(body)), (0, 4))
 
-    def test_items_saying_there_is_nothing_with_a_note_are_no_findings(self):
+    def test_forms_outside_the_list_are_findings(self):
         body = ("**Open**\n\n- None - all fixed.\n- Nothing open, see Fixed.\n- No issues found.\n"
-                "- None from this branch. Pre-existing on `main`: a corrupt store throws.\n"
-                "- None (all fixed)\n- None — all fixed\n- Nothing to report.\n- None identified\n"
-                "- Nothing blocking\n- Nothing remains open.\n")
-        self.assertEqual(review_counts(review(body)), (0, 0))
+                "- None \u2014 all fixed\n- Nothing blocking\n- Nothing remains open.\n")
+        self.assertEqual(review_counts(review(body)), (0, 6))
+
+    def test_text_after_a_label_colon_is_one_finding(self):
+        body = "**Fixed**\n\n- A.\n\nOpen: nothing validates X\n"
+        self.assertEqual(review_counts(review(body)), (1, 1))
+
+    def test_text_after_a_bold_label_colon_is_one_finding(self):
+        body = "**Fixed:** A was fixed.\n**Open**: B is open.\n**Open:** none\n"
+        self.assertEqual(review_counts(review(body)), (1, 1))
+
+    def test_bold_label_followed_by_a_dash_ignores_the_text(self):
+        body = "**Fixed** - all of it\n\n- A.\n\n**Open** - none\n"
+        self.assertEqual(review_counts(review(body)), (1, 0))
 
     def test_labels_with_a_note_before_the_colon(self):
         body = "Fixed (`0e06f9c`):\n- A.\n- B.\n\nOpen (asked the user):\n- C.\n"
