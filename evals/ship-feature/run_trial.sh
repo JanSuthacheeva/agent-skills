@@ -36,3 +36,4 @@ ms = d.get("duration_ms", 0)
     "duration_ms": ms, "total_duration_seconds": round(ms / 1000, 1),
     "session_id": d.get("session_id", "")}))
 P
+"$here/../shared/session_usage.py" "$run"
