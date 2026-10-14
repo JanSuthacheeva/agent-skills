@@ -1,6 +1,6 @@
 # Evaluation of the `implement-plan` skill v0.1 in Claude Code
 
-Claude Code 2.1.296, `claude-opus-5-5` and `claude-sonnet-5-5`, 3 scenarios, 3 trials per scenario, condition and model, 14 October 2026.
+Claude Code 2.1.296, `claude-opus-5-5` and `claude-sonnet-5-5` at medium effort, 3 scenarios, 3 trials per scenario, condition and model, 14 October 2026.
 
 ## Summary
 
@@ -216,9 +216,9 @@ reply (`response.md`) and the resulting commits and plan state
 repeated with:
 
 ```sh
-MODEL=claude-opus-5-5 evals/implement-plan/run_iteration.sh <run-dir> <fixture-dir> 3 4
+MODEL=claude-opus-5-5 EFFORT=medium evals/implement-plan/run_iteration.sh <run-dir> <fixture-dir> 3 4
 evals/implement-plan/grade.py <run-dir>
-evals/shared/export_results.py export evals/implement-plan evals/implement-plan/results/claude-code --version 0.1 --run claude-opus-5-5=<opus-run-dir> --run claude-sonnet-5-5=<sonnet-run-dir>
+evals/shared/export_results.py export evals/implement-plan evals/implement-plan/results/claude-code --version 0.1 --effort medium --run claude-opus-5-5=<opus-run-dir> --run claude-sonnet-5-5=<sonnet-run-dir>
 ```
 
 ## Sources

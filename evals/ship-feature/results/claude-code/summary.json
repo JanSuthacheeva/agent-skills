@@ -1,5 +1,6 @@
 {
   "skill_version": "0.1",
+  "effort": "medium",
   "date": "2026-10-14",
   "models": {
     "opus": {

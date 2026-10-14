@@ -1,6 +1,6 @@
 # Evaluation of the `write-merge-request` skill v0.6 in Claude Code
 
-Claude Code 2.1.296, `claude-opus-5-5` and `claude-sonnet-5-5`, 6 scenarios, 3 trials per scenario, condition and model, 14 October 2026.
+Claude Code 2.1.296, `claude-opus-5-5` and `claude-sonnet-5-5` at medium effort, 6 scenarios, 3 trials per scenario, condition and model, 14 October 2026.
 
 ## Summary
 
@@ -249,9 +249,9 @@ reply (`response.md`), and the stub calls and remote references
 repeated with:
 
 ```sh
-MODEL=claude-opus-5-5 evals/write-merge-request/run_iteration.sh <run-dir> <fixture-dir> 3 6
+MODEL=claude-opus-5-5 EFFORT=medium evals/write-merge-request/run_iteration.sh <run-dir> <fixture-dir> 3 6
 evals/write-merge-request/grade.py <run-dir>
-evals/shared/export_results.py export evals/write-merge-request evals/write-merge-request/results/claude-code --version 0.6 --run claude-opus-5-5=<opus-run-dir> --run claude-sonnet-5-5=<sonnet-run-dir>
+evals/shared/export_results.py export evals/write-merge-request evals/write-merge-request/results/claude-code --version 0.6 --effort medium --run claude-opus-5-5=<opus-run-dir> --run claude-sonnet-5-5=<sonnet-run-dir>
 ```
 
 ## Sources

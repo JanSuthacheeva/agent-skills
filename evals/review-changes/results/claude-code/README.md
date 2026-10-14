@@ -1,6 +1,6 @@
 # Evaluation of the `review-changes` skill v0.2 in Claude Code
 
-Claude Code 2.1.296, `claude-opus-5-5` and `claude-sonnet-5-5`, 3 scenarios, three conditions, 3 trials per scenario, condition and model, 14 October 2026.
+Claude Code 2.1.296, `claude-opus-5-5` and `claude-sonnet-5-5` at medium effort, 3 scenarios, three conditions, 3 trials per scenario, condition and model, 14 October 2026.
 
 ## Summary
 
@@ -231,10 +231,10 @@ evidence (`grading.json`), resource use (`timing.json`), the final reply
 repeated with:
 
 ```sh
-CONFIGS="with_skill without_skill code_review" MODEL=claude-opus-5-5 evals/review-changes/run_iteration.sh <run-dir> <fixture-dir> 3 5
+CONFIGS="with_skill without_skill code_review" MODEL=claude-opus-5-5 EFFORT=medium evals/review-changes/run_iteration.sh <run-dir> <fixture-dir> 3 5
 evals/review-changes/grade.py <run-dir>
 evals/review-changes/judge.py <run-dir> 1,2,3
-evals/shared/export_results.py export evals/review-changes evals/review-changes/results/claude-code --version 0.2 --run claude-opus-5-5=<opus-run-dir> --run claude-sonnet-5-5=<sonnet-run-dir>
+evals/shared/export_results.py export evals/review-changes evals/review-changes/results/claude-code --version 0.2 --effort medium --run claude-opus-5-5=<opus-run-dir> --run claude-sonnet-5-5=<sonnet-run-dir>
 ```
 
 ## Sources

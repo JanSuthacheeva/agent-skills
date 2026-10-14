@@ -6,7 +6,7 @@ interprets one specific run: review it by hand after every new export.
 -->
 # Evaluation of the `write-merge-request` skill v{{version}} in Claude Code
 
-{{harness}}, `{{opus_model}}` and `{{sonnet_model}}`, {{n_scenarios}} scenarios, {{trials}} trials per scenario, condition and model, {{date_long}}.
+{{harness}}, `{{opus_model}}` and `{{sonnet_model}}` at {{effort}} effort, {{n_scenarios}} scenarios, {{trials}} trials per scenario, condition and model, {{date_long}}.
 
 ## Summary
 
@@ -91,7 +91,7 @@ and the comparison isolates the skill's other content.
 
 ### 2.4 Procedure
 
-All trials ran in {{harness}} (`claude -p`) at medium effort with the
+All trials ran in {{harness}} (`claude -p`) at {{effort}} effort with the
 models `{{opus_model}}` and `{{sonnet_model}}` on {{date_long}}. Agents
 could run git, the three stubbed tools and read-only file tools.
 Clarifying questions through the harness's question tool were disabled, so
@@ -221,9 +221,9 @@ reply (`response.md`), and the stub calls and remote references
 repeated with:
 
 ```sh
-MODEL={{opus_model}} evals/write-merge-request/run_iteration.sh <run-dir> <fixture-dir> 3 6
+MODEL={{opus_model}} EFFORT={{effort}} evals/write-merge-request/run_iteration.sh <run-dir> <fixture-dir> 3 6
 evals/write-merge-request/grade.py <run-dir>
-evals/shared/export_results.py export evals/write-merge-request {{out_dir}} --version {{version}} --run {{opus_model}}=<opus-run-dir> --run {{sonnet_model}}=<sonnet-run-dir>
+evals/shared/export_results.py export evals/write-merge-request {{out_dir}} --version {{version}} --effort {{effort}} --run {{opus_model}}=<opus-run-dir> --run {{sonnet_model}}=<sonnet-run-dir>
 ```
 
 ## Sources

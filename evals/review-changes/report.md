@@ -6,7 +6,7 @@ interprets one specific run: review it by hand after every new export.
 -->
 # Evaluation of the `review-changes` skill v{{version}} in Claude Code
 
-{{harness}}, `{{opus_model}}` and `{{sonnet_model}}`, {{n_scenarios}} scenarios, three conditions, {{trials}} trials per scenario, condition and model, {{date_long}}.
+{{harness}}, `{{opus_model}}` and `{{sonnet_model}}` at {{effort}} effort, {{n_scenarios}} scenarios, three conditions, {{trials}} trials per scenario, condition and model, {{date_long}}.
 
 ## Summary
 
@@ -89,7 +89,7 @@ branch against its target and applies its findings to the working tree.
 
 ### 2.4 Procedure
 
-All trials ran in {{harness}} (`claude -p`) at medium effort with the
+All trials ran in {{harness}} (`claude -p`) at {{effort}} effort with the
 models `{{opus_model}}` and `{{sonnet_model}}`. Agents could use shell
 commands, file tools and subagents, with edits accepted automatically and
 `git push` denied. In the skill condition, the skill was invoked in
@@ -214,10 +214,10 @@ evidence (`grading.json`), resource use (`timing.json`), the final reply
 repeated with:
 
 ```sh
-CONFIGS="with_skill without_skill code_review" MODEL={{opus_model}} evals/review-changes/run_iteration.sh <run-dir> <fixture-dir> 3 5
+CONFIGS="with_skill without_skill code_review" MODEL={{opus_model}} EFFORT={{effort}} evals/review-changes/run_iteration.sh <run-dir> <fixture-dir> 3 5
 evals/review-changes/grade.py <run-dir>
 evals/review-changes/judge.py <run-dir> 1,2,3
-evals/shared/export_results.py export evals/review-changes {{out_dir}} --version {{version}} --run {{opus_model}}=<opus-run-dir> --run {{sonnet_model}}=<sonnet-run-dir>
+evals/shared/export_results.py export evals/review-changes {{out_dir}} --version {{version}} --effort {{effort}} --run {{opus_model}}=<opus-run-dir> --run {{sonnet_model}}=<sonnet-run-dir>
 ```
 
 ## Sources

@@ -3,7 +3,7 @@
 its results report, for one or more models.
 
 Usage:
-  export_results.py export <suite> <out> --version V --run MODEL=RUN_DIR ... [--harness H]
+  export_results.py export <suite> <out> --version V --effort E --run MODEL=RUN_DIR ... [--harness H]
   export_results.py render <suite> <out>
 
 `export` copies per run grading.json, timing.json, the agent's reply and
@@ -58,11 +58,11 @@ def normalize_harness(line):
     return f"{m.group(2)} {m.group(1)}" if m else line.strip()
 
 
-def export(suite, out, version, runs, harness):
+def export(suite, out, version, effort, runs, harness):
     skill = json.loads((suite / "evals.json").read_text())["skill_name"]
     if out.exists():
         shutil.rmtree(out)
-    meta = {"skill_version": version, "date": date.today().isoformat(), "models": {}}
+    meta = {"skill_version": version, "effort": effort, "date": date.today().isoformat(), "models": {}}
     for model, run_dir in runs:
         dest_root = out / slug(model)
         invoked = {}
@@ -160,7 +160,7 @@ def render(suite, out):
     first = stats[models[0]]
     day = date.fromisoformat(meta["date"])
     values = {
-        "version": meta["skill_version"], "harness": meta["harness"], "date_long": f"{day.day} {day:%B %Y}",
+        "version": meta["skill_version"], "effort": meta["effort"], "harness": meta["harness"], "date_long": f"{day.day} {day:%B %Y}",
         "out_dir": Path(out).resolve().relative_to(ROOT), "n_scenarios": len(first[1]),
         "trials": first[1][0]["with_skill"][1],
         "table_scenarios": table(["#", "Scenario", "Prompt", "Behavior tested"],
@@ -245,6 +245,7 @@ if __name__ == "__main__":
     ex.add_argument("suite", type=Path)
     ex.add_argument("out", type=Path)
     ex.add_argument("--version", required=True)
+    ex.add_argument("--effort", required=True, help="reasoning effort all runs used, e.g. medium")
     ex.add_argument("--run", action="append", required=True, help="MODEL=RUN_DIR, repeatable")
     ex.add_argument("--harness")
     rd = sub.add_parser("render")
@@ -254,6 +255,6 @@ if __name__ == "__main__":
     suite = args.suite.resolve()
     if args.cmd == "export":
         runs = [tuple(r.split("=", 1)) for r in args.run]
-        export(suite, args.out, args.version, [(m, Path(d)) for m, d in runs], args.harness)
+        export(suite, args.out, args.version, args.effort, [(m, Path(d)) for m, d in runs], args.harness)
     render(suite, args.out)
     print(f"rendered {args.out / 'README.md'}")

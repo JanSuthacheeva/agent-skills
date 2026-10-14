@@ -1,6 +1,6 @@
 # Evaluation of the `ship-feature` skill v0.1 in Claude Code
 
-Claude Code 2.1.299, `claude-opus-5-5` and `claude-sonnet-5-5`, 2 scenarios, 2 trials per scenario, condition and model, 14 October 2026.
+Claude Code 2.1.299, `claude-opus-5-5` and `claude-sonnet-5-5` at medium effort, 2 scenarios, 2 trials per scenario, condition and model, 14 October 2026.
 
 ## Summary
 
@@ -190,9 +190,9 @@ reply (`response.md`) and the new commits and agent calls
 (`flow_result.txt`). The runs can be repeated with:
 
 ```sh
-MODEL=claude-opus-5-5 evals/ship-feature/run_iteration.sh <run-dir> <fixture-dir> 2 8
+MODEL=claude-opus-5-5 EFFORT=medium evals/ship-feature/run_iteration.sh <run-dir> <fixture-dir> 2 8
 evals/ship-feature/grade.py <run-dir>
-evals/shared/export_results.py export evals/ship-feature evals/ship-feature/results/claude-code --version 0.1 --run claude-opus-5-5=<opus-run-dir> --run claude-sonnet-5-5=<sonnet-run-dir>
+evals/shared/export_results.py export evals/ship-feature evals/ship-feature/results/claude-code --version 0.1 --effort medium --run claude-opus-5-5=<opus-run-dir> --run claude-sonnet-5-5=<sonnet-run-dir>
 ```
 
 ## Sources

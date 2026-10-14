@@ -6,7 +6,7 @@ interprets one specific run: review it by hand after every new export.
 -->
 # Evaluation of the `ship-feature` skill v{{version}} in Claude Code
 
-{{harness}}, `{{opus_model}}` and `{{sonnet_model}}`, {{n_scenarios}} scenarios, {{trials}} trials per scenario, condition and model, {{date_long}}.
+{{harness}}, `{{opus_model}}` and `{{sonnet_model}}` at {{effort}} effort, {{n_scenarios}} scenarios, {{trials}} trials per scenario, condition and model, {{date_long}}.
 
 ## Summary
 
@@ -74,7 +74,7 @@ tests what the four skills achieve on their own.
 
 ### 2.4 Procedure
 
-All trials ran in {{harness}} (`claude -p`) at medium effort with the
+All trials ran in {{harness}} (`claude -p`) at {{effort}} effort with the
 models `{{opus_model}}` and `{{sonnet_model}}` on {{date_long}}. Agents
 could use shell commands, file tools, skills and subagents, with edits
 accepted automatically, `git push` denied and the question tool disabled,
@@ -179,9 +179,9 @@ reply (`response.md`) and the new commits and agent calls
 (`flow_result.txt`). The runs can be repeated with:
 
 ```sh
-MODEL={{opus_model}} evals/ship-feature/run_iteration.sh <run-dir> <fixture-dir> 2 8
+MODEL={{opus_model}} EFFORT={{effort}} evals/ship-feature/run_iteration.sh <run-dir> <fixture-dir> 2 8
 evals/ship-feature/grade.py <run-dir>
-evals/shared/export_results.py export evals/ship-feature {{out_dir}} --version {{version}} --run {{opus_model}}=<opus-run-dir> --run {{sonnet_model}}=<sonnet-run-dir>
+evals/shared/export_results.py export evals/ship-feature {{out_dir}} --version {{version}} --effort {{effort}} --run {{opus_model}}=<opus-run-dir> --run {{sonnet_model}}=<sonnet-run-dir>
 ```
 
 ## Sources
