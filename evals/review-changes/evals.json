@@ -1,0 +1,71 @@
+{
+  "skill_name": "review-changes",
+  "evals": [
+    {
+      "id": 1,
+      "name": "seeded-defects",
+      "prompt": "review this branch against the plan in docs/plans/2026-10-14-bookmark-tags.md and fix what you find",
+      "expected_output": "Finds and fixes the five planted problems - duplicate tags, list --tag not normalized, unknown id exiting 2 instead of 1, listTagged instead of the plan's listByTag, no test for the unknown-id path - with tests, leaves the correct src/tags.ts alone, commits the fixes and reports what it found.",
+      "files": [
+        "setup_fixture.sh",
+        "fixture/"
+      ],
+      "expectations": [
+        "Tagging a bookmark twice keeps the tag once",
+        "list --tag Work finds the bookmark tagged work",
+        "Tagging an unknown id exits 1",
+        "The store's filter method has the same name in the code and the plan",
+        "A test covers tagging an unknown id",
+        "npm test passes",
+        "src/tags.ts is unchanged",
+        "The fixes are committed and the working tree is clean",
+        "Response names at least four of the five problems"
+      ],
+      "tests": "A plausible-looking branch whose tests pass but which has two behaviour bugs, an error-path drift, a silent rename and a test gap."
+    },
+    {
+      "id": 2,
+      "name": "vague-prompt",
+      "prompt": "review my branch and fix what you find",
+      "expected_output": "Finds the plan on its own, then finds and fixes the five planted problems - duplicate tags, list --tag not normalized, unknown id exiting 2 instead of 1, listTagged instead of the plan's listByTag, no test for the unknown-id path - with tests, leaves the correct src/tags.ts alone, commits the fixes and reports what it found.",
+      "files": [
+        "setup_fixture.sh",
+        "fixture/"
+      ],
+      "expectations": [
+        "Tagging a bookmark twice keeps the tag once",
+        "list --tag Work finds the bookmark tagged work",
+        "Tagging an unknown id exits 1",
+        "The store's filter method has the same name in the code and the plan",
+        "A test covers tagging an unknown id",
+        "npm test passes",
+        "src/tags.ts is unchanged",
+        "The fixes are committed and the working tree is clean",
+        "Response names at least four of the five problems"
+      ],
+      "tests": "The same defects with a prompt that names no plan; whether the review finds the plan and project rules itself."
+    },
+    {
+      "id": 3,
+      "name": "architecture",
+      "prompt": "review my branch and fix what you find",
+      "expected_output": "Sees that the CLI reimplements tagging with list/save instead of BookmarkStore::tag, that load() swallows a JSON parse error so a corrupt file is overwritten with an empty list, and that the store prints a warning although only the CLI prints. Fixes them with tests, keeps the correct behaviour, commits and reports.",
+      "files": [
+        "setup_fixture.sh",
+        "fixture/"
+      ],
+      "expectations": [
+        "The CLI tags through BookmarkStore::tag instead of saving itself",
+        "A corrupt store file is not overwritten",
+        "src/store.ts prints nothing",
+        "Tagging a bookmark twice keeps the tag once",
+        "list --tag Work finds the bookmark tagged work",
+        "Tagging an unknown id exits 1",
+        "npm test passes",
+        "src/tags.ts is unchanged",
+        "The fixes are committed and the working tree is clean"
+      ],
+      "tests": "A branch that matches the plan and behaves correctly but breaks a layer boundary, loses data on a corrupt file and prints from the store."
+    }
+  ]
+}
