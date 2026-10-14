@@ -6,7 +6,7 @@ session in this repo needs is here; the full system record is
 
 ## What `flow` is
 
-`flow` (`~/projects/flow`, private on GitHub, installed at `~/.cargo/bin/flow`) tracks several
+`flow` ([github.com/JanSuthacheeva/flow](https://github.com/JanSuthacheeva/flow), private; local `~/projects/flow`, installed at `~/.cargo/bin/flow`) tracks several
 features worked on in parallel, one worker agent session per feature in its own git worktree.
 It is an AXI: its main user is an agent, it answers in TOON with `help[]` next steps.
 
@@ -114,10 +114,10 @@ the one review is at the end.
 
 ## Where things are
 
-- `flow`: `~/projects/flow` - `README.md` (commands, output, hooks, Docker example),
+- `flow`: `~/projects/flow` ([GitHub](https://github.com/JanSuthacheeva/flow)) - `README.md` (commands, output, hooks, Docker example),
   `docs/HANDOVER.md` (the whole system, decisions, verified facts), `docs/design/` (review
   pages of every piece).
-- Board and adapter mod: `~/projects/claude-code-mods/flows` (experimental, published in the
+- Board and adapter mod: `~/projects/claude-code-mods/flows` ([github.com/JanSuthacheeva/claude-code-mods](https://github.com/JanSuthacheeva/claude-code-mods/tree/main/flows)) (experimental, published in the
   claude-code-mods marketplace; workers load it once installed with
   `/plugin install flows@claude-code-mods`).
 - ship-feature is linked into `~/.claude/skills/ship-feature` (2026-10-14), like the other skills.
