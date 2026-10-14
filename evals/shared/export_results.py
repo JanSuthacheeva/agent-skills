@@ -219,6 +219,9 @@ def render(suite, out):
         cells = []
         for m, c in columns:
             t = [x[key] for x in stats[m][3][c]]
+            if not any(t):
+                cells.append("n/a")
+                continue
             cells.append(f"{fmt.format(st.mean(t))} ({fmt.format(st.stdev(t) if len(t) > 1 else 0)})")
         cost_rows.append((label, *cells))
     failed = sorted(failure_counts, key=lambda t: (-sum(failure_counts[t].values()), t))
