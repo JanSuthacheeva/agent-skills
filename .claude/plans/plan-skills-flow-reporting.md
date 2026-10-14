@@ -286,6 +286,11 @@ The implementation page repeats this chain with "Review the implementation page"
 - [x] `flow` stub logs each call's argv as one JSON array per line, like the forge stubs, and `flow_reports` parses it, so an unquoted multi-word report no longer passes as quoted; regrade the published trials' workspace copies to show the results are unchanged (no paid rerun)
 - [x] Harden `review_counts` in `evals/ship-feature/grade.py` so a finding line shaped like a label (`- Fixed duplicate tags: ...`) is counted as a finding, with checks for that case, `- None.` and labels with a note before the colon; regrade to show the published counts are unchanged
 
+### After the second review (decided by the user)
+
+- [ ] `review_counts` treats a whole-line "nothing" item under a label (`- No open items.`, `- No findings.`, `- Nothing open.`) like `- None.`, while an item naming a thing (`- No test for X`) stays a finding; tests for both
+- [ ] `flow_reports` fails loudly when a fixture holds the old `flow.log` and no `flow.jsonl`, naming the file and the conversion needed, instead of grading the trial as run without flow; test for it
+
 ## Review
 
 Reviewed in isolation against `main` and this plan, including the two
