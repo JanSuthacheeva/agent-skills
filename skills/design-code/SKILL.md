@@ -180,10 +180,10 @@ or already exists. Mismatches here are what makes a design review go in
 circles.
 
 Open it, report `waiting "Review the implementation page"` before each
-poll, and iterate on the user's annotations. Apply all changes
-from one round of feedback in a single message, as parallel edits: every
-separate tool call re-reads the whole conversation, so many sequential
-small edits cost more than the page itself. Rewrite the page only when
+poll, and iterate on the user's annotations. Apply all changes from one
+round of feedback in a single message, as parallel edits: every separate
+tool call re-reads the whole conversation, so many sequential small
+edits cost more than the page itself. Rewrite the page only when
 the changes touch most of it. Rename consistently everywhere, remove
 resolved open questions and fold the answer into the design. Continue
 until the user approves.
