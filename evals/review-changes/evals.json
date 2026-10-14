@@ -21,7 +21,14 @@
         "The fixes are committed and the working tree is clean",
         "Response names at least four of the five problems"
       ],
-      "tests": "A plausible-looking branch whose tests pass but which has two behaviour bugs, an error-path drift, a silent rename and a test gap."
+      "tests": "A plausible-looking branch whose tests pass but which has two behaviour bugs, an error-path drift, a silent rename and a test gap.",
+      "planted": [
+        "Tagging a bookmark twice stores the tag twice; the plan says a duplicate is a no-op (src/store.ts tag)",
+        "`list --tag Work` finds nothing because the CLI passes the tag unnormalized (src/cli.ts list case)",
+        "Tagging an unknown id exits 2; the plan and AGENTS.md say not found is exit 1 (src/cli.ts run)",
+        "The store method is called listTagged instead of the plan's listByTag, without the plan being updated",
+        "No test covers tagging an unknown id"
+      ]
     },
     {
       "id": 2,
@@ -43,7 +50,14 @@
         "The fixes are committed and the working tree is clean",
         "Response names at least four of the five problems"
       ],
-      "tests": "The same defects with a prompt that names no plan; whether the review finds the plan and project rules itself."
+      "tests": "The same defects with a prompt that names no plan; whether the review finds the plan and project rules itself.",
+      "planted": [
+        "Tagging a bookmark twice stores the tag twice; the plan says a duplicate is a no-op (src/store.ts tag)",
+        "`list --tag Work` finds nothing because the CLI passes the tag unnormalized (src/cli.ts list case)",
+        "Tagging an unknown id exits 2; the plan and AGENTS.md say not found is exit 1 (src/cli.ts run)",
+        "The store method is called listTagged instead of the plan's listByTag, without the plan being updated",
+        "No test covers tagging an unknown id"
+      ]
     },
     {
       "id": 3,
@@ -65,7 +79,12 @@
         "src/tags.ts is unchanged",
         "The fixes are committed and the working tree is clean"
       ],
-      "tests": "A branch that matches the plan and behaves correctly but breaks a layer boundary, loses data on a corrupt file and prints from the store."
+      "tests": "A branch that matches the plan and behaves correctly but breaks a layer boundary, loses data on a corrupt file and prints from the store.",
+      "planted": [
+        "load() swallows a JSON parse error and returns [], so a corrupt store file is overwritten on the next save - data loss (src/store.ts load)",
+        "The CLI's tag command reimplements tagging with store.list() and store.save() instead of calling BookmarkStore::tag, breaking the AGENTS.md rule that only the store touches the file and leaving store.tag unused (src/cli.ts tag case)",
+        "BookmarkStore::tag prints a console.warn on a duplicate tag, although only the CLI prints (src/store.ts tag)"
+      ]
     }
   ]
 }
