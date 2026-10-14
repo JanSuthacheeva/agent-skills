@@ -113,8 +113,19 @@ def check(t, repo, base, new, response):
         return not diff, f"{len(diff.splitlines())} diff lines"
     if t.startswith("Response asks how tags should be stored"):
         r = response.lower()
-        ok = "?" in response and "csv" in r and bool(re.search(r"column|format|store|stored", r))
-        return ok, "keywords ? + csv + column/format/store in response.md (verify manually)"
+        asks = "?" in response or bool(re.search(r"if you agree|if (that|this)'s acceptable|acceptable|i recommend|you (should|need to|can) decide|your call|let me know|tell me", r))
+        ok = asks and "csv" in r and bool(re.search(r"column|format|store|stored", r))
+        return ok, "a question or hand-off + csv + column/format/store in response.md (verify manually)"
+    if t.startswith("The plan no longer declares a parameter property"):
+        plan = (repo / PLAN).read_text() if (repo / PLAN).exists() else ""
+        return "readonly raw" not in plan, "looked for `readonly raw` in the plan"
+    if t.startswith("The code has no parameter property"):
+        src = head("src/tags.ts")
+        return "readonly raw" not in src and bool(src), "looked for `readonly raw` in src/tags.ts"
+    if t.startswith("Response names the deviation"):
+        r = response.lower()
+        ok = bool(re.search(r"parameter propert|readonly", r)) and bool(re.search(r"plan", r))
+        return ok, "keywords parameter property/readonly + plan in response.md (verify manually)"
     if t.startswith("npm test passes"):
         return tests_pass(repo)
     raise ValueError(t)
