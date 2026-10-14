@@ -1,9 +1,18 @@
-The bookmark tags feature is now finished. Every plan task was already checked off, but running the CLI end to end showed three bugs that the existing tests didn't catch. I fixed them and committed. All 16 tests pass, and I re-ran the end-to-end check against the CLI to confirm.
+The review is done and I fixed four deviations from the plan. All 16 tests pass, and there is no lint or type-check script in the project. The branch is not pushed and no merge request is open.
 
-- **Duplicate tags:** tagging a bookmark with `work` twice stored `work` twice. Re-tagging is now a no-op, as the plan says.
-- **Case in `list --tag`:** `list --tag WORK` found nothing. The tag is now normalized before filtering.
-- **Exit code for an unknown id:** `bm tag 9 x` exited 2. It now exits 1, as the plan and `AGENTS.md` specify.
+**Fixed**
+- **Duplicate tags:** a repeated tag was stored again, so a bookmark ended up with `work` three times. Tagging with an existing tag is now a no-op (`8f677f8`).
+- **Store method name:** `listTagged` is now `listByTag`, as the plan names it (`8f677f8`).
+- **Exit code:** tagging an unknown bookmark exited 2. It now exits 1, as the plan and `AGENTS.md` say (`99f9f36`).
+- **`list --tag` input:** it did not normalize or validate its tag, so `Work` found nothing and `to do` exited 0. It now normalizes the tag and rejects an invalid one with exit 2 (`99f9f36`).
 
-I also renamed the store method from `listTagged` to `listByTag` to match the plan. I added tests for each fix, plus invalid tags in `list --tag` and a non-numeric id.
+I wrote a failing test for each of these first. The fixes were not reviewed by an independent agent. I re-read them myself.
 
-The fixes are in one commit, `bm: fix tag no-op, list --tag normalizing and not-found exit`, on `feature/bookmark-tags`. I haven't pushed or opened a merge request. Say the word and I'll run `review-changes` or `write-merge-request`.
+**Open**
+- `bm list --tag` with no value silently lists everything. I recommend a usage error with exit 2. I left it alone because it changes user-visible behaviour.
+
+**Mistake during the review:** my manual check ran without `BM_FILE` set, so it wrote to your real `~/.bookmarks.json`. It added bookmark 2 and two extra `work` tags on bookmark 1. I reverted those; the file now holds only bookmark 1 with a single `work` tag, which was already there before my run.
+
+**Where to look:** `src/cli.ts` `dispatch` (the `tag` and `list` cases) for exit codes and messages, and `src/store.ts` `tag()` for the no-op rule. The tags module and the tests are routine. The review summary is also written into the plan under `## Review` (committed in the last commit on the branch).
+
+If you want it, the next step is the merge request.

@@ -1,12 +1,11 @@
 new commits:
-d39cc05 docs: add review summary to bookmark tags plan
-0340fd5 bm: fix tag review findings
+ab60950 docs: add review to bookmark tags plan
+b6b9a23 bm: fix tag exit code, duplicate tags, list --tag normalization and listByTag name
 
 agents:
-- Isolated branch review: 723 chars
+- Isolated branch review: 865 chars
 flow reports:
 phase review
 phase review
-review --fixed 5 --open 0
-phase merge-request
-waiting Push and open the merge request?
+review --fixed 5 --open 3
+blocked 3 open review items

@@ -1,28 +1,27 @@
-The bookmark tags feature is done: all five plan tasks are complete and committed on `feature/bookmark-tags`. The 16 tests pass, up from 6 before I started. The project has no lint or type check set up, so tests were the only automated check. Nothing is pushed.
+Bookmark tags is finished: `bm tag <id> <tag>` and `bm list --tag <tag>` work. All 16 tests pass, and I tested it by running the real CLI against a temporary store file. The project has no lint or type-check scripts, so neither was run.
 
-**Commits**
-- `877e906` bm: store tags on bookmarks (old store files load with `tags: []`, no migration)
-- `9a7be8d` bm: store: tag bookmarks and list them by tag (also adds `BookmarkNotFoundError`)
-- `dcd13a6` bm: cli: add tag command and list --tag
-- `f7f488a` docs: check bookmark tags end to end (ticks the last task in the plan)
+**Commits (picking up after "normalize tags"):**
+- `18bccfa` bm: store tags on bookmarks
+- `7cfa368` bm: tag bookmarks and list them by tag
+- `70a5568` bm: add tag command and list --tag
+- `4be652c` docs: check bookmark tags end to end (ticks the last task in the plan)
 
-**End-to-end check:** I ran `npm run bm` against a temporary store file:
-- `bm tag 2 " Work "` printed `tagged 2 work`. Tagging again changed nothing.
-- `bm list --tag WORK` listed only the tagged bookmark.
-- An unknown id printed `no bookmark 9` and exited with 1.
-- An invalid tag (`to do`) and a non-numeric id each printed their error and exited with 2.
-- A store file written before tags existed listed, tagged and filtered normally.
+**What the CLI check showed:**
+- **Tag spelling:** ` Runtime `, `Runtime` and `RUNTIME` all become `runtime`.
+- **Repeats:** tagging a bookmark again with a tag it already has does nothing.
+- **Filtering:** `list --tag` prints only the tagged bookmarks, in the same format as `list`.
+- **Errors:**
+  - an unknown id prints `no bookmark 9` and exits 1
+  - a non-numeric id prints the usage line and exits 2
+  - `to do` prints `invalid tag: to do` and exits 2
+- **Old files:** a store file written before tags existed loads fine, and the next write adds the `tags` field. No migration is needed.
 
-**Changes from the plan** (the plan file is updated to match):
-- `run` now only turns errors into messages and exit codes. The commands moved into a private `dispatch` function. This is internal only.
-- **Needs your OK:** `bm list` now rejects anything other than `--tag <tag>` with `usage: bm list [--tag <tag>]` and exits with 2. The plan didn't say what `list --tag` with no value should do. Before this change, `list` silently ignored extra arguments, so this is a visible behaviour change. It's one line to revert if you'd rather keep ignoring them.
-- `tag` with no tag argument gives the same usage error as a non-numeric id.
+**Changes from the plan (both small; the plan is updated to match):**
+- **Error handling in one place:** in `src/cli.ts`, the command handling moved into a private `dispatch()`. `run()` now turns `InvalidTagError` and `BookmarkNotFoundError` into the messages and exit codes in one spot.
+- **Missing arguments:** the plan didn't cover these. `bm tag <id>` with no tag prints `usage: bm tag <id> <tag>`. `bm list --tag` with no tag, or with another option, prints `usage: bm list [--tag <tag>]`. Both exit 2, like `add` does. These messages are visible to users, so say if you want them different.
 
-**Not covered:** `list` still doesn't show tags in its output, which matches the plan.
+Nothing is blocked or left open.
 
-**How it works:**
-1. `main.ts` calls `run(argv, store, out)` in `cli.ts`.
-2. The CLI normalizes the raw tag once with `normalizeTag` in `tags.ts`. It trims and lowercases the tag, and rejects it unless it uses only `a-z`, `0-9` and `-`.
-3. The CLI then calls `BookmarkStore.tag(id, tag)` or `listByTag(tag)`.
-4. The store loads the JSON file and treats a missing `tags` field as `[]`. It adds a tag only if the bookmark doesn't already have it, and saves only when something changed.
-5. `run` turns `InvalidTagError` into exit 2 and `BookmarkNotFoundError` into exit 1, so the CLI never reads or writes the file itself.
+**How it works:** `main.ts` calls `run()` with a store for the file in `BM_FILE` (or `~/.bookmarks.json` if unset). For `tag` and `list --tag`, `run()` cleans up the tag with `normalizeTag()` in `src/tags.ts`, which rejects anything empty or outside `a-z0-9-`. It then calls `BookmarkStore.tag()` or `listByTag()` in `src/store.ts`. The store loads the file, treating a missing `tags` field as empty. `tag()` adds the tag if it isn't there yet and saves; `listByTag()` returns only the bookmarks with that tag.
+
+Nothing has been pushed and no merge request is open.

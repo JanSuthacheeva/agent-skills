@@ -1,8 +1,8 @@
 new commits:
-100006d docs: mark bookmark tags plan complete
-29932bd bm: add tag command and list --tag to the cli
-6ed8969 bm: tag bookmarks and list by tag in the store
-31fcf22 bm: store tags on bookmarks
+1f83e54 docs: tick bookmark tags e2e check
+8de8b56 bm: add tag command and list --tag
+8a90f8d bm: tag bookmarks and filter by tag in the store
+5277088 bm: store tags on bookmarks
 
 agents:
 

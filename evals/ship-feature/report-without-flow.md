@@ -13,14 +13,17 @@ every new export.
 
 Since version 0.3, `ship-feature` and its four step skills report their
 progress to the `flow` command if it is available, and are meant to work
-the same without it. This run repeats the suite of the
+the same without it; since version 0.4, the flow builds in the
+conversation instead of a fresh agent. This run repeats the suite of the
 [main report](../claude-code/README.md) with no `flow` command and no flow
-id, graded on the checks of version 0.2 alone. With `{{opus_model}}`,
+id, graded without the checks on reports. With `{{opus_model}}`,
 {{opus_skill_pass}} of {{opus_n_trials}} skill trials and
 {{opus_base_pass}} of {{opus_n_trials}} baseline trials passed every
 check; with `{{sonnet_model}}`, {{sonnet_skill_pass}} and
-{{sonnet_base_pass}}. Version 0.2 scored 4 and 2 of 4 on both models. The
-agents looked for `flow`, found none and went on; no reply mentioned it.
+{{sonnet_base_pass}}. Version 0.3 scored 4 and 2 of 4 with
+`{{opus_model}}` and 4 and 1 with `{{sonnet_model}}`, version 0.2 4 and 2
+on both. The agents looked for `flow`, found none and went on; no reply
+mentioned it.
 
 ## 1 Method
 
@@ -54,15 +57,19 @@ deviation).
 ## 3 Discussion
 
 Without `flow`, the skill passed every check in every trial on both
-models, as version 0.2 did, at about the cost of the run with the stub.
-The baseline again finished the build and stopped unreviewed in every
-`mid-build` trial. With `{{sonnet_model}}`, one `after-build` baseline
-trial did not review the branch, so the baseline passed one trial fewer
-than in version 0.2; with two trials per cell, this is within the
-run-to-run variation the earlier results showed. That trial used no step
-skill, so it never read a reporting line.
+models, as versions 0.2 and 0.3 did: it built in the conversation where
+tasks were open, with no build agent, reviewed in a fresh agent and
+stopped before the push, at about the cost of the run with the stub. The
+baseline again finished the build and stopped unreviewed in every
+`mid-build` trial. With `{{sonnet_model}}`, neither `after-build` baseline
+trial reviewed the branch: both found the planted defects by running the
+command line tool, fixed them and stopped without a `## Review`, so the
+baseline passed one trial fewer than with version 0.3 and two fewer than
+with version 0.2. With two trials per cell, this is within the
+run-to-run variation the earlier results showed. Neither trial used a
+step skill, so neither read a reporting line.
 
-The transcripts show how the agents handled the missing command. In 12
+The transcripts show how the agents handled the missing command. In 14
 of 16 trials, the main session or an agent it started checked for
 `flow` (`which flow` or `command -v flow && flow report ...`), almost
 always appended to a command it ran anyway, so the check added no turns.

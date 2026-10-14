@@ -1,17 +1,18 @@
-The build and review are done, and I need your decision on two review items before the merge request.
+I finished building the bookmark tags feature. A separate review then raised two questions that need your decision before I write the merge request.
 
-**Build:** tasks 2-5 are in 4 commits (`dc82acb`..`f435ba0`). I checked the repository myself: all boxes are ticked and 19/19 tests pass. There are no lint or type checks in the repo, so none ran. The build agent also added two usage errors the plan hadn't covered: `tag <id>` with no tag and `list --tag` with no value. Both exit 2.
+**Build:** all 5 tasks in the plan are done, one commit each:
+- `57a957e` bm: store tags on bookmarks
+- `084e5b7` bm: store: tag bookmarks and list by tag
+- `6f0d3d9` bm: cli: add tag command and list --tag
+- `680aef0` docs: tick bookmark tags end-to-end check
 
-**Review:** the reviewer worked in a separate context. It added one missing test, showing tags accept digits and dashes (`60c4680`). It wrote its findings into the plan as a `## Review` section (`8963f11`). It left two items open because they change what users see:
+I ran the real CLI against a temporary bookmarks file, including one saved before tags existed. Tagging, case-insensitive matching, filtering, saving the same tag twice and all the error cases printed the right messages and exit codes. The old file loaded fine and gained a `tags` field when it was next saved. All tests pass; the project has no lint or type checks, so tests were the only check available.
 
-1. **`bm list` ignores arguments it doesn't recognise.** `bm list --tag=work` or `bm list -t work` prints every bookmark with exit 0, so the filter is silently lost. `main` already behaved this way.
-2. **`bm tag 1 work extra` silently drops `extra`.**
+**One addition to the plan:** it didn't say what happens when `list` gets `--tag` with no value, or an option it doesn't know. Both now print `usage: bm list [--tag <tag>]` and exit 2, the same way other bad input is handled. I added this to the plan and covered it with a test. Before this branch, `bm list` ignored extra arguments, so tell me if you'd rather keep that.
 
-**Recommendation:** fix both. Reject anything unexpected with the usage message (`usage: bm list [--tag <tag>]` or `usage: bm tag <id> <tag>`) and exit 2. Item 1 matters most: a user who types `--tag=work` would think the list was filtered when it wasn't.
+**Review:** the reviewer had no access to this conversation. It added two missing tests (`38deacb`) and left two open questions:
 
-Options:
-- **A:** Fix both (recommended).
-- **B:** Fix only item 1.
-- **C:** Leave both as they are and go to the merge request.
+1. **Extra arguments are ignored.** `bm tag 1 work extra` and `bm list --tag work extra` succeed with exit 0. The reviewer recommends printing the usage message and exiting with 2. I agree: it matches the `list` case above.
+2. **A tag made only of dashes is accepted.** `bm tag 1 -` saves `-`. The plan's rule (letters, digits and `-`) allows this, but it's probably not intended. The reviewer recommends the pattern `^[a-z0-9]+(-[a-z0-9]+)*$`, which also rejects leading, trailing and double dashes. I agree, and it's best to do now: tightening the rule after tags have been saved would leave invalid tags in existing files.
 
-Which do you want? If you pick A or B, I'll add the fixes as tasks in the plan, run another build and a second review, then write the merge request.
+Should I build both as recommended? If so, I'll add them to the plan as new tasks, build them, run another review and then write the merge request.

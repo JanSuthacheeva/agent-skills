@@ -1,5 +1,5 @@
 new commits:
-f4d7fe3 bm: make tagging idempotent and match the plan's errors
+8e30201 bm: align tag behavior with the plan
 
 agents:
 

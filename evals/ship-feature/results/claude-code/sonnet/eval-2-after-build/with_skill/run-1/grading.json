@@ -23,7 +23,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "# duration_ms 212.354958"
+      "evidence": "# duration_ms 179.320292"
     },
     {
       "text": "Nothing was pushed and no MR was created",
@@ -33,28 +33,28 @@
     {
       "text": "Response drafts the MR or puts open review items to the user",
       "passed": true,
-      "evidence": "The review is done, but it left two items open for you to decide. I've stopped here.  **What the review fixed** in `0e06"
+      "evidence": "The review found open items, so the flow stops here for your decision.  **What the review fixed (3ba2066, each with a te"
     },
     {
       "text": "Reported the phase review, then merge-request only after a review with nothing open",
       "passed": true,
-      "evidence": "phases: ['review']; expected ['review'] (2 open)"
+      "evidence": "phases: ['review']; expected ['review'] (3 open)"
     },
     {
       "text": "Reported the review counts of the plan's ## Review",
-      "passed": true,
-      "evidence": "reported: --fixed 4 --open 2; plan: --fixed 4 --open 2"
+      "passed": false,
+      "evidence": "reported: --fixed 4 --open 3; plan: --fixed 5 --open 3"
     },
     {
       "text": "Reported the final stop: blocked with open review items, else waiting with a question",
       "passed": true,
-      "evidence": "2 open; stop: blocked review left 2 open items on bookmark tags"
+      "evidence": "3 open; stop: blocked review has open items"
     }
   ],
   "summary": {
-    "passed": 10,
-    "failed": 0,
+    "passed": 9,
+    "failed": 1,
     "total": 10,
-    "pass_rate": 1.0
+    "pass_rate": 0.9
   }
 }

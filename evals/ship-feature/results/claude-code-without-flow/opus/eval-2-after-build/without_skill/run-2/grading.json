@@ -23,7 +23,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "# duration_ms 382.048916"
+      "evidence": "# duration_ms 285.397458"
     },
     {
       "text": "Nothing was pushed and no MR was created",
@@ -33,7 +33,7 @@
     {
       "text": "Response drafts the MR or puts open review items to the user",
       "passed": true,
-      "evidence": "I reviewed the bookmark tags branch: it had three bugs against the plan, all now fixed. All 15 tests pass, and an end-to"
+      "evidence": "I reviewed the branch against the plan and fixed five bugs, each with a test that fails without the fix. I also checked "
     }
   ],
   "summary": {

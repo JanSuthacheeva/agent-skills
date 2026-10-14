@@ -1,12 +1,13 @@
-The bookmark tags feature is now finished and committed. Tests pass (15), and I ran `add`, `tag` and `list --tag` against a temp store file. The output and exit codes match the plan.
+The bookmark tags feature is built and committed on `feature/bookmark-tags`, but I haven't reviewed the branch or opened a merge request. All 16 tests pass, and an end-to-end run against a temp store gave the expected output and exit codes.
 
-All plan tasks were already checked off, but the code didn't match the plan. I fixed these:
-- **Duplicate tags:** tagging the same tag twice stored it twice. It's now a no-op.
-- **Exit code:** an unknown id exited 2. It now exits 1 with `no bookmark <id>`.
-- **Name:** `listTagged` is now `listByTag`, as the plan says.
-- **Normalization:** `list --tag` didn't normalize its argument. `list --tag " Work "` now finds `work`, and `list --tag "to do"` fails with exit 2.
-- **Tests:** I added the ones the plan called for and that were missing: duplicate tag, unknown id, non-numeric id, and `list --tag` normalization.
+The earlier commits had four gaps against the plan, which I fixed in one commit (`8e30201`):
+- **Unknown id:** `bm tag 9 x` exited 2. It now exits 1, as the plan says.
+- **Duplicate tags:** tagging a bookmark with a tag it already has added the tag twice. It is now a no-op.
+- **Case in the filter:** `list --tag WORK` found nothing because the filter wasn't normalized. It now matches.
+- **Name:** `listTagged` is now `listByTag`.
 
-I made the fixes in one commit on `feature/bookmark-tags`: "bm: make tagging idempotent and match the plan's errors".
+The existing tests passed despite all four, so I added tests for the duplicate tag, the unknown id, a non-numeric id and the uppercase filter.
 
-I haven't run the `review-changes` skill or opened a merge request. Do you want either?
+**Mistake to know about:** I ran `bm add` without setting `BM_FILE`, so it wrote a stray bookmark (id 2, `https://a.com`) into your real `~/.bookmarks.json`. I removed that entry and left your existing bookmark 1 untouched. I only re-saved the file through Node with two-space indentation, so its formatting may differ slightly from before.
+
+Next I'd run `/review-changes` on the branch, then `/write-merge-request`. Say if you want me to go ahead with those.

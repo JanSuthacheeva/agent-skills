@@ -1,16 +1,16 @@
 new commits:
-532f712 docs: mark bookmark tags plan done
-98a02e6 bm: add tag command and list --tag
-2b2b394 bm: tag bookmarks and list them by tag
-50fc213 bm: store tags on bookmarks
+7b3729d docs: tick bookmark tags end-to-end check
+490f563 bm: add tag command and list --tag
+a051e86 bm: tag bookmarks and list them by tag
+06df4cb bm: store tags on bookmarks
 
 agents:
 
 flow reports:
 phase implement
-tasks 1 5
+working
 tasks 2 5
 tasks 3 5
-decision run delegates to a private dispatch so error-to-exit-code mapping lives in one place
+decision list with a missing --tag value or unknown args prints usage, exit 2
 tasks 4 5
 tasks 5 5

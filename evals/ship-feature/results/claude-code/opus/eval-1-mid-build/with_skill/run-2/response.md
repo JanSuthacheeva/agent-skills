@@ -1,51 +1,31 @@
-The tag feature is built and reviewed. All 5 plan tasks are done and committed on `feature/bookmark-tags`, and all 18 tests pass. The merge request is written but not opened. It needs your OK to push.
+I've built the rest of the bookmark tags feature and an isolated review has run. The review left 3 open points, and the flow is stopped until you decide them.
 
-**Build:** a fresh agent did tasks 2 to 5. It made two small changes to the plan and wrote both into it:
-- Errors are turned into exit codes in one place.
-- `bm list` now rejects unexpected arguments with a usage message (exit 2) instead of ignoring them.
+**Build:** the four remaining plan tasks are done, one commit each:
+- `840be20` - bookmarks now have a `tags` field. Store files written before this change load with no tags, so nothing needs migrating.
+- `d197cc3` - the store can tag a bookmark and list bookmarks by tag.
+- `c9611d0` - new `bm tag <id> <tag>` command and a `--tag` option on `bm list`.
+- `2cf2a1b` - I ran the real CLI against a temporary store file and the output matched the plan:
+  - Tagging with ` Work ` saves it as `work`, and tagging it again changes nothing.
+  - `list --tag WORK` finds it.
+  - An unknown id exits 1; a bad id or bad tag exits 2.
 
-**Review:** a second fresh agent reviewed the branch on its own. It fixed two things and left nothing open:
-- `bm tag 1 to do` saved only `to`. It now prints the usage line, exits 2 and saves nothing.
-- The new `bm list` argument check had no test, so it added one.
+One addition the plan didn't cover: `bm list` with a malformed `--tag` prints a usage line and exits 2, the same way `add` handles bad input. I added this to the plan.
 
-It also noted a problem that already exists on `main`: a corrupt bookmarks file makes the CLI crash with a stack trace, though no data is lost. I'd leave that for a later change.
+**Review:** the reviewer fixed two things:
+- `c4057ee` - `bm tag` accepted ids like `0x1` or `1.0` and silently dropped a second tag (`bm tag 1 a b`). Both are now rejected with exit 2. As a side effect, `bm tag -1 x` now prints the usage line with exit 2 instead of "no bookmark -1" with exit 1.
+- `6b71c63` - tests for the two usage errors, which had none.
 
-There's no MR template in the repo and no open MR for this branch.
+All 18 tests pass. The repo has no lint or type checks.
 
----
+**Open points:**
+1. **`invalid tag:` message with a whitespace-only tag.** `bm tag 1 ' '` prints `invalid tag:  `, which looks empty. The reviewer recommends quoting the value: `invalid tag: " "`. I agree. It changes a message the plan specifies, which is why it needs your decision.
+2. **Only the CLI checks tag format.** The store assumes tags arrive already cleaned up. The reviewer recommends leaving this until something other than the CLI uses the store. I agree.
+3. **Store file handling (this was already the case before the branch).**
+   - A corrupt store file makes the CLI crash with a stack trace.
+   - The file is overwritten in place, so a crash mid-write can cut it short.
 
-**Title:** `bm: tag bookmarks and list them by tag`
+   The reviewer suggests a separate change. Your guidelines say to fix problems you come across, so I'd add two tasks to this branch instead:
+   - print a clean error for a corrupt file
+   - write to a temporary file and then rename it over the old one
 
-**Description:**
-
-```
-Bookmarks could only be listed all at once. They can now be tagged with
-`bm tag <id> <tag>` and filtered with `bm list --tag <tag>`.
-
-- Tags are stored on each bookmark in the existing store file. Files
-  written before this change have no `tags` field and are read as
-  `tags: []`, so no migration is needed. The first `tag` command rewrites
-  the whole file with `tags` on every bookmark.
-- `normalizeTag` is the only place that decides what a valid tag is
-  (trimmed, lowercased, `a-z`, `0-9` and `-`), so the store and the CLI
-  agree on it. Adding a tag a bookmark already has does nothing.
-- `run` hands the command to `dispatch` and turns errors into exit codes
-  in one place: invalid tag 2, unknown bookmark 1.
-- `bm list` with arguments other than `--tag <tag>`, and `bm tag` with
-  extra arguments, now print the usage line and exit 2. Before this,
-  `list` silently ignored extra arguments.
-
-Review:
-1. `src/store.ts` from `load()` through `tag()` to `save()`: reading old
-   files without tags, and the full-file rewrite on the first tag. This
-   is the only change to stored data.
-2. `src/cli.ts` `run()` and `dispatch()`: argument checks for `tag` and
-   `list --tag`, and how errors become exit codes 1 and 2.
-3. `src/tags.ts` `normalizeTag()`: what counts as a valid tag.
-Skim: `src/bookmark.ts`, the tests.
-
-A corrupt store file still crashes the CLI with a stack trace. That was
-already the case on `main` and is left for a later change.
-```
-
-Should I push `feature/bookmark-tags` to origin and open the merge request against `main`?
+**Recommendation:** do 1, keep 2 as it is, and add 3 as two tasks here. Then I'd write those into the plan, build them and run a second review. Should I go ahead, or do you want something different for any of them?

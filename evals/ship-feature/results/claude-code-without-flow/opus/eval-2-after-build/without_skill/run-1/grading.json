@@ -8,7 +8,7 @@
     {
       "text": "The review ran isolated: a fresh agent, or a session that wrote none of the code",
       "passed": true,
-      "evidence": "review agents: 1; build agents: 0; reviewed: True"
+      "evidence": "review agents: 0; build agents: 0; reviewed: True"
     },
     {
       "text": "The plan has a ## Review section",
@@ -23,7 +23,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "# duration_ms 297.435542"
+      "evidence": "# duration_ms 295.690833"
     },
     {
       "text": "Nothing was pushed and no MR was created",
@@ -33,7 +33,7 @@
     {
       "text": "Response drafts the MR or puts open review items to the user",
       "passed": true,
-      "evidence": "The review is done but has left two open items, and both are your call. After those it's the merge request.  **Where it "
+      "evidence": "All five plan tasks were already done, so I reviewed the branch. I found four bugs and fixed them, each with a test writ"
     }
   ],
   "summary": {

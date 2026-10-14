@@ -1,23 +1,18 @@
-The review is done but has left two open items, and both are your call. After those it's the merge request.
+All five plan tasks were already done, so I reviewed the branch. I found four bugs and fixed them, each with a test written first and its own commit. All 16 tests pass (up from 10). Nothing has been pushed.
 
-**Where it stands:** All 5 plan tasks are built. The reviewer found and fixed four bugs, each with a test that failed first. I checked the commits myself: 16 tests pass (10 before the review) and the `## Review` section is in the plan. Nothing has been pushed.
+**Fixed**
+- **Duplicate tags:** tagging a bookmark twice saved the tag twice in the file, but the plan says tags have no duplicates. A repeated tag is now ignored (09eec76).
+- **Wrong exit code:** `bm tag <unknown id>` exited 2 instead of 1, which the plan and `AGENTS.md` both reserve for "not found" (dda3500).
+- **`list --tag` skipped tag cleanup:** `--tag Work` found nothing, and an invalid tag like `--tag "to do"` silently returned exit 0 instead of the `invalid tag` error. It now trims, lowercases and checks the tag like `bm tag` does (1f37c08).
+- **Name mismatch:** renamed `listTagged` to `listByTag` as the plan specifies (9908a2e).
+- Added the tests the plan asked for but were missing: duplicate tag, unknown id and non-numeric id.
 
-What the review fixed:
-- Tagging a bookmark twice saved the tag twice. It's now a no-op, as the plan says.
-- Tagging an unknown id exited 2; it now exits 1.
-- `bm tag "" work` printed `no bookmark 0`; it now prints the usage line.
-- `list --tag Work` found nothing and `list --tag "to do"` exited 0, because the CLI never cleaned up the tag. It does now, and `listTagged` is renamed to `listByTag` to match the plan.
+A separate agent checked the three behaviour fixes against the real CLI and found them correct.
 
-The reviewer checked its own fixes, not a second agent, so `src/store.ts` and `src/cli.ts` are worth reading.
+**Decisions for you**
+- **`bm list --tag` with no value** ignores the flag and lists every bookmark with exit 0. I'd make it a usage error (exit 2). I left it because it changes how a command behaves for users.
+- **Inconsistent tag cleanup in `src/store.ts`:** `tag()` cleans up the tag it's given but `listByTag()` doesn't. The CLI already does it before calling either, so I'd do it in both methods or neither.
 
-**Decisions needed:**
+The review summary and a reading order are in the `## Review` section of `docs/plans/2026-10-14-bookmark-tags.md` (52cf46a).
 
-1. **`bm list --tag` with no value, or any unknown `list` argument, prints every bookmark and exits 0.**
-   - I recommend making it a usage error with exit 2, the same way `tag` handles bad input. Right now a typo like `bm list --tga work` looks like it worked when it didn't.
-   - The other option is to keep the current behaviour.
-
-2. **`BookmarkStore.tag()` cleans up the tag it's given, but `listByTag()` doesn't.**
-   - I recommend neither does it: the CLI cleans up once and passes a clean tag to the store. That's what the plan describes ("normalized once") and it removes the mismatch.
-   - The other option is for the store to do it in both and the CLI to stop. That's more robust if something other than the CLI ever calls the store, but nothing does today.
-
-If you agree with both, I'll add them as tasks to the plan, build them, run a second review on the new commits and then draft the merge request for your approval before pushing.
+Next is the merge request. Tell me how to handle the two decisions, and whether I should go ahead and push and open it.

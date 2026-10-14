@@ -1,18 +1,55 @@
-I finished building the feature and the separate review is done, but it left two open items that need your decision before I write the merge request.
+I finished the build and the review. The merge request is drafted, and nothing has been pushed yet.
 
-**Where it stands:** the plan has all 5 tasks ticked across 5 commits (`9f69283` through `2aaa969`), and all 16 tests pass. I checked the commits, ticked boxes and test run in the repo myself. The review (`7fd6d48`) didn't fix anything; everything it tried matched the plan.
+**Build:** tasks 2-5 of the plan are done, one commit each. All 19 tests pass. The project has no lint or type-check scripts. I also ran the real CLI against a temporary store file, and it behaved as the plan says:
+- adding, tagging and `list --tag` work;
+- the same tag in different case or with spaces is stored once;
+- an unknown id exits 1; a bad tag or bad arguments exit 2;
+- a store file written before tags existed loads fine and gets a `tags` field when first tagged.
 
-The build hit two error cases the plan didn't cover and handled both. It added them to the plan's Errors section:
-- `bm tag <id>` with no tag prints `usage: bm tag <id> <tag>` and exits 2.
-- `bm list --tag` with no tag prints the usage line and exits 2.
+**Two changes from the plan,** both written into the plan:
+- `run()` now passes commands to a private `dispatch()`, so errors are turned into messages and exit codes in one place.
+- A missing tag, or `list` with anything other than `--tag <tag>`, prints the usage line and exits 2.
 
-**Open items:**
+**Review** (in a separate agent with no access to this conversation): it found that extra arguments were silently ignored. For example, `bm tag 1 to do` tagged bookmark 1 with "to". It fixed that and found nothing else on this branch.
 
-1. **Unknown arguments are silently ignored.** A typo like `bm list --tags work` lists every bookmark and exits 0. Extra arguments such as `bm tag 1 work extra` are ignored too. `list` on `main` already behaves this way, and fixing it changes what users see.
-   - Options: (a) leave it for a follow-up, as the reviewer recommends; (b) add a task now so unknown options and extra arguments print the usage message and exit 2.
-   - **I recommend (b).** The new `--tag` option makes this typo likely, and right now the mistake gives no error at all. It's a small, well-contained task.
+It did flag an older risk that isn't from this branch: the store file is overwritten in place, so a crash during a write can leave it unreadable. I'd fix that in a separate change by writing to a temporary file and then renaming it.
 
-2. **Test data got into your real bookmark file.** The CLI uses `~/.bookmarks.json` when `BM_FILE` isn't set. That file now holds one test bookmark: id 1, `https://a.dev`, "A", created today, tagged `work`. An earlier manual check without `BM_FILE` probably created it. The reviewer also wrote to the file once by mistake and says it removed its own changes. I've looked at the file but haven't changed it.
-   - **I recommend deleting `~/.bookmarks.json`** if you weren't already using `bm` for real bookmarks. Should I delete it?
+**Commits:**
+- **Build:** `49eaf7c`, `26dc292`, `01e78c5`, `50a6428`
+- **Review:** `1547fd0` (fix), `93c3115` (review notes)
 
-Once you decide on 1, I'll add any new task to the plan, build it, and run a second review on those commits.
+---
+
+**Title:** `bm: tag bookmarks and list them by tag`
+
+**Description:**
+
+```
+Bookmarks had no way to be grouped. They can now be tagged with
+`bm tag <id> <tag>` and filtered with `bm list --tag <tag>`.
+
+- Tags are stored on each bookmark in the existing store file. Files
+  written before this change have no `tags` field and are read as
+  `tags: []`, so no migration is needed; a file is only rewritten when
+  a tag is added.
+- Tags are normalized in one place, `normalizeTag`: trimmed, lowercased,
+  and limited to `a-z`, `0-9` and `-`. Adding a tag a bookmark already
+  has does nothing and is not an error.
+- `run()` delegates to a private `dispatch()`, so the error classes map
+  to messages and exit codes in one place: 1 for an unknown id, 2 for an
+  invalid tag or bad arguments.
+
+Review:
+1. `src/store.ts` `load()` to `tag()`: how old files without `tags`
+   are read, and that tagging the same bookmark twice saves the tag once.
+2. `src/cli.ts` `run()` to `dispatch()`: the error-to-exit-code mapping
+   and the argument checks for `tag` and `list`, including rejecting
+   extra arguments.
+Skim: `src/tags.ts`, `src/bookmark.ts` and the tests.
+
+Left out: `save()` still writes the store file in place, so a crash
+mid-write can leave it truncated. This predates the branch and is
+better fixed separately with a write-to-temp-and-rename.
+```
+
+Should I push `feature/bookmark-tags` and open the merge request against `main` on gitlab.com/shop/shop?

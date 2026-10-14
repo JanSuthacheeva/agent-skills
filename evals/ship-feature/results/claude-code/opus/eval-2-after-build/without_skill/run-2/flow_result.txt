@@ -1,12 +1,10 @@
 new commits:
-6cd6557 docs: record the bookmark tags review
-c66c613 bm: cli: normalize the tag in list --tag
-85da30b bm: cli: exit 1 for an unknown id and reject an empty id in tag
-ae7b358 bm: store: rename listTagged to listByTag as the plan names it
-58af351 bm: store: make tagging with an existing tag a no-op
+dac10b0 docs: record bookmark tags review
+00184a4 bm: match tag errors and list --tag to the plan
+42b4423 bm: skip tags a bookmark already has
 
 agents:
-- Review fix commits independently: 1459 chars
+- Review fix commits: 1315 chars
 flow reports:
 phase review
-review --fixed 4 --open 3
+review --fixed 5 --open 3

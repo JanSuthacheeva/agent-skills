@@ -23,7 +23,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "# duration_ms 258.039375"
+      "evidence": "# duration_ms 369.4025"
     },
     {
       "text": "Nothing was pushed and no MR was created",
@@ -33,7 +33,7 @@
     {
       "text": "Response drafts the MR or puts open review items to the user",
       "passed": true,
-      "evidence": "The review is done and checked in the repository. It added 4 commits (3 fixes plus the `## Review` section), and all 16 "
+      "evidence": "The review of `feature/bookmark-tags` is done, and it left two open items for you to decide before I build any more.  **"
     }
   ],
   "summary": {

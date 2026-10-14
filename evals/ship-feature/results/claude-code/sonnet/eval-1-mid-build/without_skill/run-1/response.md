@@ -1,23 +1,26 @@
-Bookmark tags are built: all five plan tasks are done and committed, and the full suite passes (18 tests). The repo has no lint or type-check script, so I ran neither. Nothing is pushed.
+The bookmark tags feature is built: `bm tag <id> <tag>` and `bm list --tag <tag>` both work. All 18 tests pass and the working tree is clean. The project has no lint or type-check setup, so only the tests were run.
 
-**Commits**
-- `550c919` normalize tags (already done when I started)
-- `c764eb8` store tags on bookmarks. Files written before tags existed load with `tags: []`.
-- `f25ceff` `BookmarkStore.tag` and `listByTag`, plus `BookmarkNotFoundError`
-- `73b938f` `bm tag <id> <tag>` and `bm list --tag <tag>`
-- `1788c4f` plan checklist ticked
+**Tasks and commits** (task 1 was already done):
+- `5f741c2` adds `tags` to `Bookmark`. New bookmarks start with `tags: []`, and old store files load with empty tags, so no migration is needed.
+- `5b84e40` adds `BookmarkNotFoundError`, `BookmarkStore::tag` and `BookmarkStore::listByTag`.
+- `8106b78` adds the `tag` command and `list --tag` to `run`.
+- The last commit ticks the end-to-end task in the plan.
 
-**End-to-end check** against a temp `BM_FILE`:
-- `add` twice, then `tag 2 " Work "` printed `tagged 2 work`.
-- `list --tag work` printed only `2  Deno  https://deno.com`.
-- `tag 2 "to do"` printed `invalid tag: to do` and exited 2.
-- `tag 9 x` printed `no bookmark 9` and exited 1.
-- `tag abc x` printed `usage: bm tag <id> <tag>` and exited 2.
-- The store file holds `tags` on every bookmark.
+**Deviations from the plan:**
+- I added one usage error the plan didn't specify: `list --tag` with no value, or any other list option, prints `usage: bm list [--tag <tag>]` and exits 2. A missing tag in `bm tag` shows the existing `usage: bm tag <id> <tag>`. I added both to the plan's error list.
+- For the store tasks I wrote the tests and the code together and never ran the tests red first. The CLI task followed the red-then-green order.
 
-**Deviations from the plan**
-- `list` rejects malformed `--tag` usage (a missing value or extra arguments) with `usage: bm list [--tag <tag>]` and exit 2. The plan didn't specify this.
-- The id check is a strict digits-only test, so `bm tag "" x` and `bm tag 1.5 x` are usage errors rather than an unknown id.
-- `run` is now a thin wrapper that maps `InvalidTagError` to exit 2 and `BookmarkNotFoundError` to exit 1. The command logic moved into a `dispatch` function in the same file.
+**End-to-end check:** against a temp store file, I ran the real CLI and saw this:
+- Adding, tagging and `list --tag runtime` worked.
+- Tagging the same tag twice was a no-op.
+- `"Runtime"` was stored as `runtime`.
+- An invalid tag, an unknown id, a non-numeric id and a bare `--tag` gave the messages and exit codes the plan lists (2, 1, 2 and 2).
+- The store file has `tags` on each bookmark.
 
-**How it works:** `main` calls `run`, which calls `dispatch`. `dispatch` normalizes the tag with `normalizeTag`, then calls `BookmarkStore.tag` or `listByTag`. Those load the file, change or filter it, and save it. Tagging a bookmark with a tag it already has does nothing. Nothing is blocked or left open.
+**How it works:**
+- `main` calls `run(argv, store, out)`.
+- `run` calls `dispatch`, which normalizes the tag with `normalizeTag` and then calls `BookmarkStore::tag` or `listByTag`.
+- `tag` loads the bookmarks, adds the tag if it isn't already there, and saves.
+- `run` turns `InvalidTagError` and `BookmarkNotFoundError` into the messages and exit codes.
+
+I haven't pushed anything or opened a merge request. `review-changes` or `write-merge-request` are the next steps if you want them.

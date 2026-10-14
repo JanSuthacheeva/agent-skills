@@ -23,7 +23,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "# duration_ms 243.233708"
+      "evidence": "# duration_ms 301.145375"
     },
     {
       "text": "Nothing was pushed and no MR was created",
@@ -33,7 +33,7 @@
     {
       "text": "Response drafts the MR or puts open review items to the user",
       "passed": true,
-      "evidence": "No merge request exists for the branch yet, and the repo has no template. Here is the draft.  **Title**  `bm: tag bookma"
+      "evidence": "The review left one decision for you. Per the flow, I'm stopping here.  **Fixed by the review** (commit `89e142d`, each "
     }
   ],
   "summary": {

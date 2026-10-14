@@ -1,8 +1,8 @@
 new commits:
-9e2868c docs: add review summary to bookmark tags plan
-18abd8f bm: match the plan on tag exit code, duplicates and list --tag
+a225044 docs: add review to bookmark tags plan
+cab5262 bm: fix tag exit code, duplicate tags and list --tag normalizing
 
 agents:
-- Isolated review of bookmark tags: 678 chars
+- Isolated branch review: 739 chars
 flow reports:
 (ran without flow)

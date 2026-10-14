@@ -1,21 +1,25 @@
-Bookmark tags are finished on `feature/bookmark-tags`: `bm tag <id> <tag>` and `bm list --tag <tag>` work. All 16 tests pass, and I ran the real CLI against a temp store file. Nothing is pushed.
+The bookmark tags feature is finished. All five tasks in `docs/plans/2026-10-14-bookmark-tags.md` are ticked, the 16 tests pass (6 before I started), and I ran the real CLI end to end. The project has no lint or type-check tooling, so neither was run.
 
-**Commits**
-- `86d79ff bm: store tags on bookmarks`: new bookmarks get an empty tag list, and older store files load as having no tags, so no migration is needed.
-- `7ec345d bm: tag bookmarks and list them by tag`: tagging an unknown id raises a not-found error, and adding a tag twice does nothing.
-- `7652ed8 bm: add tag command and list --tag`: the two commands, plus their error messages and exit codes.
-- `562f642 docs: mark bookmark tags plan done`: ticks the last checkbox in the plan.
+**Commits** (task 1, `bfaa882`, was already done):
+- `40ebd76 bm: store tags on bookmarks`: every bookmark gets a `tags` list. Store files written before tags existed load as having no tags, so no migration is needed.
+- `0c2d284 bm: tag bookmarks and list them by tag`: the store can add a tag to a bookmark and find bookmarks by tag. It rejects unknown ids, and adding a tag twice does nothing.
+- `144bcde bm: add tag command and list --tag`: the two new commands, with tests for success, an invalid tag, an unknown id and a non-numeric id.
+- `28d1b3f docs: verify bookmark tags end to end`: ticks the last task.
 
-**What I saw running the CLI:** I started from a store file written before tags existed. `add`, `tag` and `list --tag RUNTIME` gave the expected output, and tagging bookmark 2 twice left one `runtime` tag. The error cases matched the plan:
+**End-to-end check:** I started with a store file in the old format (no `tags` field), then added two bookmarks and tagged all three. Every case gave the planned output and exit code:
+- `bm list` still read the old file.
+- `bm tag 1 " Legacy "` printed `tagged 1 legacy`.
+- Tagging a bookmark with a tag it already has printed the same line and changed nothing.
+- `bm list --tag RUNTIME` printed bookmarks 2 and 3.
+- An unknown tag printed nothing and exited 0.
+- `bm tag 9 work` printed `no bookmark 9`, exit 1.
+- `bm tag x work` printed the usage line, exit 2.
+- `bm tag 1 "to do"` printed `invalid tag: to do`, exit 2.
 
-| Command | Output | Exit |
-|---|---|---|
-| `bm tag 9 work` | `no bookmark 9` | 1 |
-| `bm tag 2 "to do"` | `invalid tag: to do` | 2 |
-| `bm tag x work` | `usage: bm tag <id> <tag>` | 2 |
+**Where I went beyond the plan** (all recorded in the plan file):
+- **`list` usage error:** `list --tag` with no value, or any other option, prints `usage: bm list [--tag <tag>]` and exits 2. The plan didn't cover this; I followed the existing `add` usage style.
+- **Missing tag:** `bm tag <id>` with no tag prints the same usage line as a non-numeric id.
+- **Error handling in one place:** `run` turns the two error types into messages and exit codes, and the commands live in a private helper it wraps. This matches how AGENTS.md describes CLI errors.
+- **Confirmation line:** `tagged <id> <tag>` uses the id as stored, so `bm tag 007 x` prints `tagged 7 x`.
 
-**Changes from the plan:** one, which the plan doesn't cover. `bm list` with any argument other than `--tag <tag>` now prints `usage: bm list [--tag <tag>]` and exits 2; before, it ignored extra arguments. I added this to the plan's error list. If you'd rather keep ignoring extra arguments, it's a two-line change.
-
-**Not checked:** the project has no linter or type checker. Node only strips the types, so the type annotations have never actually been checked.
-
-**How it works:** `src/main.ts` calls `run` in `src/cli.ts`, which reads the command and cleans up the tag with `normalizeTag` (trim, lowercase, then check for `a-z`, `0-9` and `-`). It then calls `BookmarkStore.tag` or `listByTag` in `src/store.ts`, which read and write the JSON file. Errors are caught in one place in `run` and turned into a message and exit code: 2 for an invalid tag, 1 for an unknown bookmark.
+**How it works:** `main.ts` calls `run` in `src/cli.ts`, which picks the command. For `tag` and `list --tag`, it cleans up the tag with `normalizeTag` in `src/tags.ts` (trim, lowercase, only `a-z`, `0-9` and `-` allowed). It then calls `tag` or `listByTag` in `src/store.ts`, which reads and writes the JSON file. Nothing is left open; nothing is pushed and no merge request is opened.

@@ -1,19 +1,20 @@
-I reviewed the bookmark tags branch: it had three bugs against the plan, all now fixed. All 15 tests pass, and an end-to-end run with the CLI against a temp store gives the right output and exit codes.
+I reviewed the branch against the plan and fixed five bugs, each with a test that fails without the fix. I also checked each one through the real CLI. All 16 tests pass. A separate agent then re-checked the fix commits and confirmed them. The project has no lint or type checks set up.
 
 **Fixed**
-- **Duplicate tags:** tagging a bookmark with a tag it already had added it again, so the store file ended up with `["work", "work"]`. It now does nothing, as the plan says. (a8d0017)
-- **`bm tag` exit codes:** an unknown id exited 2 instead of 1. An empty id was read as 0 and printed `no bookmark 0` instead of the usage line. (4dc9697)
-- **`bm list --tag` didn't clean up the tag:** `--tag Work` found nothing, and an invalid tag like `--tag "to do"` printed nothing and exited 0. I also renamed the store method from `listTagged` to `listByTag`, the name in the plan. (eb564de)
-
-Each fix started with a failing test. A separate agent that saw only the three fix commits and what they fix re-checked them, including inputs like `01`, `" "`, `1.5` and differently-cased duplicate tags. It found nothing wrong.
+- Tagging a bookmark id that doesn't exist exited with code 2 instead of 1. The plan and `AGENTS.md` both say "not found" is 1 (a8b6426).
+- Tagging a bookmark twice with the same tag saved it twice (`["work","work"]`). The plan says the second time should do nothing (f0fce01).
+- The store method was called `listTagged`, but the plan calls it `listByTag` (5aeb7ff).
+- `list --tag` didn't clean up the tag first, so `--tag Work` found nothing. An invalid tag like `--tag 'to do'` exited 0 with no output instead of an error (acd0e3f).
+- `bm tag '' work` printed `no bookmark 0` instead of the usage message (f7ae40a).
 
 **Open**
-- `bm list --tag` with no value lists every bookmark without complaint. I'd make it print `usage: bm list [--tag <tag>]` and exit 2. I left it alone because it changes what users see and the plan doesn't cover it - your call.
+- `bm list --tag` with nothing after it lists every bookmark and exits 0. The plan doesn't cover this and it changes what users see, so I left it for you. I'd make it print `usage: bm list [--tag <tag>]` and exit 2.
 
 **Where to look**
-1. `src/store.ts`, from `load()` through `tag()` to `save()`: how files written before tags existed are read, and how the whole file is read and rewritten on every tag.
-2. `src/cli.ts`: how errors become messages and exit codes in `run()`, and the `tag` and `list` cases. These are what users see.
+1. `src/store.ts`, from `load()` through `tag()` to `save()`: how files saved before tags existed are read, and that repeating a tag doesn't rewrite the file.
+2. `src/cli.ts` `run()`: which errors exit 1 and which exit 2.
+3. `src/cli.ts`, the `list` case: how `--tag` is read from the arguments.
 
-The rest can be skimmed.
+`src/tags.ts` and the tests are routine and can be skimmed.
 
-The review is written into `docs/plans/2026-10-14-bookmark-tags.md` as a `## Review` section (9e9672e). Nothing is pushed. The next step would be the merge request - tell me if you want me to write it, or to fix `list --tag` first.
+I added this summary to the plan as a `## Review` section (84e9ff8). Nothing has been pushed. The next step is the merge request. Should I fix the open `list --tag` item first, or draft the MR now?

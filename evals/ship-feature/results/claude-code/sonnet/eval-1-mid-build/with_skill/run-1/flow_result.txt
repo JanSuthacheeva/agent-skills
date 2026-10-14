@@ -1,22 +1,18 @@
 new commits:
-ee44ca7 docs: record review of bookmark tags
-bddae36 bm: reject list --tag without a tag and tag with an empty id
-6a94354 docs: tick bookmark tags end-to-end check
-6150d51 bm: add tag command and list --tag
-2f2dc45 bm: tag bookmarks and list by tag in the store
-5bbb21e bm: store tags on bookmarks
+fc3c64d docs: add review summary to the bookmark tags plan
+cb562ce bm: tick the end-to-end check in the bookmark tags plan
+7997c73 bm: add tag command and list --tag
+4481dc2 bm: tag bookmarks and list by tag
+9a1d69b bm: store tags on bookmarks
 
 agents:
-- Build bookmark tags plan: 494 chars
-- Isolated review of bookmark tags: 679 chars
+- Isolated branch review: 698 chars
 flow reports:
-phase implement
 phase implement
 tasks 2 5
 tasks 3 5
+decision list usage error for bare --tag or unknown option, exit 2; plan was silent
 tasks 4 5
-phase review
-phase review
-review --fixed 2 --open 0
-phase merge-request
-waiting Push and open the merge request?
+tasks 5 5
+review --fixed 0 --open 2
+blocked review left 2 open items on tag id parsing and extra list args

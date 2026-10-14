@@ -1,40 +1,14 @@
-The build and the review are finished. The merge request is drafted but not pushed, and no MR exists for this branch yet.
+The flow is stopped on two open review items. Both change what the CLI accepts, so the call is yours.
 
-**Where it stands**
-- Build: all 5 plan tasks are done and ticked, and 19 of 19 tests pass. I confirmed the commits match the ticked boxes.
-- Review: an isolated agent found and fixed two small bugs. `bm list --tag` with no tag now exits 2 with a usage message. `bm tag "" work` now gives the usage error instead of `no bookmark 0`. Nothing is left open.
-- One caveat from the review: the fixes were re-read by the reviewer, not reviewed by a second agent.
+1. **Id parsing in `bm tag`.** `Number()` accepts `1e0`, and `""` becomes id 0 and exits 1 as "no bookmark 0". The plan says a non-numeric id gives `usage: bm tag <id> <tag>` with exit 2.
+2. **Extra argument in `list`.** `bm list --tag work extra` ignores `extra` and exits 0.
 
-**Proposed title**
-`bm: add tags to bookmarks`
+I recommend fixing both:
+- For the id, use a strict `/^\d+$/` check.
+- For `list`, reject extra arguments with `usage: bm list [--tag <tag>]` and exit 2.
 
-**Proposed description**
-```
-Bookmarks could not be grouped or filtered. Each bookmark now carries tags:
-`bm tag <id> <tag>` adds one and `bm list --tag <tag>` filters by it.
+Both fixes are small. I would add them to the plan as tasks, build them with tests, and then run a second review over the new commits.
 
-- Tags are normalized in one place (`normalizeTag`: trimmed, lowercased,
-  only `a-z`, `0-9` and `-`), so the store and the CLI agree on what a
-  valid tag is. The store normalizes again, so direct callers cannot save
-  a bad tag.
-- Tags live in the existing store file as a `tags` field. Older files
-  without it load as `tags: []`, so no migration is needed.
-- Tagging with a tag the bookmark already has is a no-op, not an error.
-- Exit codes follow the existing convention: 1 for an unknown id, 2 for an
-  invalid tag or bad usage.
+Everything else is done. All 18 tests pass, and the real CLI matched the plan, including the error paths. The review found nothing else to fix. Its pointers for a human reviewer are `src/store.ts` (`load()`, then `tag()`, then `save()`) and the `tag` and `list` cases in `src/cli.ts`.
 
-Review:
-1. `src/store.ts` `load()` and `tag()`: legacy files without `tags` are
-   read as `[]` and only rewritten with `tags` on the next save. A corrupt
-   file throws instead of being read as empty, so nothing is overwritten.
-2. `bm tag` and `bm list --tag` from `src/cli.ts` `dispatch` through
-   `BookmarkStore::tag` and `listByTag`: check the error paths and exit
-   codes.
-Skim: `src/tags.ts` and the tests.
-
-Left out: argument parsing is hand-rolled, so an unknown flag such as
-`list --tga work` is still ignored and lists everything. This needs a
-decision if more options arrive.
-```
-
-Should I push `feature/bookmark-tags` and open the merge request against `main`? Tell me to push, or tell me what to change in the title or description first.
+Should I fix both, only the id check, or ship as is?

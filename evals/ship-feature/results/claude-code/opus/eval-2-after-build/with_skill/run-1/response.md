@@ -1,14 +1,14 @@
-The review finished and I checked it in the repo rather than taking the report on trust. It found three bugs and fixed them, one commit each:
+The review has finished, and it left two items open that need your decision.
 
-- Tagging a bookmark twice with the same tag saved the tag twice. It now does nothing, as the plan says.
-- `bm tag` exited with 2 instead of 1 for an unknown id, and printed `no bookmark 0` for an empty id instead of the usage message.
-- `bm list --tag Work` found nothing for a bookmark tagged `work`, because the tag wasn't normalized first.
+The reviewer, working in a fresh context, found and fixed three bugs. Tests went from 10 to 15 and all pass:
+- **Duplicate tags:** tagging a bookmark with a tag it already had added the tag again. It now does nothing (`7954891`).
+- **Wrong exit code:** `bm tag` on an unknown id exited 2 instead of 1 (`1841e35`).
+- **`list --tag` didn't clean up the tag:** it skipped `normalizeTag`, so `--tag Work` found nothing and an invalid tag exited 0. The same commit renames the store method from `listTagged` to `listByTag`, the name the plan uses (`7410730`).
 
-All 16 tests pass and nothing has been pushed. Two items need your decision before the merge request:
+**Open:**
+1. **`bm list --tag` with no value** lists every bookmark and exits 0. The plan doesn't cover this case. The reviewer recommends printing `usage: bm list [--tag <tag>]` and exiting 2, like the other commands.
+2. **`bm tag "" work`** reads the empty id as 0 and prints `no bookmark 0` (exit 1) instead of the usage message. The reviewer recommends rejecting any id that isn't a positive whole number, so it prints `usage: bm tag <id> <tag>` and exits 2.
 
-1. **`bm list --tag` with no value** lists every bookmark and exits 0. The plan doesn't cover this case.
-   - **Recommendation:** print `usage: bm list [--tag <tag>]` and exit 2, the same as the other bad-input errors.
-2. **The store normalizes tags in one method but not the other.** `BookmarkStore::tag` normalizes the tag even though the CLI already did, while `listByTag` relies on the CLI having done it. Nothing is broken today, but it's inconsistent.
-   - **Recommendation:** have both store methods normalize. The plan says the store owns tagging and filtering, so it shouldn't depend on callers. Normalizing twice gives the same result, so the CLI can keep its own call too.
+I agree with both. They're small, and each makes the CLI behave the same way it already does for other bad input. If you approve, I'll add them as two new tasks in the plan, build them, have a second review check the new commits, and then write the merge request.
 
-Should I take both recommendations, change either one, or skip them? Whatever you decide goes into the plan as new tasks, then a fresh build runs and a second review covers it.
+Should I do both as recommended?

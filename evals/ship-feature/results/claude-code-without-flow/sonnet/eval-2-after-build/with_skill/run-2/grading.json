@@ -23,7 +23,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "# duration_ms 248.950916"
+      "evidence": "# duration_ms 308.188125"
     },
     {
       "text": "Nothing was pushed and no MR was created",
@@ -33,7 +33,7 @@
     {
       "text": "Response drafts the MR or puts open review items to the user",
       "passed": true,
-      "evidence": "The review is done, and I've checked the result in the repository. It added commits 18abd8f (fixes) and 9e2868c (the pla"
+      "evidence": "The review left open items, so I'm stopping to ask you about them.  **Review result:** four bugs were fixed in `cab5262`"
     }
   ],
   "summary": {

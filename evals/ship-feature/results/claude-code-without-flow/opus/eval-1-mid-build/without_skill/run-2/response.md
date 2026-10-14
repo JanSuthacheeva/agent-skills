@@ -1,15 +1,24 @@
-The bookmark tags feature is built: all five tasks in the plan are done and ticked off in `docs/plans/2026-10-14-bookmark-tags.md`. The tests pass (16, up from 6), and running the real CLI against a temporary store file gave the output and exit codes the plan specifies. The project has no lint or type checker set up, so neither was run.
+The bookmark tags feature is built and all five plan tasks are ticked. The full suite passes (17 tests). The project has no lint or type check set up, so only the tests and the end-to-end run were checked.
 
-**Commits:**
-- `97aee6a bm: store tags on bookmarks` - new bookmarks start with no tags, and files saved before this change load with empty tags.
-- `635214e bm: tag bookmarks and list them by tag` - adds the "not found" error and the store's `tag` and `listByTag`. Adding a tag a bookmark already has does nothing and doesn't rewrite the file.
-- `3b520ce bm: add tag command and list --tag`
-- `1702976 docs: tick bookmark tags end-to-end check`
+**Commits**
+- `660d822 bm: store tags on bookmarks` - bookmarks now have a `tags` field. Store files written before this change load with no tags, so no migration is needed.
+- `05391ab bm: tag bookmarks and list them by tag` - adds `BookmarkNotFoundError`, `BookmarkStore::tag` and `BookmarkStore::listByTag`. Adding a tag a bookmark already has does nothing.
+- `fb14981 bm: add tag command and list --tag` - adds `bm tag <id> <tag>` and `bm list --tag <tag>`.
+- `8a4aa15 docs: check bookmark tags end to end` - ticks the last task in the plan.
 
-**What I ran:** `add` twice; `tag 1 Work` printed `tagged 1 work`, and tagging it again changed nothing. `list --tag WORK` and `list --tag home` each showed only the matching bookmark. `tag 9 work` printed `no bookmark 9` (exit 1), and `tag 1 to-do!`, `tag x work` and `list --tag` each printed their error with exit 2. The store file kept its format, with a `tags` array added to each bookmark.
+**End-to-end check:** I ran the real CLI with `npm run bm` against a temp store file that started out in the old format, without tags:
+- `bm tag 2 " Work "` printed `tagged 2 work`, and `list --tag WORK` matched it, so tags are trimmed and lowercased.
+- Running the same tag a second time changed nothing.
+- `bm tag 9 work` printed `no bookmark 9` and exited 1.
+- `bm tag x work`, `bm tag 1 "to do"` and `bm list --tag` printed the matching error and exited 2.
+- After the run, the file had a `tags` field on every bookmark, including the old one.
 
-**Change from the plan:** the plan didn't cover `list` called with anything other than `--tag <tag>`, such as `list --tag` with no tag. That case now prints `usage: bm list [--tag <tag>]` and exits with 2, the same way `add` and `tag` handle bad input. It has a test and is written into the plan's errors list. This is a message users will see, so tell me if you want different wording.
+**Deviations from the plan**
+- I added two error cases the plan didn't list, and wrote them into the plan:
+  - `bm tag` with a missing id or tag prints the usage line and exits 2.
+  - `bm list` followed by anything other than `--tag <tag>` prints `usage: bm list [--tag <tag>]` and exits 2.
+- **Decision for you:** that second case changes existing behaviour. `bm list foo` used to ignore the extra argument and print everything; it now fails. Rejecting unknown arguments seemed safer than ignoring them, but you can revert it to the old lenient behaviour if you prefer.
 
-**How it works:** `src/main.ts` passes the arguments to `run()` in `src/cli.ts`. That splits by command, checks the id format and normalizes the tag (`normalizeTag` in `src/tags.ts`: trims and lowercases). It then calls `BookmarkStore.tag` or `listByTag` in `src/store.ts`, which read and write the JSON file. `run()` catches the bad-tag and not-found errors and turns them into the messages and exit codes above.
+**How it works:** `main.ts` calls `run()` in `src/cli.ts`, which reads the arguments and cleans up the tag text with `normalizeTag()` before calling the store. All file reading and writing happens in `BookmarkStore`. The two new error types are caught in one place in `run()`, which prints the message and picks the exit code: 1 for an unknown bookmark, 2 for an invalid tag.
 
-Nothing is blocked. I haven't pushed or opened a merge request.
+Nothing is pushed. The next steps would be the `review-changes` skill, then `write-merge-request`.

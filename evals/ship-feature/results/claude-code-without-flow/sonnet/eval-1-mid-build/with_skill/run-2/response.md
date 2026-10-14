@@ -1,31 +1,9 @@
-The build and the review are done, and no merge request exists yet for `feature/bookmark-tags`. The flow is now at the push stop.
+The review is done and it has open items, so the flow stops here for your decision.
 
-**Where it stands**
-- All five plan tasks are ticked and committed.
-- The review found one bug: `bm tag "" work` read the empty id as 0 and reported `no bookmark 0`. It is fixed in `c83a5fa` with a test.
-- The `## Review` section has no open items.
-- The suite is green at 20 of 20. The repo has no linter or type checker.
+**Fixed by the reviewer:** `bm tag "" x` read the empty id as 0 and printed `no bookmark 0` with exit 1. The plan says a non-numeric id should print the usage line with exit 2, and it now does. The fix has a test (`fd3e8f3`) and all 18 tests pass. The reviewer re-read its own fix instead of getting a fresh agent to check it, and the plan's review section says so.
 
-**Title**
-```
-bm: tag bookmarks and filter the list by tag
-```
+**Open, needs your decision:**
+1. **`list` with a missing or misspelled flag:** `bm list --tag` with no value, or `bm list --tagg work`, currently lists every bookmark and exits 0. This is the same gap I flagged in the build summary, and the plan doesn't cover it. The reviewer recommends a usage error with exit 2 for any `list` argument other than `--tag <tag>`. I agree, because a silent unfiltered list looks like a filter that matched everything. It would add a task to the plan and one more build pass, followed by a second review of the new commits.
+2. **Corrupt store file:** `load()` throws on one, as it did before this branch, and nothing gets overwritten. The reviewer treats this as a note, not a defect, and I recommend leaving it.
 
-**Description**
-```
-Bookmarks could not be grouped or found by topic. Each bookmark now carries tags, `bm tag <id> <tag>` adds one, and `bm list --tag <tag>` shows only the bookmarks with that tag.
-
-- Tags are stored on each bookmark in the existing store file, so the file format stays a JSON array and no migration is needed. Files written before this change load with `tags: []` and only get the field on disk at the next write.
-- `normalizeTag` is the single definition of a valid tag: lowercased, trimmed, only `a-z`, `0-9` and `-`. The store normalizes again, so it stays safe when called without the CLI.
-- Tagging a bookmark with a tag it already has is a no-op, not an error.
-- `list --tag` with no value prints `usage: bm list [--tag <tag>]` and exits 2. The plan did not cover this case.
-
-Review:
-1. `src/store.ts` `load()` to `save()`: old files without `tags` load as `[]`. Check that a corrupt file still throws and is never overwritten.
-2. `bm tag` from `src/cli.ts` `run()` and `dispatch()` to `BookmarkStore::tag`: check the error mapping (invalid tag gives 2, unknown id gives 1, bad id gives usage and 2).
-Skim: `src/tags.ts`, `src/bookmark.ts` and the tests.
-```
-
-The fix in `c83a5fa` changed production code and was re-read by the reviewer, not by an independent agent. The commits and the description use no ticket ID, so there is no `Refs:` line.
-
-Should I push `feature/bookmark-tags` and open the merge request against `main`?
+Should I add a task for the `list` usage error (item 1) and build it, leaving item 2 alone?

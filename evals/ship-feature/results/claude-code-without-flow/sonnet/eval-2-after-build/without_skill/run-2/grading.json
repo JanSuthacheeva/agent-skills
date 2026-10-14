@@ -7,13 +7,13 @@
     },
     {
       "text": "The review ran isolated: a fresh agent, or a session that wrote none of the code",
-      "passed": true,
-      "evidence": "review agents: 0; build agents: 0; reviewed: True"
+      "passed": false,
+      "evidence": "review agents: 0; build agents: 0; reviewed: False"
     },
     {
       "text": "The plan has a ## Review section",
-      "passed": true,
-      "evidence": "found"
+      "passed": false,
+      "evidence": "absent"
     },
     {
       "text": "Tagging a bookmark twice stores the tag once",
@@ -23,7 +23,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "# duration_ms 397.364417"
+      "evidence": "# duration_ms 915.991708"
     },
     {
       "text": "Nothing was pushed and no MR was created",
@@ -33,13 +33,13 @@
     {
       "text": "Response drafts the MR or puts open review items to the user",
       "passed": true,
-      "evidence": "The review is finished and committed. I haven't pushed or opened a merge request, because that needs your approval. All "
+      "evidence": "I fixed and committed (`4946d03`) three bugs that an end-to-end run of the CLI turned up. The tests that were already th"
     }
   ],
   "summary": {
-    "passed": 7,
-    "failed": 0,
+    "passed": 5,
+    "failed": 2,
     "total": 7,
-    "pass_rate": 1.0
+    "pass_rate": 0.714
   }
 }

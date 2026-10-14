@@ -1,15 +1,15 @@
-The build and the review are both done. The review found and fixed three bugs that didn't match the plan, each with a test:
+The review is done, and it left three open items that need your decision before the merge request.
 
-- Tagging a bookmark twice with the same tag stored it twice.
-- Tagging an unknown id exited 2 instead of 1.
-- `list --tag` didn't normalize the tag, so `--tag Work` found nothing.
+**Fixed by the reviewer.** Each fix came with a failing test first, and a second agent checked the fixes. There are now 16 tests and all pass.
+- `bm tag` with an unknown id exited 2; it now exits 1, as the plan says.
+- Tagging a bookmark with a tag it already had stored it twice; now nothing happens.
+- `list --tag` didn't normalize the tag, so `--tag Work` found nothing and `--tag 'to do'` was accepted. The store method is also renamed to the plan's `listByTag`.
 
-All 16 tests pass and nothing has been pushed.
+**Open items:**
+1. **Bad ids in `bm tag`.** `bm tag '' work` is read as id 0 and prints `no bookmark 0` (exit 1) instead of the usage error (exit 2). `0x1` and `1e0` are accepted as id 1. I recommend accepting only plain digits (`/^\d+$/`) and showing the usage error otherwise. That's what the plan means by "non-numeric id".
+2. **`bm list --tag` with no value** lists every bookmark and exits 0. I recommend `usage: bm list [--tag <tag>]`, exit 2. This changes what users see, so it's your call.
+3. **Old duplicate tags.** Bookmarks tagged before the duplicate fix may already hold the same tag twice. Only data from development is affected, so I recommend doing nothing.
 
-It left three items for you to decide:
+**Your `~/.bookmarks.json` was changed.** The reviewer once ran the CLI without `BM_FILE` set, which wrote to your real bookmarks file. They put it back by hand. It now holds bookmark 1 (`https://a.dev`) with one `work` tag, but that is their best guess at what was there, so check it if the file matters to you.
 
-1. **`bm list --tag` with no value lists every bookmark without an error.** The plan doesn't cover this case. The reviewer recommends printing `usage: bm list [--tag <tag>]` and exiting 2. I agree, and it belongs in this feature.
-2. **Extra arguments to `list` are silently ignored.** `main` already does this. The reviewer recommends leaving it until argument parsing is tightened across the whole CLI. I agree, because fixing it only for `list` would make the commands behave differently from each other.
-3. **An empty or corrupt store file crashes with a raw `SyntaxError` stack trace.** `main` already does this, and the file is never overwritten, so nothing is lost. The reviewer recommends a separate change. Given your standard of fixing defects you come across, I'd fix it here: a `CorruptStoreError` mapped to a clear message and exit 2. It's small and covers the file that now stores tags.
-
-**My recommendation:** build 1 and 3 on this branch and leave 2. Which ones should I add as tasks? Once you decide, I'll write them into the plan, build them in a fresh agent and run a second review.
+Should I add tasks for 1 and 2 as recommended and skip 3? If so, I'll write them into the plan, build them, and run a second review on the new commits.

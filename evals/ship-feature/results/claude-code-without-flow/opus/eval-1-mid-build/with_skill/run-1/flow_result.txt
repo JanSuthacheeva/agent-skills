@@ -1,13 +1,12 @@
 new commits:
-8963f11 docs: record the bookmark tags review
-60c4680 bm: test that tags accept digits and dashes
-f435ba0 docs: check bookmark tags end to end
-70e09ec bm: add tag command and list --tag
-12be640 bm: tag bookmarks and filter them by tag
-dc82acb bm: store tags on bookmarks
+1a231b5 docs: add review of bookmark tags
+38deacb bm: cli: test usage errors for tag without a tag and list options
+680aef0 docs: tick bookmark tags end-to-end check
+6f0d3d9 bm: cli: add tag command and list --tag
+084e5b7 bm: store: tag bookmarks and list by tag
+57a957e bm: store tags on bookmarks
 
 agents:
-- Build bookmark tags plan: 574 chars
-- Isolated review of bookmark tags: 624 chars
+- Isolated review of bookmark tags: 786 chars
 flow reports:
 (ran without flow)

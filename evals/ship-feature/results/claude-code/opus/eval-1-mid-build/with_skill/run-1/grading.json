@@ -6,9 +6,9 @@
       "evidence": "task 1 commit kept: True; boxes: xxxxx"
     },
     {
-      "text": "The build ran in a fresh agent",
+      "text": "The build ran in this session, not in an agent",
       "passed": true,
-      "evidence": "build agents: 1"
+      "evidence": "build agents: 0; boxes: xxxxx"
     },
     {
       "text": "The review ran in a separate fresh agent",
@@ -18,7 +18,7 @@
     {
       "text": "The review agent's prompt holds no build report",
       "passed": true,
-      "evidence": "829 chars; leak: None"
+      "evidence": "823 chars; leak: None"
     },
     {
       "text": "The plan has a ## Review section",
@@ -28,7 +28,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "# duration_ms 273.198334"
+      "evidence": "# duration_ms 166.409125"
     },
     {
       "text": "Nothing was pushed and no MR was created",
@@ -38,12 +38,12 @@
     {
       "text": "Response drafts the MR or asks to push",
       "passed": true,
-      "evidence": "I finished building the feature and the separate review is done, but it left two open items that need your decision befo"
+      "evidence": "I finished the build and the review. The merge request is drafted, and nothing has been pushed yet.  **Build:** tasks 2-"
     },
     {
       "text": "Reported the phases implement and review, then merge-request only after a review with nothing open",
       "passed": true,
-      "evidence": "phases: ['implement', 'review']; expected ['implement', 'review'] (2 open)"
+      "evidence": "phases: ['implement', 'review', 'merge-request']; expected ['implement', 'review', 'merge-request'] (0 open)"
     },
     {
       "text": "Reported tasks 5 5",
@@ -53,12 +53,12 @@
     {
       "text": "Reported the review counts of the plan's ## Review",
       "passed": true,
-      "evidence": "reported: --fixed 0 --open 2; plan: --fixed 0 --open 2"
+      "evidence": "reported: --fixed 1 --open 0; plan: --fixed 1 --open 0"
     },
     {
       "text": "Reported the final stop: blocked with open review items, else waiting with a question",
       "passed": true,
-      "evidence": "2 open; stop: blocked review left 2 open items: lenient argument parsing, stray test bookmark in ~/.bookmarks.json"
+      "evidence": "0 open; stop: waiting Push and open the merge request?"
     }
   ],
   "summary": {

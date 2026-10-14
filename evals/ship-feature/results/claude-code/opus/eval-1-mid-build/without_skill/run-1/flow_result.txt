@@ -1,16 +1,17 @@
 new commits:
-f7f488a docs: check bookmark tags end to end
-dcd13a6 bm: cli: add tag command and list --tag
-9a7be8d bm: store: tag bookmarks and list them by tag
-877e906 bm: store tags on bookmarks
+4be652c docs: check bookmark tags end to end
+70a5568 bm: add tag command and list --tag
+7cfa368 bm: tag bookmarks and list them by tag
+18bccfa bm: store tags on bookmarks
 
 agents:
 
 flow reports:
 phase implement
-working
+tasks 1 5
 tasks 2 5
 tasks 3 5
-decision list rejects arguments other than --tag <tag> with a usage error instead of ignoring them
+decision extracted private dispatch() in cli.ts so run() maps tag/not-found errors in one place
+decision list --tag without a value prints usage, exit 2
 tasks 4 5
 tasks 5 5

@@ -7,13 +7,13 @@
     },
     {
       "text": "The review ran isolated: a fresh agent, or a session that wrote none of the code",
-      "passed": false,
-      "evidence": "review agents: 0; build agents: 0; reviewed: False"
+      "passed": true,
+      "evidence": "review agents: 0; build agents: 0; reviewed: True"
     },
     {
       "text": "The plan has a ## Review section",
-      "passed": false,
-      "evidence": "absent"
+      "passed": true,
+      "evidence": "found"
     },
     {
       "text": "Tagging a bookmark twice stores the tag once",
@@ -23,7 +23,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "# duration_ms 491.554208"
+      "evidence": "# duration_ms 301.625166"
     },
     {
       "text": "Nothing was pushed and no MR was created",
@@ -33,28 +33,28 @@
     {
       "text": "Response drafts the MR or puts open review items to the user",
       "passed": true,
-      "evidence": "The bookmark tags feature is now finished. Every plan task was already checked off, but running the CLI end to end showe"
+      "evidence": "The review is done and I fixed four deviations from the plan. All 16 tests pass, and there is no lint or type-check scri"
     },
     {
       "text": "Reported the phase review, then merge-request only after a review with nothing open",
-      "passed": false,
-      "evidence": "phases: []; expected ['review', 'merge-request'] (0 open)"
+      "passed": true,
+      "evidence": "phases: ['review']; expected ['review'] (2 open)"
     },
     {
       "text": "Reported the review counts of the plan's ## Review",
       "passed": false,
-      "evidence": "reported: None; plan: --fixed 0 --open 0"
+      "evidence": "reported: --fixed 4 --open 1; plan: --fixed 4 --open 2"
     },
     {
       "text": "Reported the final stop: blocked with open review items, else waiting with a question",
       "passed": false,
-      "evidence": "0 open; stop: None"
+      "evidence": "2 open; stop: None"
     }
   ],
   "summary": {
-    "passed": 5,
-    "failed": 5,
+    "passed": 8,
+    "failed": 2,
     "total": 10,
-    "pass_rate": 0.5
+    "pass_rate": 0.8
   }
 }

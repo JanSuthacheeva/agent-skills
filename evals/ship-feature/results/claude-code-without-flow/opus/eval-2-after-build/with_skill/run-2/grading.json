@@ -23,7 +23,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "# duration_ms 225.827"
+      "evidence": "# duration_ms 375.455917"
     },
     {
       "text": "Nothing was pushed and no MR was created",
@@ -33,7 +33,7 @@
     {
       "text": "Response drafts the MR or puts open review items to the user",
       "passed": true,
-      "evidence": "The review is finished. I checked the repository: it fixed four bugs in four commits (`09ed64b`, `1b3a60e`, `4f1bc15`, `"
+      "evidence": "The review is finished, and it left one decision for you before I can write the merge request.  It fixed five problems i"
     }
   ],
   "summary": {

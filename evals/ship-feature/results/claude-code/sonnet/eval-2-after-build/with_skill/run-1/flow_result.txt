@@ -1,11 +1,11 @@
 new commits:
-d7426eb docs: record review of bookmark tags
-0e06f9c bm: fix tag exit code, duplicate tags and list --tag normalizing
+50d05df docs: add review to bookmark tags plan
+3ba2066 bm: align tags with the plan
 
 agents:
-- Isolated branch review: 516 chars
+- Isolated branch review: 759 chars
 flow reports:
 phase review
 phase review
-review --fixed 4 --open 2
-blocked review left 2 open items on bookmark tags
+review --fixed 4 --open 3
+blocked review has open items

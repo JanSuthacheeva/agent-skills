@@ -1,5 +1,5 @@
 new commits:
-9b0af74 bm: match tag behavior to the plan
+c0d42d4 bm: fix tag dedupe, not-found exit code and list --tag
 
 agents:
 

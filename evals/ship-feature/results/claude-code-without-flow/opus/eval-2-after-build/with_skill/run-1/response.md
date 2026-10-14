@@ -1,11 +1,14 @@
-The review is done and checked in the repository. It added 4 commits (3 fixes plus the `## Review` section), and all 16 tests pass. It left two open items, and the flow stops here until you decide them.
+The review of `feature/bookmark-tags` is done, and it left two open items for you to decide before I build any more.
 
-**1. `bm list --tag` with no value** currently lists every bookmark and exits 0.
-- **Option A (recommended):** print `usage: bm list [--tag <tag>]` and exit 2. This matches how `tag` handles bad arguments, and right now a typo silently gives a wrong result.
-- **Option B:** keep the current behaviour.
+**What the reviewer fixed** (all 16 tests pass, nothing pushed):
+- Tagging a bookmark twice saved the tag twice. The plan says a repeated tag should do nothing (`245e1ad`).
+- Tagging an unknown bookmark id exited with 2 instead of 1 (`da08103`).
+- `list --tag` didn't clean up the tag first, so `list --tag Work` found nothing and invalid tags weren't rejected (`e389e59`).
 
-**2. Who normalizes tags.** `BookmarkStore::tag` normalizes the tag again after the CLI already has, but `listByTag` expects a tag that is already normalized.
-- **Option A (recommended):** the caller normalizes and the store accepts only normalized tags, so the extra normalizing in `tag()` goes. That's what the plan already says: tags are "normalized once", the CLI calls `normalizeTag` before the store, and the store owns tagging rather than validation.
-- **Option B:** the store normalizes in both `tag()` and `listByTag()`, which is safer if anything else ever calls the store.
+**Open items:**
+1. `bm list --tag` with no tag after it quietly lists every bookmark. The reviewer recommends printing `usage: bm list [--tag <tag>]` and exiting with 2.
+2. `bm tag '' work` treats the empty id as 0 and prints `no bookmark 0` with exit 1. The plan says this should be the usage error with exit 2. Ids like `0x1` and `1e0` are also accepted. The reviewer recommends accepting only plain digits (`/^\d+$/`).
 
-Shall I go with A for both? I'll add them as tasks to the plan, commit, and run another build and review before the merge request.
+I'd take both recommendations. Both bugs are cases of bad input that should get the usage error and exit 2, as the plan already says for bad ids.
+
+Should I add both as tasks to the plan and build them? A second review would then cover the new commits.

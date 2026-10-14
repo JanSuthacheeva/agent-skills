@@ -1,18 +1,16 @@
-The review is finished. I checked the repository: it fixed four bugs in four commits (`09ed64b`, `1b3a60e`, `4f1bc15`, `46a199e`), the tests went from 10 to 15 and all pass, and the working tree is clean.
+The review is finished, and it left one decision for you before I can write the merge request.
 
-The fixes:
-- Tagging a bookmark twice stored the tag twice.
-- An unknown id in `bm tag` exited 2 instead of 1.
-- `bm tag "" work` read the empty id as bookmark 0 instead of printing the usage error.
-- `list --tag` didn't normalize the tag, so `--tag Work` matched nothing and `--tag "to do"` was accepted.
+It fixed five problems itself, one commit each, and the tests went from 10 to 16, all passing:
+- **Duplicate tags:** tagging a bookmark with a tag it already had stored it twice.
+- **Wrong exit code:** `bm tag` on an unknown id exited 2 instead of 1.
+- **`list --tag` matching:** `bm list --tag Work` found nothing for a bookmark tagged `work`, and an invalid tag there was not reported as `invalid tag: <raw>`.
+- **Method name:** the store method was called `listTagged` instead of the plan's `listByTag`.
+- **Bad ids accepted:** ids like `""`, `0x1` and `1e0` were accepted instead of printing the usage message.
 
-Two review items need your decision before I open the merge request:
+**Open item:** `bm list --tag` with no value lists every bookmark, and `list` ignores any other argument it's given. The plan doesn't say what should happen here.
 
-1. **`bm list --tag` with no value** lists every bookmark and exits 0. The plan doesn't cover this case.
-   - **Recommendation:** make it a usage error, `usage: bm list [--tag <tag>]`, exit 2. This matches how the other commands handle bad input.
-   - Alternative: keep the current behavior.
-2. **Broken link in the plan:** it links to `.lavish/bookmark-tags-implementation.html`, which isn't in the repository.
-   - **Recommendation:** remove the link. That page was only for reviewing the design, and a link that doesn't resolve in the repository is just noise.
-   - Alternative: commit the page.
+Options:
+1. **Reject it (reviewer's and my recommendation):** print `usage: bm list [--tag <tag>]` and exit 2. Today a typo silently shows the wrong result.
+2. **Leave it as it is** and ship.
 
-Should I go ahead with both recommendations? If so, I'll add them as tasks in the plan, run the build again in a fresh agent and do a second review of the new commits.
+Which do you want? If you pick 1, I'll add it as a task to the plan, build it, and run a second review on the new commits.

@@ -1,31 +1,27 @@
-The flow is at the push stop. The tags feature is built and reviewed, and no merge request exists yet.
+The review is done and the tests pass (15 of 15). It fixed five problems and left three items open for you to decide.
 
-**Title**
-```
-bm: tag bookmarks and filter the list by tag
-```
+**Fixed in `b6b9a23`**
+- An unknown id in `bm tag` now exits 1. It exited 2 before.
+- Tagging a bookmark with a tag it already has is now a no-op. It used to store a duplicate.
+- `bm list --tag` now normalizes its tag. An invalid tag prints `invalid tag: <raw>` and exits 2.
+- `listTagged` is renamed to the planned `listByTag`.
+- Tests were added for each of these. The reviewer says each new test failed before the fix.
 
-**Description**
-```
-Bookmarks could not be grouped. `bm tag <id> <tag>` now adds a tag to a bookmark, and `bm list --tag <tag>` lists the bookmarks that have it.
+I didn't have a second fresh agent available, so the reviewer re-read its own fixes against the findings.
 
-- Tags are lowercased and trimmed in one place, `normalizeTag`, so the store and the CLI agree on what a valid tag is. Anything outside `a-z`, `0-9` and `-` is rejected (exit 2).
-- Tags are stored on each bookmark in the existing store file. Files written before this change have no `tags` field and are read as `tags: []`, so no migration is needed.
-- Tagging a bookmark with a tag it already has is a no-op, not an error.
+**Open items (your decision)**
+1. **`bm list --tag` with no value** lists every bookmark without saying anything. The plan doesn't cover this case. I recommend printing `usage: bm list [--tag <tag>]` and exiting 2 before merge.
+2. **A corrupt store file** throws a raw `SyntaxError` out of `run`. This was already the case before the branch. I recommend a separate change that maps it to a clear error.
+3. **`BookmarkStore.tag` also normalizes the tag**, although the plan has only the CLI do it. It's harmless and keeps the store safe for other callers. I recommend keeping it.
 
-Review:
-1. `bm tag` from `src/cli.ts` `run()` to `BookmarkStore::tag` and `listByTag` in `src/store.ts`: normalization and dedupe live in the store, and the CLI also normalizes for its output line. Check the exit codes (1 for an unknown id, 2 for bad input).
-2. `load()` in `src/store.ts`: old files without `tags` are read as `[]`. A corrupt file still throws, as before, so it is never overwritten.
-Skim: `src/tags.ts`, the tests, the plan and its review section.
-```
+**Where to look**
+1. `src/store.ts`, from `load()` to `tag()`. This is the only code that reads and rewrites stored data.
+2. `src/cli.ts`: the `run()` error mapping and the `tag` and `list` cases, for exit codes and messages against the plan.
+3. Skim the rest. `src/tags.ts` and the tests are routine.
 
-An isolated review of the branch found and fixed five problems before this point. These were the wrong exit code for an unknown id, duplicate tags, an unnormalized `list --tag`, a wrong method name and missing tests. I also ran `add`, `tag` and `list --tag` against a temp store file, and the output matched the plan. All 15 tests pass.
+How do you want to handle them?
+- **Item 1:** I'd add it as a new task in the plan and build it now.
+- **Item 2:** I'd leave it for a separate change.
+- **Item 3:** I'd keep it as it is.
 
-The only independent re-check of the review fixes was the reviewer re-reading them, because it could not start a second agent. The `src/store.ts` and `src/cli.ts` changes are the ones to read closely.
-
-Commits by step:
-- **Design:** `b1998c5`
-- **Build:** `550c919`, `82bc0cc`, `00b29b2`
-- **Review:** `0340fd5`, `d39cc05`
-
-Do you want me to push `feature/bookmark-tags` and open the merge request against `main`?
+If you agree, I'll add the usage-error task to the plan, build it, and run a second review on the new commits. After that I'll draft the merge request for you to approve before anything is pushed.

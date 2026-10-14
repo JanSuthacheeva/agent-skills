@@ -1,4 +1,4 @@
-# Evaluation of the `ship-feature` skill v0.3 in Claude Code
+# Evaluation of the `ship-feature` skill v0.4 in Claude Code
 
 Claude Code 2.1.299, `claude-opus-5-5` and `claude-sonnet-5-5` at medium effort, 2 scenarios, 2 trials per scenario, condition and model, 14 October 2026.
 
@@ -6,21 +6,24 @@ Claude Code 2.1.299, `claude-opus-5-5` and `claude-sonnet-5-5` at medium effort,
 
 The `ship-feature` skill runs four delivery skills - `design-code`,
 `implement-plan`, `review-changes` and `write-merge-request` - as one flow:
-it derives the next step from the repository, runs the build and the review
-each in a fresh agent given only the plan and the branch, and stops where a
-decision belongs to the user. Since version 0.3, the flow and its step
-skills also report their progress to the `flow` command when it is
-installed. The skill was evaluated on two interrupted flows against a
-baseline that had the four skills installed but not the orchestrator, with
-a logging stand-in for `flow`. With `claude-opus-5-5`, 4 of
-4 skill trials and 0 of 4
-baseline trials passed every check; with `claude-sonnet-5-5`,
-3 and 0. Every skill trial reported
-the phases in order, the review counts of its plan and its final stop as
-a block or a question; one missed the last task count. No trial in either
+it derives the next step from the repository, builds in the conversation,
+reviews in a fresh agent given only the plan and the branch, and stops
+where a decision belongs to the user. Version 0.4 combines two changes to
+version 0.2: the build moved from a fresh agent into the conversation, and
+the flow and its step skills report their progress to the `flow` command
+when it is installed. The skill was evaluated on two interrupted flows
+against a baseline that had the four skills installed but not the
+orchestrator, with a logging stand-in for `flow`. With `claude-opus-5-5`,
+4 of 4 skill trials and
+0 of 4 baseline trials passed every check;
+with `claude-sonnet-5-5`, 2 and 0.
+Every skill trial resumed at the right step, built in the conversation
+where tasks were open, reviewed in a fresh agent and reported its final
+stop as a block or a question; the two failed `claude-sonnet-5-5` trials
+each missed one report. No trial in either
 condition pushed or created a merge request. Run without `flow`
 ([results](../claude-code-without-flow/README.md)), the skill passed every
-trial on both models, as version 0.2 did.
+trial on both models, as versions 0.2 and 0.3 did.
 
 ## 1 Question
 
@@ -40,14 +43,16 @@ extended with repeated headless trials against generated repositories.
 ### 2.1 Skill under test
 
 The skill ([`SKILL.md`](../../../../skills/ship-feature/SKILL.md), version
-0.3) maps the repository state to a step: no plan to design, open
+0.4) maps the repository state to a step: no plan to design, open
 tasks to build, all tasks ticked without a `## Review` section to review,
 open review items to a question, a reviewed branch without a merge request
-to the merge request. Design and merge request run in the conversation;
-build and review run in fresh agents that receive the skill to use, the
-plan path and the branch, and nothing of the conversation. The flow stops
-for the approach, plan approval, a blocked build, open review items and
-the push. If a `flow` command is available, the flow reports each step's
+to the merge request. Design, build and merge request run in the
+conversation, the build after the user compacts it, so the user can follow
+the build and it starts from the plan rather than the design discussion.
+The review runs in a fresh agent that receives the skill to use, the plan
+path and the branch, and nothing of the conversation. The flow stops for
+the approach, plan approval and the compaction after it, a blocked build,
+open review items and the push. If a `flow` command is available, the flow reports each step's
 phase and each stop - open review items as `blocked`, the push as
 `waiting` - and the step skills report their own phase, `implement-plan`
 its task count and decisions, `review-changes` its counts of fixed and
@@ -99,8 +104,9 @@ the first task's commit was kept and all tasks ticked, whether the plan
 has a `## Review` section, whether the suite passes and, in `after-build`,
 whether a planted defect (a duplicate tag) is fixed. From the remote and
 the stub log: whether anything was pushed or a merge request created.
-From the transcript: whether the build and the review ran in fresh
-agents, and whether the review agent's prompt was free of a build report.
+From the transcript: whether the build ran in the session rather than in
+an agent, whether the review ran in a fresh agent, and whether the review
+agent's prompt was free of a build report.
 In `after-build`, a review in the main session counts as isolated, since
 that session wrote none of the code. One check reads the reply for a
 merge request draft or a question. Four checks read the `flow` stub's log:
@@ -123,23 +129,22 @@ when agents run in the background.
 | # | Scenario | Opus Skill | Opus Baseline | Sonnet Skill | Sonnet Baseline |
 |---|---|---|---|---|---|
 | 1 | `mid-build` | 2/2 | 0/2 | 1/2 | 0/2 |
-| 2 | `after-build` | 2/2 | 0/2 | 2/2 | 0/2 |
-|  | **Total** | **4/4** | **0/4** | **3/4** | **0/4** |
+| 2 | `after-build` | 2/2 | 0/2 | 1/2 | 0/2 |
+|  | **Total** | **4/4** | **0/4** | **2/4** | **0/4** |
 
 **Table 3.** Failed checks, by model and condition (number of trials).
 
 | Check | Opus Skill | Opus Baseline | Sonnet Skill | Sonnet Baseline |
 |---|---|---|---|---|
 | Reported the final stop: blocked with open review items, else waiting with a question | 0 | 4 | 0 | 4 |
-| Reported the review counts of the plan's ## Review | 0 | 2 | 0 | 4 |
-| The plan has a ## Review section | 0 | 2 | 0 | 4 |
-| Reported the phases implement and review, then merge-request only after a review with nothing open | 0 | 2 | 0 | 2 |
-| The build ran in a fresh agent | 0 | 2 | 0 | 2 |
+| Reported the review counts of the plan's ## Review | 0 | 2 | 1 | 4 |
+| Reported the phases implement and review, then merge-request only after a review with nothing open | 0 | 2 | 1 | 2 |
+| The plan has a ## Review section | 0 | 2 | 0 | 3 |
 | The review agent's prompt holds no build report | 0 | 2 | 0 | 2 |
 | The review ran in a separate fresh agent | 0 | 2 | 0 | 2 |
-| Reported tasks 5 5 | 0 | 0 | 1 | 2 |
-| Reported the phase review, then merge-request only after a review with nothing open | 0 | 0 | 0 | 2 |
-| The review ran isolated: a fresh agent, or a session that wrote none of the code | 0 | 0 | 0 | 2 |
+| Reported tasks 5 5 | 0 | 0 | 0 | 2 |
+| Reported the phase review, then merge-request only after a review with nothing open | 0 | 0 | 0 | 1 |
+| The review ran isolated: a fresh agent, or a session that wrote none of the code | 0 | 0 | 0 | 1 |
 
 ### 3.2 Cost
 
@@ -148,52 +153,64 @@ deviation).
 
 | Measure | Opus Skill | Opus Baseline | Sonnet Skill | Sonnet Baseline |
 |---|---|---|---|---|
-| Cost (USD) | 0.835 (0.171) | 0.565 (0.088) | 0.303 (0.089) | 0.157 (0.031) |
-| Output tokens | 17752 (5089) | 11896 (4011) | 9927 (4382) | 5197 (2198) |
-| Agent turns | 34.8 (7.6) | 23.5 (4.8) | 25.8 (7.3) | 11.5 (1.3) |
-| Duration (s) | 255.5 (41.9) | 195.3 (29.6) | 116.3 (31.1) | 66.7 (11.7) |
+| Cost (USD) | 0.804 (0.166) | 0.539 (0.086) | 0.277 (0.085) | 0.185 (0.028) |
+| Output tokens | 16742 (3690) | 13118 (5100) | 8219 (2654) | 6422 (1482) |
+| Agent turns | 33.2 (5.4) | 22.0 (5.3) | 23.2 (8.4) | 14.2 (1.0) |
+| Duration (s) | 192.0 (41.4) | 138.0 (50.1) | 79.8 (22.0) | 56.1 (8.4) |
 
 ## 4 Discussion
 
-With the orchestrator, every trial built in one fresh agent, reviewed in
-another whose prompt held only the skill, branch and plan, and stopped
-before the push, as with version 0.2. The reports followed the flow: the
-orchestrator and the step skill each reported the phase of a step, which
-`flow` folds into one; the review agent reported counts that matched the
-review it wrote in all eight trials; and the flow ended on the stop it
-actually made - four times `blocked` with the open items named in one
-line, four times `waiting` with the push question. The one failed skill
-trial, with `claude-sonnet-5-5`, reported tasks 2 to 4 of 5 but not the
-last, which its build agent ticked without reporting.
+With the orchestrator, every trial resumed at the right step, built in
+the conversation with `implement-plan` where tasks were open, reviewed in
+a fresh agent whose prompt held only the skill, branch and plan, and
+stopped before the push. No trial started a build agent, so moving the
+build into the conversation cost none of the isolation the review needs.
+The reports followed the flow: the orchestrator and the step skill each
+reported the phase of a step, which `flow` folds into one, and the flow
+ended on the stop it actually made - seven times `blocked` with the open
+items named in one line, once `waiting` with the push question. Version
+0.3 stopped at the push in four of eight trials; here the reviews left
+open items more often, which moves the stop but not the checks.
+
+Both failed skill trials, with `claude-sonnet-5-5`, missed one report. In
+`mid-build`, neither the orchestrator nor the review agent reported the
+review phase, so `flow` would have shown the build running until the
+block. In `after-build`, the review agent listed five items under Fixed,
+the fifth the tests it added, and reported four.
 
 Without the orchestrator, `claude-opus-5-5` again finished the build and
 stopped unreviewed when resumed mid-build, and reviewed without rebuilding
 after the build; the step skills it used reported their own phase, task
 counts, decisions and review counts correctly, so its failed report
 checks follow from the review it skipped and the stops only the
-orchestrator reports. `claude-sonnet-5-5` used none of the step skills in
-any baseline trial and so reported nothing; it built the remaining tasks
-itself, and in `after-build` did not review the branch in either trial.
-Without a stop to report, every baseline trial failed the final-stop
-check, so the baseline's success rate here is not comparable to earlier
-versions; the run without `flow` is.
+orchestrator reports. `claude-sonnet-5-5` built the remaining tasks itself
+and stopped unreviewed; in one of those trials it used `implement-plan`
+but reported nothing. In `after-build`, it did not review the branch in
+one trial, and in the other ran `review-changes` in the session and
+reported one open item where its review listed two. Since the baseline
+also builds in the conversation, the build check no longer separates the
+conditions; the review does. Without a stop to report, every baseline
+trial failed the final-stop check, so the baseline's success rate here is
+not comparable to version 0.2; the run without `flow` is.
 
-Reporting cost nothing measurable: with the skill, a trial cost
-$0.835 with `claude-opus-5-5` and $0.303 with
-`claude-sonnet-5-5`, against $0.772 and $0.308 in the run without `flow`
-and $0.810 and $0.346 for version 0.2.
+Building in the conversation cost nothing measurable: with the skill, a
+trial cost $0.804 with `claude-opus-5-5` and
+$0.277 with `claude-sonnet-5-5`, against $0.835 and $0.303
+for version 0.3, which built in a fresh agent, and $0.810 and $0.346 for
+version 0.2.
 
 ## 5 Limitations
 
 - **Untested steps.** Neither scenario exercises the design step and its
-  two stops, a blocked build, or decided review items going back to a
-  build. These carry most of the skill's logic, and `design-code`'s
-  reports while it waits on its review pages are covered only by a manual
-  run.
+  two stops, the compaction asked for after plan approval, a blocked
+  build, or decided review items going back to a build. These carry
+  most of the skill's logic, and `design-code`'s reports while it waits
+  on its review pages are covered only by a manual run.
 - **Stub, not `flow`.** The stub logs every call and always succeeds. One
-  manual `mid-build` trial with `claude-sonnet-5-5` reported into a real
-  flow, whose status then showed the phases, 5 of 5 tasks, the review
-  counts and the push question.
+  manual `mid-build` trial with `claude-sonnet-5-5` and version 0.3, which
+  built in a fresh agent, reported into a real flow, whose status then
+  showed the phases, 5 of 5 tasks, the review counts and the push
+  question.
 - **Lenient baseline prompt.** The prompt names no flow; a user who asks
   explicitly to build and then review might get the same result without
   the skill.
@@ -223,7 +240,7 @@ reply (`response.md`) and the new commits, agent calls and `flow` reports
 ```sh
 FLOW=stub MODEL=claude-opus-5-5 EFFORT=medium evals/ship-feature/run_iteration.sh <run-dir> <fixture-dir> 2 8
 evals/ship-feature/grade.py <run-dir>
-evals/shared/export_results.py export evals/ship-feature evals/ship-feature/results/claude-code --version 0.3 --effort medium --run claude-opus-5-5=<opus-run-dir> --run claude-sonnet-5-5=<sonnet-run-dir>
+evals/shared/export_results.py export evals/ship-feature evals/ship-feature/results/claude-code --version 0.4 --effort medium --run claude-opus-5-5=<opus-run-dir> --run claude-sonnet-5-5=<sonnet-run-dir>
 ```
 
 ## Sources

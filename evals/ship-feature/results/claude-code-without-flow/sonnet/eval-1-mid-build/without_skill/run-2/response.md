@@ -1,18 +1,26 @@
-The bookmark tags feature is built and all five plan tasks are done. All 19 tests pass, and I checked the real CLI against a temp store file.
+The bookmark tags feature is built, and all five plan tasks are ticked. The full suite passes (19 tests). I also ran the real `npm run bm` commands against a temp store file. I didn't push or open a merge request. The repo has no lint or type-check script, so I ran neither.
 
-**Commits** (I used plain `git commit` with your `bm:` and `docs:` prefixes, not the `/commit` skill):
-- `bm: add tags field to bookmarks`: `Bookmark.tags`, new bookmarks start with `tags: []`, and `load()` reads old files without a `tags` field as `[]`.
-- `bm: tag bookmarks and list by tag in the store`: `BookmarkNotFoundError`, `BookmarkStore.tag` and `BookmarkStore.listByTag`. Tagging with a tag the bookmark already has changes nothing.
-- `bm: add tag command and list --tag`: `bm tag <id> <tag>` and `bm list --tag <tag>`.
-- `docs: mark bookmark tags plan done`: ticks the last task in the plan.
+**Tasks and commits**
+- Task 1, `normalizeTag` and `InvalidTagError`: `bfaa882` (already done when I started).
+- Task 2, `tags` on `Bookmark` and old files loading as `tags: []`: `a6e3d72`.
+- Task 3, `BookmarkNotFoundError`, `tag` and `listByTag`: `362efb8`.
+- Task 4, `bm tag` and `bm list --tag`: `a99b367`.
+- Task 5, the end-to-end check: `16c3695` (ticks the plan).
 
-**End-to-end run:**
-- Tagging, then `list --tag RUNTIME`, matched the bookmark tagged `runtime`.
-- Unknown id: `no bookmark 9`, exit 1.
-- Invalid tag: `invalid tag: a b`, exit 2.
-- Non-numeric id: usage message, exit 2.
-- The store file is still a JSON array with the new `tags` field.
+**Deviation from the plan**
+- I added `usage: bm list [--tag <tag>]` with exit 2 for a malformed `list`, such as `list --tag` with no value or an unknown flag. The plan didn't cover that case, and without it `list --tag` would have silently listed everything. I added the line to the plan's error list. It is a new user-visible message, so say so if you want it removed.
 
-**Where I went beyond the plan:**
-- **Tag-already-present message:** `tagged <id> <tag>` first used the last tag on the bookmark, which would be wrong when the tag already existed. The CLI now normalizes the tag and prints that, as the plan's call chain says, and a test covers it.
-- **Usage error for `list --tag`:** `bm list --tag` with no value, or any other argument after `list`, now prints `usage: bm list [--tag <tag>]` and exits 2. The plan didn't specify this case.
+**End-to-end result**
+- `tag 2 Runtime` printed `tagged 2 runtime`, and tagging again did nothing.
+- `list --tag runtime` listed only the tagged bookmarks, and `list --tag nope` printed nothing.
+- Errors were `invalid tag: to-do!` (exit 2), `no bookmark 9` (exit 1) and the usage lines (exit 2).
+- The store file holds `tags` on each bookmark.
+
+**How it works**
+- `main` calls `run`, which now wraps a private `dispatch` function in a try/catch.
+- The catch turns `InvalidTagError` into exit 2 and `BookmarkNotFoundError` into exit 1.
+- `tag` and `list --tag` call `normalizeTag` first, then `BookmarkStore.tag` or `listByTag`.
+- `tag` adds the tag only if it's missing and saves.
+- `load()` reads any bookmark without a `tags` field as `tags: []`.
+
+Nothing is blocked or left open.

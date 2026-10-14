@@ -23,7 +23,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "# duration_ms 213.344708"
+      "evidence": "# duration_ms 209.172792"
     },
     {
       "text": "Nothing was pushed and no MR was created",
@@ -33,7 +33,7 @@
     {
       "text": "Response drafts the MR or puts open review items to the user",
       "passed": true,
-      "evidence": "The review finished and I checked it in the repo rather than taking the report on trust. It found three bugs and fixed t"
+      "evidence": "The review has finished, and it left two items open that need your decision.  The reviewer, working in a fresh context, "
     },
     {
       "text": "Reported the phase review, then merge-request only after a review with nothing open",
@@ -48,7 +48,7 @@
     {
       "text": "Reported the final stop: blocked with open review items, else waiting with a question",
       "passed": true,
-      "evidence": "2 open; stop: blocked review left 2 open items: bare list --tag, inconsistent normalization in store"
+      "evidence": "2 open; stop: blocked review left 2 open items: list --tag without value, empty id in bm tag"
     }
   ],
   "summary": {

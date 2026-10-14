@@ -1,22 +1,23 @@
 new commits:
-7fd6d48 docs: add review of bookmark tags
-2aaa969 docs: tick end-to-end check for bookmark tags
-446a9c8 bm: add tag command and list --tag
-45749f4 bm: tag bookmarks and list them by tag
-e5dcc95 bm: store tags on bookmarks
+93c3115 docs: review bookmark tags
+1547fd0 bm: cli: reject extra arguments to tag and list --tag
+50a6428 docs: check bookmark tags end to end
+01e78c5 bm: cli: add tag command and list --tag
+26dc292 bm: tag bookmarks and list them by tag
+49eaf7c bm: store tags on bookmarks
 
 agents:
-- Build bookmark tags plan: 807 chars
-- Isolated review of bookmark tags: 829 chars
+- Isolated review of bookmark tags: 823 chars
 flow reports:
-phase implement
 phase implement
 tasks 2 5
 tasks 3 5
-decision list --tag without a value and tag without a tag print usage, exit 2
+decision run() delegates to a private dispatch() so error-to-exit-code mapping lives in one place
+decision missing tag or bad list option prints usage, exit 2, like the existing bad-input cases
 tasks 4 5
 tasks 5 5
 phase review
 phase review
-review --fixed 0 --open 2
-blocked review left 2 open items: lenient argument parsing, stray test bookmark in ~/.bookmarks.json
+review --fixed 1 --open 0
+phase merge-request
+waiting Push and open the merge request?

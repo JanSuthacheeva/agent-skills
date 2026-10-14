@@ -6,9 +6,9 @@
       "evidence": "task 1 commit kept: True; boxes: xxxxx"
     },
     {
-      "text": "The build ran in a fresh agent",
-      "passed": false,
-      "evidence": "build agents: 0"
+      "text": "The build ran in this session, not in an agent",
+      "passed": true,
+      "evidence": "build agents: 0; boxes: xxxxx"
     },
     {
       "text": "The review ran in a separate fresh agent",
@@ -28,7 +28,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "# duration_ms 186.712417"
+      "evidence": "# duration_ms 310.133708"
     },
     {
       "text": "Nothing was pushed and no MR was created",
@@ -38,13 +38,13 @@
     {
       "text": "Response drafts the MR or asks to push",
       "passed": true,
-      "evidence": "The bookmark tags feature is built: all five tasks in the plan are done and ticked off in `docs/plans/2026-10-14-bookmar"
+      "evidence": "The bookmark tags feature is built and all five plan tasks are ticked. The full suite passes (17 tests). The project has"
     }
   ],
   "summary": {
-    "passed": 4,
-    "failed": 4,
+    "passed": 5,
+    "failed": 3,
     "total": 8,
-    "pass_rate": 0.5
+    "pass_rate": 0.625
   }
 }

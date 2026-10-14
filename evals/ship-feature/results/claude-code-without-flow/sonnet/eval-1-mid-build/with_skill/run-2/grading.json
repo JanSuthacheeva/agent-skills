@@ -6,9 +6,9 @@
       "evidence": "task 1 commit kept: True; boxes: xxxxx"
     },
     {
-      "text": "The build ran in a fresh agent",
+      "text": "The build ran in this session, not in an agent",
       "passed": true,
-      "evidence": "build agents: 1"
+      "evidence": "build agents: 0; boxes: xxxxx"
     },
     {
       "text": "The review ran in a separate fresh agent",
@@ -18,7 +18,7 @@
     {
       "text": "The review agent's prompt holds no build report",
       "passed": true,
-      "evidence": "737 chars; leak: None"
+      "evidence": "732 chars; leak: None"
     },
     {
       "text": "The plan has a ## Review section",
@@ -28,7 +28,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "# duration_ms 182.570708"
+      "evidence": "# duration_ms 482.83575"
     },
     {
       "text": "Nothing was pushed and no MR was created",
@@ -38,7 +38,7 @@
     {
       "text": "Response drafts the MR or asks to push",
       "passed": true,
-      "evidence": "The build and the review are done, and no merge request exists yet for `feature/bookmark-tags`. The flow is now at the p"
+      "evidence": "The review is done and it has open items, so the flow stops here for your decision.  **Fixed by the reviewer:** `bm tag "
     }
   ],
   "summary": {
