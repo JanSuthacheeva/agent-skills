@@ -270,4 +270,4 @@ The implementation page repeats this chain with "Review the implementation page"
 - [x] ship-feature: reporting note with the phase per step, stops, version 0.3
 - [x] README: the sentence on reporting to flow
 - [x] Rerun the ship-feature evals with `FLOW=stub` and `FLOW=absent` on Opus and Sonnet, and publish the results and report
-- [ ] End-to-end: a throwaway `flow new` flow, a mid-build ship-feature trial reporting into it with the real CLI, and `flow status` showing phases implement, review and merge-request, 5/5 tasks, the review counts and the push question; then remove the flow
+- [x] End-to-end: a throwaway `flow new` flow, a mid-build ship-feature trial reporting into it with the real CLI, and `flow status` showing phases implement, review and merge-request, 5/5 tasks, the review counts and the push question; then remove the flow
