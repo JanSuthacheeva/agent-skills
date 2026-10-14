@@ -1,0 +1,40 @@
+{
+  "skill_name": "implement-plan",
+  "evals": [
+    {
+      "id": 1,
+      "name": "tags-plan",
+      "prompt": "The plan in docs/plans/2026-10-14-bookmark-tags.md is approved. Implement it.",
+      "expected_output": "Five commits, one per task, each leaving npm test green; every checkbox ticked; the plan's names and signatures in the code; the CLI tags and filters end to end; a summary with deviations and how it works.",
+      "files": ["setup_fixture.sh", "fixture/"],
+      "expectations": [
+        "Five new commits, one per task",
+        "Every new commit leaves npm test passing",
+        "All five task checkboxes are ticked",
+        "src/tags.ts exports normalizeTag and InvalidTagError",
+        "BookmarkStore has tag(id: number, tag: string) and listByTag(tag: string)",
+        "A test file covers normalizeTag",
+        "The CLI tags a bookmark and lists it by tag end to end",
+        "A file written before tags existed still loads",
+        "The working tree is clean"
+      ],
+      "tests": "A plan that fits the code; task-by-task commits, green steps, plan fidelity and an end-to-end result."
+    },
+    {
+      "id": 2,
+      "name": "csv-store",
+      "prompt": "The plan in docs/plans/2026-10-14-bookmark-tags.md is approved. Implement it.",
+      "expected_output": "Builds task 1 (normalizeTag), then sees at task 2 that the store is a CSV file whose columns are a public format the plan assumed was JSON, marks it blocked and asks how tags should be stored, with a recommendation. Nothing past task 1 is built.",
+      "files": ["setup_fixture.sh", "fixture/"],
+      "expectations": [
+        "Task 1 is ticked and src/tags.ts is committed",
+        "Tasks 2 to 5 are not ticked",
+        "The stored CSV format is unchanged",
+        "src/cli.ts is unchanged",
+        "Response asks how tags should be stored in the CSV file",
+        "npm test passes"
+      ],
+      "tests": "A plan that is wrong about stored data; stopping at an expensive-to-reverse deviation instead of building past it."
+    }
+  ]
+}
