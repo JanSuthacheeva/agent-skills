@@ -310,45 +310,44 @@ The implementation page repeats this chain with "Review the implementation page"
 - [x] `review_counts` decides "nothing" by a closed list of whole-line forms instead of word-by-word rules: an item, or the text after a label's colon, is empty only when its first sentence (the text up to the first `. `, without trailing punctuation) is one of `none`, `nothing`, `n/a`, `none (<note>)`, `none from this branch`, `none identified|found|left|open|remaining`, `nothing (to report|open|left|remaining)`, `no (open )?(items|findings|questions|issues)( left| remain| remaining| open)?`; every other text counts as one finding. This ends the phrasing chase: an unknown phrasing is a finding. Tests for `- Nothing in tag checks the length`, `Open: nothing validates X` (one finding on the label line), and every form in the list; regrade the workspace copy to show the published gradings are unchanged
   - Decided after the build stopped (strict whole lines would have flipped three published trials whose agents reported correctly, e.g. `- None. The fixes were not reviewed independently ...`, `- None from this branch. Pre-existing on main: ...`): judge the first sentence only and add `none from this branch`. A bold label followed by a dash instead of a colon stays out of scope, as today. Existing tests expecting forms outside the list to be empty change to findings unless the first-sentence rule covers them.
 
+
 ## Review
 
-Third isolated review, against `main` and this plan, including both
-rounds of follow-ups. The five skill edits, versions, `allowed-tools`
-and README sentence match the plan. Tests (unittest), pyright and
-`bash -n` were green before and after. Regrading copies of the local
-workspace, with the old `flow.log` converted to argv, reproduced every
-published `grading.json` at the branch head and after each fix below.
-No paid suites were rerun.
+Fourth isolated review, against `main` and this plan, including the
+third round of follow-ups (the closed list in `says_nothing`). The five
+skill edits, versions, `allowed-tools` and README sentence match the
+plan, and the README and report numbers match the published gradings.
+Tests (unittest), pyright and `bash -n` were green before and after.
+Regrading copies of the local workspace at the branch head, with the old
+`flow.log` converted to argv, reproduced every published `grading.json`;
+only the `npm test` duration in the evidence differs. Re-rendering both
+result READMEs changed nothing. `FLOW=absent` was checked by hand: no
+`flow`, no `FLOW_ID`, the tools next to `flow` still on the path. No paid
+suites were rerun.
 
 **Fixed**
 
-- `review_counts` dropped any item starting with "none" or "nothing",
-  so `- Nothing validates the tag length` and `- None of the error paths
-  are tested` were not counted, against the plan's "an item naming a
-  thing stays a finding". Shown with a new test - ff9053c, narrowed in
-  e24ec41 after the fix review showed ff9053c turned `- None (all
-  fixed)`, `- Nothing to report.` and `- None identified` into findings.
-  e24ec41 was not reviewed again independently.
+- `flow_check`'s phase, task and review-count checks had no unit test,
+  only the regrade; mutating the phase folding, the merge-request gate,
+  the last-review lookup or the task match passed the suite. Tests added
+  in c8abb98, each mutation now fails one.
 
 **Open**
 
-- `review_counts` stays a heuristic: `- Nothing in tag checks the
-  length` (verb not right after "nothing") and `- Open: nothing
-  validates X` on a label line still count as no finding. No published
-  trial wrote either. Recommendation: leave it; the published counts
-  are verified by regrading.
 - `.lavish/` (the design pages the plan links) is untracked in the
   worktree. Recommendation: leave it out of the branch, as on `main`.
 
 **Where to look**
 
-1. `evals/ship-feature/grade.py` `EMPTY`, `REVIEW_LABEL` and
+1. `evals/ship-feature/grade.py` `NOTHING`, `review_label()` and
    `flow_check()`: the heuristic and the four report checks behind the
    published numbers.
 2. `skills/ship-feature/SKILL.md` reporting note and `## Stops`: which
-   stops are `blocked` and which `waiting`.
+   stops are `blocked` and which `waiting`; the old "coordinating
+   session" line is gone.
 3. `evals/shared/flow_mode.sh`: the absent mode the "works without
    flow" results rely on.
 
-Routine, skim: the `env -u FLOW_ID` runners, `--template` in
+Routine, skim: the `env -u FLOW_ID` runners, the pyright guards in the
+commit and write-merge-request graders, `--template` in
 `export_results.py`, the result files.
