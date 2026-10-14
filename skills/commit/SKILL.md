@@ -10,7 +10,7 @@ compatibility: >-
   https://github.com/JanSuthacheeva/agent-skills/tree/main/evals/commit/results/claude-code
 metadata:
     author: Jan Suthacheeva
-    version: "2.9"
+    version: "2.10"
 allowed-tools: >-
   Bash(git status:*) Bash(git branch:*) Bash(git log:*) Bash(git diff:*)
   Bash(git add:*) Bash(git commit:*) Read
@@ -41,8 +41,10 @@ change.
   from the log. Nest for precision (`api: auth: ...`), comma-separate
   multiple (`api, worker: ...`), `treewide` for the whole tree, or omit
   if nothing fits.
-- Body only if the subject isn't enough: wrap at 72, explain why, not
-  what. State breaking changes and their migration here.
+- Body only if the subject isn't enough: explain why, not what. Wrap
+  every line at 72 yourself - git keeps `-m` text as given, so break a
+  long paragraph into lines inside its `-m`. State breaking changes and
+  their migration here.
 - Branch matches `[A-Z]+-\d+` (first match): add `Refs: <ID>` trailer.
   Never invent one.
 - Reverts and merges keep git's default message.
