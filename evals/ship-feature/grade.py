@@ -170,8 +170,9 @@ def check(t, ctx):
     if t.startswith("No task was rebuilt"):
         kept = sh(repo, "git", "merge-base", "--is-ancestor", ctx["branch_sha"], "HEAD").returncode == 0
         return kept and not build, f"branch kept: {kept}; build agents: {len(build)}"
-    if t == "The build ran in a fresh agent":
-        return bool(build), f"build agents: {len(build)}"
+    if t == "The build ran in this session, not in an agent":
+        b, _ = boxes(repo)
+        return not build and b == ["x"] * 5, f"build agents: {len(build)}; boxes: {''.join(b)}"
     if t.startswith("The review ran in a separate fresh agent"):
         return bool(review), f"review agents: {len(review)}"
     if t.startswith("The review ran isolated"):

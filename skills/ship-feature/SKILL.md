@@ -3,17 +3,17 @@ name: ship-feature
 description: >-
   Takes a feature from request or ticket to an open merge request by
   running design-code, implement-plan, review-changes and
-  write-merge-request in order - the build and the review each in a fresh
-  agent - stopping only where a decision belongs to the user, and resuming
-  from what the repository shows after an interruption. Use when the user
-  asks to ship, deliver or take a feature or ticket all the way through,
-  says "ship SHOP-217", "do the whole flow" or "continue shipping", or
-  wants a half-built plan carried on to a merge request. Not for a single
-  step on its own - plan, build, review or MR - which the step's own skill
-  handles.
+  write-merge-request in order - the build in this conversation after a
+  compaction, the review in a fresh agent - stopping only where a decision
+  belongs to the user, and resuming from what the repository shows after
+  an interruption. Use when the user asks to ship, deliver or take a
+  feature or ticket all the way through, says "ship SHOP-217", "do the
+  whole flow" or "continue shipping", or wants a half-built plan carried
+  on to a merge request. Not for a single step on its own - plan, build,
+  review or MR - which the step's own skill handles.
 metadata:
     author: Jan Suthacheeva
-    version: "0.3"
+    version: "0.4"
 ---
 
 Run the four delivery skills as one flow, so the user only makes the
@@ -58,34 +58,30 @@ user. Continue only after the user has approved the plan. Then make sure
 the work happens on a feature branch, not the default branch, and that the
 plan is committed on it.
 
-## 3. Build - in a fresh agent
+Then hand over to the build in one line: ask the user to run `/compact`
+and then say "continue shipping". You cannot compact yourself, and the
+build should start from the plan, not from the design discussion. If the
+user goes on without compacting, build anyway.
 
-Start a fresh agent, if your environment can, and give it only:
+## 3. Build - in this conversation
 
-- the instruction to use the implement-plan skill (by name, or the path
-  of its skill file if the agent cannot load skills by name)
-- the plan's path and the branch
-- decisions the user made for this build, if any
+Use the implement-plan skill here, so the user can follow the build. The
+plan is the spec: anything it does not say surfaces as a question, not
+something filled in from the design discussion or a summary of it.
 
-Never the design conversation or a summary of it: the plan is the spec,
-and anything the plan does not say should surface as a question, not be
-filled in from memory. Without fresh agents, run the build here.
+If the build stops:
 
-When the agent returns, check the result in the repository - commits,
-ticked boxes, a green suite - rather than trusting its report. If it
-stopped:
-
-- **Blocked** on an expensive deviation: put its finding and
+- **Blocked** on an expensive deviation: put the finding and your
   recommendation to the user, write the decision into the plan, commit
-  it, and start a new build agent.
+  it, and go on building.
 - **Red base** - tests that failed before the build began: ask the user
   whether to build on it.
 
 ## 4. Review - in a fresh agent
 
 Start another fresh agent with only the review-changes skill, the branch,
-its target and the plan's path. It must not see this conversation, the
-build agent's report or your opinion of the code - an isolated review is
+its target and the plan's path. It must not see this conversation, a
+report of the build or your opinion of the code - an isolated review is
 the point of this step. Tell it that it is that isolated review, so it
 reviews instead of trying to isolate itself again. Without fresh agents,
 ask the user to run the review in a new session and resume from there.
@@ -107,8 +103,8 @@ already exists, offer to update its description instead.
 ## Stops
 
 The flow waits for the user at exactly these points: approach, plan
-approval, a blocked build or red base, open review items, and the push.
-Everywhere else it goes on without asking.
+approval and the compaction after it, a blocked build or red base, open
+review items, and the push. Everywhere else it goes on without asking.
 
 At a stop, report it - a blocked build, a red base or open review items as
 `blocked "<one line>"`, the other stops as `waiting "<the question>"` - then
