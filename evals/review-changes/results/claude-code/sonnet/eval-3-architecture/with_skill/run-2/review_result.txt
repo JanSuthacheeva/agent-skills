@@ -1,0 +1,24 @@
+New commits: 2
+
+63b4049 bm: tag through BookmarkStore::tag
+The CLI reimplemented tagging with list and save, leaving store.tag
+unused and untested. Drop the console.warn for duplicates, the plan
+says a duplicate is a no-op.
+
+
+ src/cli.ts            |  6 +-----
+ src/store.ts          |  5 +----
+ test/cli.tags.test.ts | 12 ++++++++++++
+ 3 files changed, 14 insertions(+), 9 deletions(-)
+
+994a714 bm: do not overwrite a corrupt store file
+load() turned a parse error into an empty list, so the next add or tag
+saved over the file. Let the error surface as before the tags change.
+
+
+ src/store.ts            |  7 +------
+ test/store.tags.test.ts | 23 +++++++++++++++++++++--
+ 2 files changed, 22 insertions(+), 8 deletions(-)
+
+--- git status --short ---
+

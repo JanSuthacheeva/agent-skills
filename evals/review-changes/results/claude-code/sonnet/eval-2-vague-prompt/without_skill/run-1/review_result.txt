@@ -1,0 +1,13 @@
+New commits: 1
+
+ddfe415 bm: align tags with plan (dedupe, exit codes, listByTag, tests)
+
+
+ src/cli.ts              | 11 +++++++++--
+ src/store.ts            |  9 ++++++---
+ test/cli.tags.test.ts   | 22 ++++++++++++++++++++++
+ test/store.tags.test.ts | 19 ++++++++++++++++---
+ 4 files changed, 53 insertions(+), 8 deletions(-)
+
+--- git status --short ---
+

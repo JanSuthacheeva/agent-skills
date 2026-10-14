@@ -1,0 +1,20 @@
+New commits: 1
+
+45fa925 bm: fix tag dedupe, list --tag normalization and exit codes
+- Tagging with an existing tag is a no-op instead of storing a duplicate
+- list --tag normalizes and validates the tag; missing value is a usage error
+- Unknown id exits 1 (not found), per AGENTS.md
+- Reject non-numeric ids like '' instead of treating them as 0
+- Rename listTagged to listByTag to match the plan
+- Add tests for duplicates, unknown ids and list --tag edge cases
+
+
+ src/cli.ts              | 13 +++++++++----
+ src/store.ts            |  9 ++++++---
+ test/cli.tags.test.ts   | 34 ++++++++++++++++++++++++++++++++++
+ test/store.tags.test.ts | 20 +++++++++++++++++---
+ test/tags.test.ts       |  2 ++
+ 5 files changed, 68 insertions(+), 10 deletions(-)
+
+--- git status --short ---
+

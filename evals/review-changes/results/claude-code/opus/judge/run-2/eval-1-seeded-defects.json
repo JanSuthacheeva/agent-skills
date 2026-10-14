@@ -1,0 +1,32 @@
+{
+  "scores": {
+    "code_review": {
+      "accuracy": 7,
+      "risk": 7,
+      "decisions": 5,
+      "readability": 5,
+      "note": "All five planted problems are found and fixed: 17 tests pass and the CLI checks I ran give the right results. But the report opens with a raw JSON dump, lists changed-file paths that point outside this repo, and makes user-visible changes without asking (unknown `list` options now exit 2)."
+    },
+    "without_skill": {
+      "accuracy": 9,
+      "risk": 8,
+      "decisions": 7,
+      "readability": 8,
+      "note": "A clear numbered list covers all planted problems, and every claim I checked held: exit 1 for an unknown id, `--tag Work` matches, the duplicate tag is ignored, the rename was made, the tests were added and committed. It labels the `list --tag` with no value change as its own call, but has no 'where to look' guidance."
+    },
+    "with_skill": {
+      "accuracy": 9,
+      "risk": 9,
+      "decisions": 8,
+      "readability": 9,
+      "note": "Every fix is tied to its commit, and every claim I checked held. Open items come with a recommendation, a short 'where to look' list points at `store.tag`/`load` and `cli.run`, and it says what is routine."
+    }
+  },
+  "ranking": [
+    "with_skill",
+    "without_skill",
+    "code_review"
+  ],
+  "reason": "All three fixed every planted problem, so the reports decided the ranking. Z also tells the owner where the remaining risk sits, what can be skimmed, and which open choices need their decision, with a recommendation, and links each fix to a commit. Y is equally accurate but gives no review guidance. X buries its summary under a JSON dump, gives wrong file paths, and leaves the work uncommitted.",
+  "judge_cost_usd": 0.2494424
+}

@@ -1,0 +1,27 @@
+New commits: 3
+
+d2dc0f0 bm: normalize the tag in list --tag and name it listByTag as planned
+
+
+ src/cli.ts              |  2 +-
+ src/store.ts            |  2 +-
+ test/cli.tags.test.ts   | 14 ++++++++++++++
+ test/store.tags.test.ts |  4 ++--
+ 4 files changed, 18 insertions(+), 4 deletions(-)
+
+50267fa bm: exit 1 for an unknown id and reject an empty id in tag
+
+
+ src/cli.ts            |  6 +++---
+ test/cli.tags.test.ts | 13 +++++++++++++
+ 2 files changed, 16 insertions(+), 3 deletions(-)
+
+b587dd9 bm: make tagging with an existing tag a no-op
+
+
+ src/store.ts            |  4 +++-
+ test/store.tags.test.ts | 15 ++++++++++++++-
+ 2 files changed, 17 insertions(+), 2 deletions(-)
+
+--- git status --short ---
+

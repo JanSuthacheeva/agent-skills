@@ -1,0 +1,13 @@
+New commits: 1
+
+6063008 bm: align tag implementation with plan
+
+
+ src/cli.ts              |  8 ++++----
+ src/store.ts            | 12 ++++++++----
+ test/cli.tags.test.ts   | 22 ++++++++++++++++++++++
+ test/store.tags.test.ts | 19 ++++++++++++++++---
+ 4 files changed, 50 insertions(+), 11 deletions(-)
+
+--- git status --short ---
+

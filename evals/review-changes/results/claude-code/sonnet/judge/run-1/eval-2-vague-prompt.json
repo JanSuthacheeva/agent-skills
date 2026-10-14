@@ -1,0 +1,32 @@
+{
+  "scores": {
+    "without_skill": {
+      "accuracy": 9,
+      "risk": 6,
+      "decisions": 4,
+      "readability": 8,
+      "note": "All five planted problems are reported correctly, and the code, the commit ddfe415 and the 15 passing tests match the report, but it does not say where to look first. It also changes bare `list --tag` to exit 2, which users will notice, as a done deal and does not ask the owner."
+    },
+    "with_skill": {
+      "accuracy": 9,
+      "risk": 9,
+      "decisions": 7,
+      "readability": 9,
+      "note": "It fixes and accurately reports all five planted problems, and the commit 9c05380 and the 16 passing tests check out. It lists open items with recommendations, points to two files to review first and calls the tests routine. It records the new bare `--tag` behaviour in the plan but still makes that change on its own rather than asking."
+    },
+    "code_review": {
+      "accuracy": 8,
+      "risk": 7,
+      "decisions": 5,
+      "readability": 5,
+      "note": "The findings are correct and ordered by severity, and the code shows all fixes uncommitted with 14 tests passing as stated. But a raw JSON block is slow to read, there is no 'where to look' pointer, and the bare `--tag` behaviour change is presented as a fixed defect rather than a choice for the owner."
+    }
+  },
+  "ranking": [
+    "with_skill",
+    "without_skill",
+    "code_review"
+  ],
+  "reason": "All three found and fixed the same five planted problems, so what separated them was the guidance for the owner. Y alone splits the report into fixed, open and where to look, gives a recommendation for each open item, labels the tests as routine and updates the plan for its one behaviour change. X is accurate and short but leaves the owner with no priorities, and Z's JSON dump and uncommitted state make it the hardest to act on.",
+  "judge_cost_usd": 0.1443384
+}

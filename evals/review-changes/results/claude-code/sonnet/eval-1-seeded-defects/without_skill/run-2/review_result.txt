@@ -1,0 +1,13 @@
+New commits: 1
+
+8d7d1d7 bm: fix tag review findings (dedupe, listByTag, exit code, tests)
+
+
+ src/cli.ts              | 13 +++++++++++--
+ src/store.ts            | 12 ++++++++----
+ test/cli.tags.test.ts   | 22 ++++++++++++++++++++++
+ test/store.tags.test.ts | 26 +++++++++++++++++++++++---
+ 4 files changed, 64 insertions(+), 9 deletions(-)
+
+--- git status --short ---
+

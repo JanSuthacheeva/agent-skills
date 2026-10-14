@@ -1,0 +1,16 @@
+New commits: 1
+
+86839e0 bm: align tagging with the plan
+Not found exits 1, duplicate tags are a no-op, listTagged is renamed
+listByTag and normalizes its tag, list --tag validates through
+normalizeTag. Adds the missing tests for these paths.
+
+
+ src/cli.ts              |  4 ++--
+ src/store.ts            | 12 ++++++++----
+ test/cli.tags.test.ts   | 22 ++++++++++++++++++++++
+ test/store.tags.test.ts | 24 ++++++++++++++++++++++--
+ 4 files changed, 54 insertions(+), 8 deletions(-)
+
+--- git status --short ---
+

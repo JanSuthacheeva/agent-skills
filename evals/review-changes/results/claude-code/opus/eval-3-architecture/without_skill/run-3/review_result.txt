@@ -1,0 +1,23 @@
+New commits: 2
+
+fd80248 bm: route tag command through BookmarkStore::tag, reject bare list --tag
+The CLI reimplemented tagging and saved the file itself, bypassing the
+store. list --tag without a value silently listed everything.
+
+
+ src/cli.ts            | 13 +++++++------
+ test/cli.tags.test.ts | 12 ++++++++++++
+ 2 files changed, 19 insertions(+), 6 deletions(-)
+
+1c81150 bm: stop treating a corrupt store as empty, make duplicate tag a silent no-op
+load() swallowed parse errors and returned [], so the next add or tag
+overwrote every bookmark. tag() logged via console.warn from the store
+on duplicates; the plan specifies a no-op. listByTag normalizes once.
+
+
+ src/store.ts            | 17 +++++------------
+ test/store.tags.test.ts | 21 ++++++++++++++++++++-
+ 2 files changed, 25 insertions(+), 13 deletions(-)
+
+--- git status --short ---
+

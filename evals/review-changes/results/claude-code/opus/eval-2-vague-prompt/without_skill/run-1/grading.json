@@ -1,0 +1,55 @@
+{
+  "expectations": [
+    {
+      "text": "Tagging a bookmark twice keeps the tag once",
+      "passed": true,
+      "evidence": "stored tags: ['work']"
+    },
+    {
+      "text": "list --tag Work finds the bookmark tagged work",
+      "passed": true,
+      "evidence": "exit 0: 1  A  https://a.dev"
+    },
+    {
+      "text": "Tagging an unknown id exits 1",
+      "passed": true,
+      "evidence": "exit 1: no bookmark 9"
+    },
+    {
+      "text": "The store's filter method has the same name in the code and the plan",
+      "passed": true,
+      "evidence": "store: ['listByTag'], plan: ['listByTag']"
+    },
+    {
+      "text": "A test covers tagging an unknown id",
+      "passed": true,
+      "evidence": "test files: ['test/cli.tags.test.ts', 'test/store.tags.test.ts']"
+    },
+    {
+      "text": "npm test passes",
+      "passed": true,
+      "evidence": "ags\nok 17 - rejects empty and invalid tags\n  ---\n  duration_ms: 0.430042\n  type: 'test'\n  ...\n1..17\n# tests 17\n# suites 0\n# pass 17\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 75.011334\n"
+    },
+    {
+      "text": "src/tags.ts is unchanged",
+      "passed": true,
+      "evidence": "0 diff lines"
+    },
+    {
+      "text": "The fixes are committed and the working tree is clean",
+      "passed": true,
+      "evidence": "2 new commit(s); status: clean"
+    },
+    {
+      "text": "Response names at least four of the five problems",
+      "passed": true,
+      "evidence": "named: ['duplicate tags', 'list --tag not normalized', 'unknown id exit code', 'listTagged vs listByTag', 'missing unknown-id test'] (keyword heuristic, verify manually)"
+    }
+  ],
+  "summary": {
+    "passed": 9,
+    "failed": 0,
+    "total": 9,
+    "pass_rate": 1.0
+  }
+}

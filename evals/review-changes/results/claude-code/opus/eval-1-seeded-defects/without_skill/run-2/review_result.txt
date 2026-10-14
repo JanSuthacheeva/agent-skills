@@ -1,0 +1,30 @@
+New commits: 3
+
+766f551 bm: fix tag and list --tag error handling in the CLI
+- unknown id exits 1, not 2
+- reject non-digit ids like '', '0x1' and '1.5' with usage
+- normalize the tag in list --tag
+- list --tag without a tag is a usage error instead of listing all
+
+
+ src/cli.ts            | 13 +++++++++----
+ test/cli.tags.test.ts | 29 +++++++++++++++++++++++++++++
+ 2 files changed, 38 insertions(+), 4 deletions(-)
+
+edbed40 bm: ignore duplicate tags and rename listTagged to listByTag
+Tagging a bookmark twice with the same tag appended it again. listByTag
+now normalizes its argument like tag() does.
+
+
+ src/store.ts            |  9 ++++++---
+ test/store.tags.test.ts | 21 ++++++++++++++++++---
+ 2 files changed, 24 insertions(+), 6 deletions(-)
+
+19d4011 bm: cover empty, unicode and underscore tags in normalizeTag tests
+
+
+ test/tags.test.ts | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+--- git status --short ---
+

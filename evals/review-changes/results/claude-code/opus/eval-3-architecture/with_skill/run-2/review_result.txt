@@ -1,0 +1,36 @@
+New commits: 4
+
+14dc3d5 bm: treat a non-numeric tag id as bad input
+
+
+ src/cli.ts            | 4 ++--
+ test/cli.tags.test.ts | 7 +++++++
+ 2 files changed, 9 insertions(+), 2 deletions(-)
+
+e055c73 bm: reject an invalid tag in list --tag even when nothing is stored
+
+
+ src/cli.ts              | 2 +-
+ src/store.ts            | 3 ++-
+ test/cli.tags.test.ts   | 6 ++++++
+ test/store.tags.test.ts | 5 +++++
+ 4 files changed, 14 insertions(+), 2 deletions(-)
+
+e34ec89 bm: tag through BookmarkStore::tag and keep output out of the store
+
+
+ src/cli.ts              |  6 +-----
+ src/store.ts            |  5 +----
+ test/cli.tags.test.ts   | 14 ++++++++++++++
+ test/store.tags.test.ts | 16 +++++++++++++++-
+ 4 files changed, 31 insertions(+), 10 deletions(-)
+
+6c5f972 bm: keep a corrupt store file instead of overwriting it
+
+
+ src/store.ts            | 7 +------
+ test/store.tags.test.ts | 9 ++++++++-
+ 2 files changed, 9 insertions(+), 7 deletions(-)
+
+--- git status --short ---
+

@@ -1,0 +1,24 @@
+New commits: 3
+
+5d9ab09 bm: normalize list --tag, exit 1 for unknown id, strict id parsing
+
+
+ src/cli.ts            | 13 +++++++++----
+ test/cli.tags.test.ts | 34 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 43 insertions(+), 4 deletions(-)
+
+e71cd81 bm: make tagging idempotent and rename listTagged to listByTag
+
+
+ src/store.ts            | 12 ++++++++----
+ test/store.tags.test.ts | 24 ++++++++++++++++++++++--
+ 2 files changed, 30 insertions(+), 6 deletions(-)
+
+cc853fc bm: cover empty and invalid tag characters
+
+
+ test/tags.test.ts | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+--- git status --short ---
+

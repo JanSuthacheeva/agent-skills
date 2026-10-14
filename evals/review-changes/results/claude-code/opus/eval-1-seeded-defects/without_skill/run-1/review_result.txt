@@ -1,0 +1,20 @@
+New commits: 1
+
+514d2c5 bm: fix tag review findings against plan
+- tagging with an existing tag is a no-op instead of duplicating it
+- unknown id exits 1, not 2
+- list --tag normalizes the tag and rejects a missing value
+- tag rejects empty and non-integer ids instead of reading them as 0
+- rename listTagged to listByTag as planned
+- add the planned duplicate tag, unknown id and CLI error tests
+
+
+ src/cli.ts              | 14 ++++++++++----
+ src/store.ts            |  6 ++++--
+ test/cli.tags.test.ts   | 26 ++++++++++++++++++++++++++
+ test/store.tags.test.ts | 19 ++++++++++++++++---
+ test/tags.test.ts       |  1 +
+ 5 files changed, 57 insertions(+), 9 deletions(-)
+
+--- git status --short ---
+

@@ -1,0 +1,18 @@
+New commits: 2
+
+db92498 bm: route tag command through BookmarkStore::tag, reject malformed list --tag, test error paths
+
+
+ src/cli.ts            | 12 ++++++------
+ test/cli.tags.test.ts | 24 ++++++++++++++++++++++++
+ 2 files changed, 30 insertions(+), 6 deletions(-)
+
+cab29a7 bm: stop load() turning a corrupt file into an empty store, validate list tag before filtering, drop store console.warn
+
+
+ src/store.ts            | 18 ++++++------------
+ test/store.tags.test.ts | 25 +++++++++++++++++++++++--
+ 2 files changed, 29 insertions(+), 14 deletions(-)
+
+--- git status --short ---
+

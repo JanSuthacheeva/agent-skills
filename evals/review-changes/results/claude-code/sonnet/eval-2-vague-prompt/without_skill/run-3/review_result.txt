@@ -1,0 +1,13 @@
+New commits: 1
+
+7b335f9 bm: align tags with plan (exit 1 for not found, idempotent tag, normalized list --tag)
+
+
+ src/cli.ts              |  8 ++++++--
+ src/store.ts            |  9 ++++++---
+ test/cli.tags.test.ts   | 20 ++++++++++++++++++++
+ test/store.tags.test.ts | 19 ++++++++++++++++---
+ 4 files changed, 48 insertions(+), 8 deletions(-)
+
+--- git status --short ---
+

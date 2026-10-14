@@ -1,0 +1,15 @@
+New commits: 1
+
+dad3e9a bm: align tag handling with the plan
+Unknown id exits 1, tagging twice is a no-op, listTagged becomes
+listByTag and list --tag normalizes its tag. Adds the missing tests.
+
+
+ src/cli.ts              |  4 ++--
+ src/store.ts            |  8 +++++---
+ test/cli.tags.test.ts   | 22 ++++++++++++++++++++++
+ test/store.tags.test.ts | 26 +++++++++++++++++++++++---
+ 4 files changed, 52 insertions(+), 8 deletions(-)
+
+--- git status --short ---
+

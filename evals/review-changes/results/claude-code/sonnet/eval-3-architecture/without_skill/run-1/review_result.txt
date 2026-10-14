@@ -1,0 +1,12 @@
+New commits: 1
+
+22e728e bm: route tag through the store, stop swallowing corrupt store files
+
+
+ src/cli.ts            | 13 +++++++------
+ src/store.ts          | 18 ++++++------------
+ test/cli.tags.test.ts | 12 ++++++++++++
+ 3 files changed, 25 insertions(+), 18 deletions(-)
+
+--- git status --short ---
+

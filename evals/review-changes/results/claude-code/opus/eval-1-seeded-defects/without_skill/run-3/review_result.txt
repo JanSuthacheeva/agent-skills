@@ -1,0 +1,20 @@
+New commits: 1
+
+71c23c0 bm: fix tag edge cases found in plan review
+- Tagging with an existing tag is a no-op instead of duplicating it
+- list --tag normalizes the tag, so 'Work' finds 'work'
+- Unknown id exits 1 (not found), not 2
+- Empty or non-digit ids are a usage error instead of looking up id 0
+- list --tag without a value is a usage error instead of listing all
+- Rename listTagged to listByTag as in the plan
+- Add the duplicate tag and unknown id tests the plan called for
+
+
+ src/cli.ts              | 13 +++++++++----
+ src/store.ts            |  9 ++++++---
+ test/cli.tags.test.ts   | 26 ++++++++++++++++++++++++++
+ test/store.tags.test.ts | 19 ++++++++++++++++---
+ 4 files changed, 57 insertions(+), 10 deletions(-)
+
+--- git status --short ---
+

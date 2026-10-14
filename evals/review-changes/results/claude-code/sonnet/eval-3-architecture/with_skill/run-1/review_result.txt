@@ -1,0 +1,16 @@
+New commits: 1
+
+1d2457a bm: fix tag review findings
+Do not read a corrupt store as empty (add would overwrite it), route the tag
+command through BookmarkStore::tag, make a duplicate tag a silent no-op, and
+cover unknown id, bad id and duplicate tag with tests.
+
+
+ src/cli.ts              |  6 +-----
+ src/store.ts            | 12 ++----------
+ test/cli.tags.test.ts   | 20 ++++++++++++++++++++
+ test/store.tags.test.ts | 25 +++++++++++++++++++++++--
+ 4 files changed, 46 insertions(+), 17 deletions(-)
+
+--- git status --short ---
+

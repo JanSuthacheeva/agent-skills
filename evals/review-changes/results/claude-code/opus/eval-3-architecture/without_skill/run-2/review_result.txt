@@ -1,0 +1,18 @@
+New commits: 2
+
+f2873cb bm: route tag through the store and reject bad list and tag args
+
+
+ src/cli.ts            | 28 +++++++++++++++++-----------
+ test/cli.tags.test.ts | 25 +++++++++++++++++++++++++
+ 2 files changed, 42 insertions(+), 11 deletions(-)
+
+527bb5b bm: keep corrupt store files and make duplicate tags a silent no-op
+
+
+ src/store.ts            | 15 ++++-----------
+ test/store.tags.test.ts | 21 ++++++++++++++++++++-
+ 2 files changed, 24 insertions(+), 12 deletions(-)
+
+--- git status --short ---
+

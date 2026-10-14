@@ -1,0 +1,13 @@
+New commits: 1
+
+d3f0a33 bm: fix tag review findings (exit code, duplicates, listByTag, tests)
+
+
+ src/cli.ts              |  4 ++--
+ src/store.ts            |  5 +++--
+ test/cli.tags.test.ts   | 22 ++++++++++++++++++++++
+ test/store.tags.test.ts | 19 ++++++++++++++++---
+ 4 files changed, 43 insertions(+), 7 deletions(-)
+
+--- git status --short ---
+

@@ -1,0 +1,15 @@
+New commits: 1
+
+aee0b82 bm: align tag behaviour with the plan
+Unknown id exits 1, a repeated tag is a no-op, list --tag normalizes
+its tag, and the store method is named listByTag.
+
+
+ src/cli.ts              |  4 ++--
+ src/store.ts            | 12 ++++++++----
+ test/cli.tags.test.ts   | 22 ++++++++++++++++++++++
+ test/store.tags.test.ts | 19 ++++++++++++++++---
+ 4 files changed, 48 insertions(+), 9 deletions(-)
+
+--- git status --short ---
+

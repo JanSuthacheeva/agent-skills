@@ -1,0 +1,7 @@
+New commits: 0
+
+--- git status --short ---
+ M src/cli.ts
+ M src/store.ts
+ M test/cli.tags.test.ts
+

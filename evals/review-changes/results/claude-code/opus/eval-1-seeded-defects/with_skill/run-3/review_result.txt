@@ -1,0 +1,39 @@
+New commits: 4
+
+b7a4723 bm: normalize the tag in list --tag
+list --tag Work found nothing and list --tag 'to do' exited 0 silently;
+the plan routes the raw tag through normalizeTag.
+
+
+ src/cli.ts            |  2 +-
+ test/cli.tags.test.ts | 13 +++++++++++++
+ 2 files changed, 14 insertions(+), 1 deletion(-)
+
+6c4641e bm: rename listTagged to listByTag as the plan specifies
+
+
+ src/cli.ts              | 2 +-
+ src/store.ts            | 2 +-
+ test/store.tags.test.ts | 4 ++--
+ 3 files changed, 4 insertions(+), 4 deletions(-)
+
+59d5ad2 bm: exit 1 when tagging an unknown bookmark
+Not found maps to exit 1 per the plan and AGENTS.md; it returned 2.
+Also covers a non-numeric id.
+
+
+ src/cli.ts            |  2 +-
+ test/cli.tags.test.ts | 13 +++++++++++++
+ 2 files changed, 14 insertions(+), 1 deletion(-)
+
+ac4cfef bm: make tagging with an existing tag a no-op
+BookmarkStore::tag appended the tag again, so the store file held
+duplicates. Also covers tagging an unknown id.
+
+
+ src/store.ts            |  4 +++-
+ test/store.tags.test.ts | 15 ++++++++++++++-
+ 2 files changed, 17 insertions(+), 2 deletions(-)
+
+--- git status --short ---
+

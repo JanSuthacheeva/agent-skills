@@ -1,0 +1,13 @@
+New commits: 1
+
+b3cd3b0 bm: align tags with plan (idempotent tag, listByTag, exit codes)
+
+
+ src/cli.ts              |  4 ++--
+ src/store.ts            |  9 ++++++---
+ test/cli.tags.test.ts   | 14 ++++++++++++++
+ test/store.tags.test.ts | 19 ++++++++++++++++---
+ 4 files changed, 38 insertions(+), 8 deletions(-)
+
+--- git status --short ---
+

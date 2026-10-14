@@ -1,0 +1,32 @@
+{
+  "scores": {
+    "with_skill": {
+      "accuracy": 9,
+      "risk": 9,
+      "decisions": 9,
+      "readability": 9,
+      "note": "Every claim I checked holds (16 tests pass, unknown id exits 1, listByTag used, three separate fix commits), and it ends with an ordered 'where to look' list plus one open decision, `list --tag` with no value, with a recommendation."
+    },
+    "without_skill": {
+      "accuracy": 9,
+      "risk": 7,
+      "decisions": 6,
+      "readability": 8,
+      "note": "Accurate and covers all five planted problems, but it puts everything in one commit, mixes the planted bugs with minor edge cases in one numbered list, and makes the stricter `list` usage change itself, only mentioning it afterwards with no recommendation."
+    },
+    "code_review": {
+      "accuracy": 6,
+      "risk": 6,
+      "decisions": 5,
+      "readability": 4,
+      "note": "The fixes are real (17 tests pass, exit codes are correct), but it opens with a raw JSON dump, lists changed files under a different fixtures path than the repo it actually changed, claims 8 fixes when one needed no edit, leaves the work uncommitted, and makes the `list` strictness change without asking."
+    }
+  },
+  "ranking": [
+    "with_skill",
+    "without_skill",
+    "code_review"
+  ],
+  "reason": "X was the only report that turned the review into something the owner could act on: one commit per fix, the planted problems first, a short reading order for the risky code, and the one user-visible choice left open with a recommendation. Y was just as accurate but made that same choice itself and bundled everything into one commit. Z's JSON-first layout, wrong file paths and uncommitted state make it the hardest to trust in two minutes.",
+  "judge_cost_usd": 0.18986519999999998
+}

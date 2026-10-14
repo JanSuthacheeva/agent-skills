@@ -1,0 +1,32 @@
+{
+  "scores": {
+    "with_skill": {
+      "accuracy": 9,
+      "risk": 9,
+      "decisions": 9,
+      "readability": 8,
+      "note": "Every claim I checked holds: commit 86839e0 is there, 16 tests pass, the exit code is 1, listByTag normalizes, and the stale 'listTagged' test name at store.tags.test.ts:19 is still there as the report says; it covers all five planted problems, puts the user-visible `list --tag` with no value to the owner with a recommendation, and ends with a clear where-to-look list."
+    },
+    "without_skill": {
+      "accuracy": 9,
+      "risk": 8,
+      "decisions": 6,
+      "readability": 9,
+      "note": "A short, accurate report: commit b3cd3b0 exists, 14 tests pass, and all five planted problems are fixed and tested; it raises the no-value `--tag` case but gives no recommendation, and it does not say which code paths carry the risk."
+    },
+    "code_review": {
+      "accuracy": 7,
+      "risk": 7,
+      "decisions": 4,
+      "readability": 6,
+      "note": "It finds all the planted problems, but the fixes sit uncommitted in the working tree; it labels a user-visible behaviour change (usage error for `list --tag` with no value) as a 'Fixed' defect without asking the owner; its 'double normalizeTag' remark no longer fits the list path, where the CLI now passes the raw tag; and the JSON dump is slower to read."
+    }
+  },
+  "ranking": [
+    "with_skill",
+    "without_skill",
+    "code_review"
+  ],
+  "reason": "All three found and fixed the five planted problems, so the difference came from how they handled open choices. X sorted what was fixed, what is open and where to look, and gave the user-visible `--tag` choice back to the owner with a recommendation. Y was accurate and quick to read but gave no recommendations or risk map. Z made that same user-visible change silently, left its work uncommitted, and buried the state of the branch in a JSON block.",
+  "judge_cost_usd": 0.1458018
+}

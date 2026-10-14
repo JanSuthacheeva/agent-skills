@@ -1,0 +1,28 @@
+New commits: 3
+
+3910dff bm: normalize the list --tag filter and name it listByTag
+
+
+ src/cli.ts              |  2 +-
+ src/store.ts            |  2 +-
+ test/cli.tags.test.ts   | 14 ++++++++++++++
+ test/store.tags.test.ts |  4 ++--
+ 4 files changed, 18 insertions(+), 4 deletions(-)
+
+4d83593 bm: exit 1 when tagging an unknown bookmark
+
+
+ src/cli.ts              | 2 +-
+ test/cli.tags.test.ts   | 6 ++++++
+ test/store.tags.test.ts | 7 ++++++-
+ 3 files changed, 13 insertions(+), 2 deletions(-)
+
+d64dd63 bm: make tagging with an existing tag a no-op
+
+
+ src/store.ts            | 4 +++-
+ test/store.tags.test.ts | 8 ++++++++
+ 2 files changed, 11 insertions(+), 1 deletion(-)
+
+--- git status --short ---
+

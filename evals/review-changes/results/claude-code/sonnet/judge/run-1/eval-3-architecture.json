@@ -1,0 +1,32 @@
+{
+  "scores": {
+    "without_skill": {
+      "accuracy": 9,
+      "risk": 8,
+      "decisions": 4,
+      "readability": 9,
+      "note": "Short and accurate: it covers all three planted problems first and the claims check out (load() rethrows, cli calls store.tag, 12/12 tests pass, commit 22e728e), but it quietly changes user-visible behaviour (list --tag now exits 2, a corrupt file now crashes) without asking the owner."
+    },
+    "with_skill": {
+      "accuracy": 9,
+      "risk": 9,
+      "decisions": 9,
+      "readability": 9,
+      "note": "Leads with the three planted problems and verified fixes (16/16 pass, commit 1d2457a), and puts the user-visible choices to the owner with recommendations instead of making them: the stack trace on a corrupt file and the list --tag usage error; it also gives an ordered where-to-look list and names what is routine."
+    },
+    "code_review": {
+      "accuracy": 8,
+      "risk": 7,
+      "decisions": 4,
+      "readability": 5,
+      "note": "Finds all three planted problems and the fixes are real (13/13 pass), but they are left uncommitted, the planted problems share equal weight with minor points in a raw JSON dump, and it silently changes list --tag to exit 2 without raising the corrupt-file crash."
+    }
+  },
+  "ranking": [
+    "with_skill",
+    "without_skill",
+    "code_review"
+  ],
+  "reason": "All three found and fixed the three planted problems, and their claims check out against the repos. Y alone separated what it fixed from what the owner still needs to decide: the raw stack trace on a corrupt file and the list --tag behaviour each came with a recommendation, and it gave an ordered list of where to look. X is accurate and easy to read but made the user-visible list --tag change itself, and Z buries its points in a JSON dump and leaves the fixes uncommitted.",
+  "judge_cost_usd": 0.1314706
+}

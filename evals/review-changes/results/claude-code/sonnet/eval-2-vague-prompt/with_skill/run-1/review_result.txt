@@ -1,0 +1,14 @@
+New commits: 1
+
+9c05380 bm: align tags with plan (dedupe, exit 1 for unknown id, normalize list --tag, listByTag)
+
+
+ docs/plans/2026-10-14-bookmark-tags.md |  1 +
+ src/cli.ts                             |  8 ++++++--
+ src/store.ts                           |  9 ++++++---
+ test/cli.tags.test.ts                  | 26 ++++++++++++++++++++++++++
+ test/store.tags.test.ts                | 18 +++++++++++++++---
+ 5 files changed, 54 insertions(+), 8 deletions(-)
+
+--- git status --short ---
+

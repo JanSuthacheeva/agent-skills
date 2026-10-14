@@ -1,0 +1,26 @@
+New commits: 3
+
+38ac7b7 bm: map tag errors to planned exit codes and normalize list --tag
+
+
+ src/cli.ts            |  8 ++++----
+ test/cli.tags.test.ts | 28 ++++++++++++++++++++++++++++
+ 2 files changed, 32 insertions(+), 4 deletions(-)
+
+9611139 bm: rename listTagged to listByTag as planned
+
+
+ src/cli.ts              | 2 +-
+ src/store.ts            | 2 +-
+ test/store.tags.test.ts | 4 ++--
+ 3 files changed, 4 insertions(+), 4 deletions(-)
+
+774b83b bm: make tagging with an existing tag a no-op
+
+
+ src/store.ts            |  4 +++-
+ test/store.tags.test.ts | 15 ++++++++++++++-
+ 2 files changed, 17 insertions(+), 2 deletions(-)
+
+--- git status --short ---
+

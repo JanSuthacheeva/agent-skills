@@ -1,0 +1,32 @@
+{
+  "scores": {
+    "with_skill": {
+      "accuracy": 9,
+      "risk": 9,
+      "decisions": 9,
+      "readability": 9,
+      "note": "All five planted problems are fixed and committed in 1f9409c, and the claims check out: 17 of 17 tests pass, listTagged is gone, not-found exits 1 and list normalizes; the only flaw is the opening 'four bugs' against six listed items."
+    },
+    "code_review": {
+      "accuracy": 8,
+      "risk": 6,
+      "decisions": 4,
+      "readability": 5,
+      "note": "It finds and fixes all five planted problems, and tests pass (14 of 14), but the raw JSON dump is hard to scan, the fixes sit uncommitted with no mention of that, it gives no reading order, and choices like the new usage error are made without being raised."
+    },
+    "without_skill": {
+      "accuracy": 9,
+      "risk": 7,
+      "decisions": 5,
+      "readability": 8,
+      "note": "A concise, accurate list of all five planted fixes, committed and checked with 15 passing tests and a manual CLI run, but it gives no open items or where-to-look guidance and makes the usage-message choice silently."
+    }
+  },
+  "ranking": [
+    "with_skill",
+    "without_skill",
+    "code_review"
+  ],
+  "reason": "All three caught and fixed every planted problem, so the difference was what the owner gets beyond the fixes. X alone raises the remaining decisions with a recommendation: duplicate tags already in existing stores, the double normalization, and the unspecified usage message. It also gives a short, ordered list of where to look and says what is routine. Z is clean and verified but stops at 'fixed'; Y is accurate but hard to read and leaves its fixes uncommitted.",
+  "judge_cost_usd": 0.13860640000000002
+}

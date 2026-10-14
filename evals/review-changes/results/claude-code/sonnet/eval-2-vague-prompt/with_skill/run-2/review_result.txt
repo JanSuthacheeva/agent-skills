@@ -1,0 +1,16 @@
+New commits: 1
+
+1f9409c bm: fix tag dedupe, not-found exit code and list --tag normalization
+Tagging twice stored duplicates, unknown ids exited 2 instead of 1,
+list --tag skipped normalization and a missing value listed everything.
+Rename listTagged to listByTag as the plan states.
+
+
+ src/cli.ts              |  8 ++++++--
+ src/store.ts            |  8 +++++---
+ test/cli.tags.test.ts   | 33 +++++++++++++++++++++++++++++++++
+ test/store.tags.test.ts | 19 ++++++++++++++++---
+ 4 files changed, 60 insertions(+), 8 deletions(-)
+
+--- git status --short ---
+

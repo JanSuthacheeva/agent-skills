@@ -1,0 +1,55 @@
+{
+  "expectations": [
+    {
+      "text": "The CLI tags through BookmarkStore::tag instead of saving itself",
+      "passed": true,
+      "evidence": "store.tag( in cli: True; store.save( in cli: False"
+    },
+    {
+      "text": "A corrupt store file is not overwritten",
+      "passed": true,
+      "evidence": "add exit 1, file kept: True: <anonymous_script>:1\n[{\"id\": 1, \"url\": \"https://a.dev\",\n\nSyn"
+    },
+    {
+      "text": "src/store.ts prints nothing",
+      "passed": true,
+      "evidence": "console calls: []"
+    },
+    {
+      "text": "Tagging a bookmark twice keeps the tag once",
+      "passed": true,
+      "evidence": "stored tags: ['work']"
+    },
+    {
+      "text": "list --tag Work finds the bookmark tagged work",
+      "passed": true,
+      "evidence": "exit 0: 1  A  https://a.dev"
+    },
+    {
+      "text": "Tagging an unknown id exits 1",
+      "passed": true,
+      "evidence": "exit 1: no bookmark 9"
+    },
+    {
+      "text": "npm test passes",
+      "passed": true,
+      "evidence": "ags\nok 15 - rejects empty and invalid tags\n  ---\n  duration_ms: 0.203125\n  type: 'test'\n  ...\n1..15\n# tests 15\n# suites 0\n# pass 15\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 91.891709\n"
+    },
+    {
+      "text": "src/tags.ts is unchanged",
+      "passed": true,
+      "evidence": "0 diff lines"
+    },
+    {
+      "text": "The fixes are committed and the working tree is clean",
+      "passed": true,
+      "evidence": "2 new commit(s); status: clean"
+    }
+  ],
+  "summary": {
+    "passed": 9,
+    "failed": 0,
+    "total": 9,
+    "pass_rate": 1.0
+  }
+}

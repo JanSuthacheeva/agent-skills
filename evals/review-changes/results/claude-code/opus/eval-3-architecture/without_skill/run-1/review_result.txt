@@ -1,0 +1,37 @@
+New commits: 3
+
+d075b72 bm: reject malformed tag and list arguments
+'list --tag' without a tag silently listed everything, and an empty or
+fractional id in 'tag' passed validation ('' became id 0). Both are now
+usage errors with exit 2. list --tag normalizes in the CLI as planned.
+
+
+ src/cli.ts            | 11 ++++++++---
+ test/cli.tags.test.ts | 19 +++++++++++++++++++
+ 2 files changed, 27 insertions(+), 3 deletions(-)
+
+080cf23 bm: route tag command through BookmarkStore::tag
+The CLI loaded, mutated and saved the bookmarks itself, duplicating the
+store's logic and breaking the rule that only the store touches the file.
+The store no longer prints to the console; a duplicate tag is a silent
+no-op as planned. Adds the planned tests for a duplicate tag and an
+unknown id.
+
+
+ src/cli.ts              |  6 +-----
+ src/store.ts            |  8 +++-----
+ test/cli.tags.test.ts   |  6 ++++++
+ test/store.tags.test.ts | 15 ++++++++++++++-
+ 4 files changed, 24 insertions(+), 11 deletions(-)
+
+fa24589 bm: stop overwriting a corrupt store file
+load() swallowed JSON parse errors and returned [], so the next add or
+tag silently replaced the user's bookmarks with a fresh file.
+
+
+ src/store.ts            | 7 +------
+ test/store.tags.test.ts | 6 ++++++
+ 2 files changed, 7 insertions(+), 6 deletions(-)
+
+--- git status --short ---
+

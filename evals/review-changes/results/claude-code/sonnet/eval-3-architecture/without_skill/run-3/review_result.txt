@@ -1,0 +1,13 @@
+New commits: 1
+
+11634ed bm: route tag through the store, stop swallowing corrupt files, cover gaps
+
+
+ src/cli.ts              | 10 +++++-----
+ src/store.ts            | 18 ++++++------------
+ test/cli.tags.test.ts   | 12 ++++++++++++
+ test/store.tags.test.ts | 15 ++++++++++++++-
+ 4 files changed, 37 insertions(+), 18 deletions(-)
+
+--- git status --short ---
+

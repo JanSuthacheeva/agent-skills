@@ -1,0 +1,25 @@
+New commits: 2
+
+d45995d bm: map unknown id to exit 1 and reject bad tag arguments
+An unknown id exited 2 instead of 1. An empty or blank id parsed as 0
+and reported 'no bookmark 0' instead of usage. list --tag without a
+value silently listed every bookmark.
+
+
+ src/cli.ts            | 18 +++++++++++++-----
+ test/cli.tags.test.ts | 31 +++++++++++++++++++++++++++++++
+ 2 files changed, 44 insertions(+), 5 deletions(-)
+
+1d904a6 bm: make duplicate tags a no-op and normalize listByTag
+tag() pushed a tag the bookmark already had, storing duplicates. The
+filter was named listTagged instead of the planned listByTag and
+compared the raw tag, so list --tag Work found nothing.
+
+
+ src/cli.ts              |  2 +-
+ src/store.ts            |  9 ++++++---
+ test/store.tags.test.ts | 26 +++++++++++++++++++++++---
+ 3 files changed, 30 insertions(+), 7 deletions(-)
+
+--- git status --short ---
+

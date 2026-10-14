@@ -1,0 +1,18 @@
+New commits: 2
+
+bab11a8 bm: validate list --tag and exit 1 for an unknown bookmark
+
+
+ src/cli.ts            | 13 +++++++++----
+ test/cli.tags.test.ts | 33 +++++++++++++++++++++++++++++++++
+ 2 files changed, 42 insertions(+), 4 deletions(-)
+
+773fc01 bm: dedupe tags and normalize the listByTag filter
+
+
+ src/store.ts            |  9 ++++++---
+ test/store.tags.test.ts | 20 +++++++++++++++++---
+ 2 files changed, 23 insertions(+), 6 deletions(-)
+
+--- git status --short ---
+

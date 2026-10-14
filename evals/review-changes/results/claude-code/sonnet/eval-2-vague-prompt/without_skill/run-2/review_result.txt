@@ -1,0 +1,13 @@
+New commits: 1
+
+aed7684 bm: align tag implementation with plan (dedupe, listByTag, exit codes, usage)
+
+
+ src/cli.ts              | 13 +++++++++++--
+ src/store.ts            |  8 +++++---
+ test/cli.tags.test.ts   | 22 ++++++++++++++++++++++
+ test/store.tags.test.ts | 19 ++++++++++++++++---
+ 4 files changed, 54 insertions(+), 8 deletions(-)
+
+--- git status --short ---
+

@@ -1,0 +1,27 @@
+New commits: 2
+
+fbe964e bm: route bm tag through BookmarkStore::tag
+The CLI reimplemented tagging with list() and save(), leaving the
+store method unused, and the store printed a warning on a duplicate
+tag although only the CLI prints. Adds the duplicate and unknown id
+tests the plan asks for.
+
+
+ src/cli.ts              |  6 +-----
+ src/store.ts            |  8 +++-----
+ test/cli.tags.test.ts   |  6 ++++++
+ test/store.tags.test.ts | 16 +++++++++++++++-
+ 4 files changed, 25 insertions(+), 11 deletions(-)
+
+bc3a0de bm: stop reading a corrupt store file as empty
+load() turned a parse error into an empty list, so the next add or
+tag saved over the file and lost every bookmark. Let the error
+propagate again, as it did before tags.
+
+
+ src/store.ts            | 7 +------
+ test/store.tags.test.ts | 9 ++++++++-
+ 2 files changed, 9 insertions(+), 7 deletions(-)
+
+--- git status --short ---
+
