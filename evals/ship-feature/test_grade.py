@@ -55,6 +55,49 @@ class FinalStopTest(unittest.TestCase):
         self.assertFalse(flow_check(FINAL_STOP, got, PLAN_OPEN)[0])
 
 
+PHASES_MID = "Reported the phases implement and review, then merge-request only after a review with nothing open"
+PHASES_AFTER = "Reported the phase review, then merge-request only after a review with nothing open"
+COUNTS = "Reported the review counts of the plan's ## Review"
+TASKS = "Reported tasks 5 5"
+
+
+class PhasesTest(unittest.TestCase):
+    def test_repeated_phases_fold_across_other_reports(self):
+        got = reports(["report", "phase", "implement"], ["report", "phase", "implement"], ["report", "tasks", "5", "5"],
+                      ["report", "phase", "review"], ["report", "review", "--fixed", "1", "--open", "0"],
+                      ["report", "phase", "review"], ["report", "phase", "merge-request"])
+        self.assertTrue(flow_check(PHASES_MID, got, PLAN_DONE)[0])
+
+    def test_merge_request_after_open_items_fails(self):
+        got = reports(["report", "phase", "review"], ["report", "phase", "merge-request"])
+        self.assertFalse(flow_check(PHASES_AFTER, got, PLAN_OPEN)[0])
+        self.assertTrue(flow_check(PHASES_AFTER, got[:1], PLAN_OPEN)[0])
+
+    def test_missing_merge_request_after_nothing_open_fails(self):
+        got = reports(["report", "phase", "review"])
+        self.assertFalse(flow_check(PHASES_AFTER, got, PLAN_DONE)[0])
+
+    def test_phases_out_of_order_fail(self):
+        got = reports(["report", "phase", "review"], ["report", "phase", "implement"], ["report", "phase", "review"])
+        self.assertFalse(flow_check(PHASES_MID, got, PLAN_OPEN)[0])
+
+
+class TasksAndCountsTest(unittest.TestCase):
+    def test_tasks_need_the_last_count(self):
+        self.assertTrue(flow_check(TASKS, reports(["report", "tasks", "4", "5"], ["report", "tasks", "5", "5"]), PLAN_DONE)[0])
+        self.assertFalse(flow_check(TASKS, reports(["report", "tasks", "4", "5"]), PLAN_DONE)[0])
+
+    def test_last_review_report_must_match_the_plan(self):
+        match = reports(["report", "review", "--fixed", "0", "--open", "0"], ["report", "review", "--fixed", "1", "--open", "1"])
+        self.assertTrue(flow_check(COUNTS, match, PLAN_OPEN)[0])
+        self.assertFalse(flow_check(COUNTS, match[:1], PLAN_OPEN)[0])
+        self.assertFalse(flow_check(COUNTS, [], PLAN_OPEN)[0])
+
+    def test_unknown_expectation_raises(self):
+        with self.assertRaises(ValueError):
+            flow_check("Reported something else", [], PLAN_DONE)
+
+
 def review(body):
     return f"# Plan\n\n## Review\n\n{body}\n## Next\n\n- [ ] Not a finding\n"
 
