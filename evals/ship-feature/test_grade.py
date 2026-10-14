@@ -67,6 +67,14 @@ class ReviewCountsTest(unittest.TestCase):
                 "- Open: none\nWhere to look\n- D.\nOpen: none. Not reviewed again.\n")
         self.assertEqual(review_counts(review(body)), (2, 1))
 
+    def test_bold_labels_with_the_colon_inside(self):
+        body = "**Fixed:**\n\n- A.\n- B.\n\n**Open:**\n\n- C.\n"
+        self.assertEqual(review_counts(review(body)), (2, 1))
+
+    def test_bold_list_label_saying_none(self):
+        body = "- **Fixed:**\n  - A.\n- **Open:** none\n"
+        self.assertEqual(review_counts(review(body)), (1, 0))
+
     def test_continuation_line_does_not_switch_label(self):
         body = "**Fixed**\n\n- A, which left one\n  open item.\n- B.\n  Fixed in 0aa0932.\n\n**Open**\n\n- C.\n"
         self.assertEqual(review_counts(review(body)), (2, 1))

@@ -13,12 +13,13 @@ from pathlib import Path
 
 PLAN = "docs/plans/2026-10-14-bookmark-tags.md"
 LABELS = r"(Fixed|Open|Where\ to\ look)"
+NONE = r"(?:(?i:none|nothing)\b.*)?"
 REVIEW_LABEL = re.compile(rf"""^(?:
       \#+\s*{LABELS}\b                                            # ### Fixed
-    | (?:\*\*|__){LABELS}(?:\ \w+)?(?:\*\*|__)                    # **Fixed** (commit ...), **Open questions**
-    | \s*[-*]\s+(?:\*\*|__){LABELS}(?:\ \w+)?(?:\*\*|__):?\s*$    # - **Open questions**
+    | (?:\*\*|__){LABELS}(?:\ \w+)?:?(?:\*\*|__)                  # **Fixed** (commit ...), **Open questions**, **Fixed:**
+    | \s*[-*]\s+(?:\*\*|__){LABELS}(?:\ \w+)?:?(?:\*\*|__):?\s*{NONE}$  # - **Open questions**, - **Open:** none
     | {LABELS}(?:\ \w+)?(?:\ \([^)\n]*\))?(?:\s*$|:)              # Fixed, Open questions:, Fixed (`0e06f9c`):
-    | \s*[-*]\s+{LABELS}:\s*(?:(?:none|nothing)\b.*)?$            # - Open:, - Open: none
+    | \s*[-*]\s+{LABELS}:\s*{NONE}$                                # - Open:, - Open: none
     )""", re.X)
 LIST_ITEM = re.compile(r"^(\s*)(?:[-*]|\d+[.)])\s+(?!(?:none|nothing)\b)\S", re.I)
 BUILD_REPORT = re.compile(r"deviation|I (built|implemented)|has been (built|implemented)|tasks? \d+ (to|-) \d+ (are|were) (done|built)", re.I)
