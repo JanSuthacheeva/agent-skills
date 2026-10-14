@@ -1,0 +1,8 @@
+new commits:
+d2e9507 docs: mark bookmark tags plan done
+3023b65 bm: add tag command and list --tag
+941df2e bm: tag bookmarks and list them by tag
+dce3cac bm: store tags on bookmarks
+
+agents:
+

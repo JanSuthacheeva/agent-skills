@@ -1,0 +1,11 @@
+new commits:
+72db3eb docs: add review to bookmark tags plan
+de390db bm: reject empty and non-decimal ids in tag
+3797292 docs: tick end-to-end check in bookmark tags plan
+ed3ebbf bm: add tag command and list --tag
+ec8d138 bm: tag bookmarks and list them by tag in the store
+03fadbe bm: store tags on bookmarks
+
+agents:
+- Build bookmark tags plan: 509 chars
+- Review bookmark tags branch: 470 chars

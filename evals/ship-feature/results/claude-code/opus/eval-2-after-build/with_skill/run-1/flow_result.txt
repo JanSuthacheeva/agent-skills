@@ -1,0 +1,7 @@
+new commits:
+9c36cc8 docs: plans: add review of bookmark tags
+b01f874 bm: cli: exit 1 for an unknown id and normalize list --tag
+29b53f0 bm: store: make tagging with an existing tag a no-op
+
+agents:
+- Review bookmark-tags branch: 379 chars

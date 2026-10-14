@@ -1,0 +1,7 @@
+new commits:
+f769830 docs: record review of bookmark tags
+f976cb6 bm: exit 1 for unknown id and normalize list --tag
+dc2258d bm: make tagging idempotent and rename listTagged to listByTag
+
+agents:
+- Review fix commits: 767 chars

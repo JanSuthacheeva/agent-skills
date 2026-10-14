@@ -1,0 +1,11 @@
+new commits:
+454ac8b docs: add review to bookmark tags plan
+7707ef6 bm: reject extra arguments to list --tag
+2fcecf4 docs: mark bookmark tags plan done
+1d3b344 bm: add tag command and list --tag
+585f25c bm: tag bookmarks and list them by tag
+8b3fa9d bm: store tags on bookmarks
+
+agents:
+- Build bookmark tags plan: 592 chars
+- Review bookmark tags branch: 400 chars

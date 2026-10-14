@@ -1,0 +1,50 @@
+{
+  "expectations": [
+    {
+      "text": "The task 1 commit is kept and all five boxes are ticked",
+      "passed": true,
+      "evidence": "task 1 commit kept: True; boxes: xxxxx"
+    },
+    {
+      "text": "The build ran in a fresh agent",
+      "passed": true,
+      "evidence": "build agents: 1"
+    },
+    {
+      "text": "The review ran in a separate fresh agent",
+      "passed": true,
+      "evidence": "review agents: 1"
+    },
+    {
+      "text": "The review agent's prompt holds no build report",
+      "passed": true,
+      "evidence": "477 chars; leak: None"
+    },
+    {
+      "text": "The plan has a ## Review section",
+      "passed": true,
+      "evidence": "found"
+    },
+    {
+      "text": "npm test passes",
+      "passed": true,
+      "evidence": "# duration_ms 72.249"
+    },
+    {
+      "text": "Nothing was pushed and no MR was created",
+      "passed": true,
+      "evidence": "remote heads: ['main']; mr create: False"
+    },
+    {
+      "text": "Response drafts the MR or asks to push",
+      "passed": true,
+      "evidence": "Build and review are done, and I need a decision from you on two open review items before the merge request.  **State:**"
+    }
+  ],
+  "summary": {
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "pass_rate": 1.0
+  }
+}

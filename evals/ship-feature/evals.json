@@ -18,7 +18,8 @@
         "npm test passes",
         "Nothing was pushed and no MR was created",
         "Response drafts the MR or asks to push"
-      ]
+      ],
+      "tests": "A flow interrupted after the first task; continuing the build and going on to an isolated review instead of stopping after the build."
     },
     {
       "id": 2,
@@ -36,7 +37,8 @@
         "npm test passes",
         "Nothing was pushed and no MR was created",
         "Response drafts the MR or puts open review items to the user"
-      ]
+      ],
+      "tests": "A flow interrupted after the build; reviewing without rebuilding, and stopping before the push."
     }
   ]
 }

@@ -1,0 +1,10 @@
+new commits:
+1549705 docs: record bookmark tags review
+d8a667d docs: tick bookmark tags end-to-end check
+c769ffb bm: add tag command and list --tag
+cd57b24 bm: tag bookmarks and list them by tag
+7fbc6b2 bm: store tags on bookmarks
+
+agents:
+- Build bookmark tags plan: 781 chars
+- Review bookmark tags branch: 487 chars

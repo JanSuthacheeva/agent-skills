@@ -1,0 +1,11 @@
+new commits:
+e7b1455 docs: add review section to bookmark tags plan
+d4abd7c bm: treat an empty tag id as a usage error
+4a92d7b docs: tick bookmark tags e2e check
+3f021fa bm: add tag command and list --tag
+bd8146b bm: add BookmarkStore tag and listByTag
+219bfa0 bm: add tags to bookmarks and default missing tags on load
+
+agents:
+- Build bookmark tags plan: 515 chars
+- Review bookmark tags branch: 477 chars

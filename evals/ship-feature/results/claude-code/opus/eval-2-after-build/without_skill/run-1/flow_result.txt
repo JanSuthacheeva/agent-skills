@@ -1,0 +1,8 @@
+new commits:
+b7c5c3b docs: record the bookmark tags review
+9c2dff2 bm: follow the plan's error paths in tag and list --tag
+2bb024f bm: rename listTagged to listByTag as the plan names it
+f6ae3b7 bm: ignore a tag the bookmark already has
+
+agents:
+- Review fix commits: 1451 chars

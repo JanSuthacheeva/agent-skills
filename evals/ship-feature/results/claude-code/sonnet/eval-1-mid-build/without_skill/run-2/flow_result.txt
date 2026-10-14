@@ -1,0 +1,8 @@
+new commits:
+0fb4147 docs: tick end-to-end check in bookmark tags plan
+42d29b0 bm: add tag command and list --tag
+5ffa512 bm: tag bookmarks and list them by tag in the store
+6234ef4 bm: add tags field to bookmarks
+
+agents:
+
