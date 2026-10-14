@@ -275,6 +275,11 @@ The implementation page repeats this chain with "Review the implementation page"
 - [x] Rerun the ship-feature evals with `FLOW=stub` and `FLOW=absent` on Opus and Sonnet, and publish the results and report
 - [x] End-to-end: a throwaway `flow new` flow, a mid-build ship-feature trial reporting into it with the real CLI, and `flow status` showing phases implement, review and merge-request, 5/5 tasks, the review counts and the push question; then remove the flow
 
+### After review (decided by the user)
+
+- [ ] `flow` stub logs each call's argv as one JSON array per line, like the forge stubs, and `flow_reports` parses it, so an unquoted multi-word report no longer passes as quoted; regrade the published trials' workspace copies to show the results are unchanged (no paid rerun)
+- [ ] Harden `review_counts` in `evals/ship-feature/grade.py` so a finding line shaped like a label (`- Fixed duplicate tags: ...`) is counted as a finding, with checks for that case, `- None.` and labels with a note before the colon; regrade to show the published counts are unchanged
+
 ## Review
 
 Reviewed in isolation against `main` and this plan. The five skill edits,
