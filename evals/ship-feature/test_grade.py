@@ -26,6 +26,16 @@ class FlowReportsTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             self.assertIsNone(flow_reports(Path(tmp)))
 
+    def test_old_text_log_fails_naming_the_file_and_the_conversion(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            old = Path(tmp) / "flow.log"
+            old.write_text("report phase review\n")
+            with self.assertRaises(ValueError) as err:
+                flow_reports(Path(tmp))
+            self.assertIn(str(old), str(err.exception))
+            self.assertIn("flow.jsonl", str(err.exception))
+            self.assertIn("JSON array", str(err.exception))
+
 
 class FinalStopTest(unittest.TestCase):
     def test_quoted_question_passes(self):

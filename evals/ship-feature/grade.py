@@ -55,8 +55,14 @@ def boxes(repo):
 
 def flow_reports(fx: Path) -> list[list[str]] | None:
     """The flow stub's log as argument lists after `report`, in order;
-    None when the trial ran without flow."""
+    None when the trial ran without flow. Fails on the old text log, which
+    would otherwise grade a stub trial as run without flow."""
     log = fx / "flow.jsonl"
+    old = fx / "flow.log"
+    if not log.exists() and old.exists():
+        raise ValueError(f"{old} is the old text log of the flow stub; convert it to "
+                         f"{log}, each line one JSON array of that call's argv, "
+                         "keeping a quoted question or reason one element")
     if not log.exists():
         return None
     calls = [json.loads(line) for line in log.read_text().splitlines()]

@@ -155,11 +155,12 @@ flow worker never reports into the real flow.
 
 ```python
 def flow_reports(fx: Path) -> list[list[str]] | None
-    # flow.jsonl as argument lists in order; None when the trial ran with FLOW=absent
+    # flow.jsonl as argument lists in order; None when the trial ran with FLOW=absent;
+    # ValueError naming the file and the conversion when only the old flow.log is there
 
 def review_counts(plan: str) -> tuple[int, int]
     # outermost list items under Fixed and Open in the plan's ## Review, not
-    # "none"; a label is a heading, a bold label or an unindented line, and a
+    # "none" or a whole-line "nothing" item (`- No open items.`); a label is a heading, a bold label or an unindented line, and a
     # list item only when it holds nothing else, so `- Fixed duplicate tags: ...`
     # and an indented continuation line starting with "open" stay findings
 
@@ -289,7 +290,7 @@ The implementation page repeats this chain with "Review the implementation page"
 ### After the second review (decided by the user)
 
 - [x] `review_counts` treats a whole-line "nothing" item under a label (`- No open items.`, `- No findings.`, `- Nothing open.`) like `- None.`, while an item naming a thing (`- No test for X`) stays a finding; tests for both
-- [ ] `flow_reports` fails loudly when a fixture holds the old `flow.log` and no `flow.jsonl`, naming the file and the conversion needed, instead of grading the trial as run without flow; test for it
+- [x] `flow_reports` fails loudly when a fixture holds the old `flow.log` and no `flow.jsonl`, naming the file and the conversion needed, instead of grading the trial as run without flow; test for it
 
 ## Review
 
