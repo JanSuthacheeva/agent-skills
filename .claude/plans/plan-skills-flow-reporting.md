@@ -288,45 +288,41 @@ The implementation page repeats this chain with "Review the implementation page"
 
 ## Review
 
-Reviewed in isolation against `main` and this plan. The five skill edits,
-versions, `allowed-tools` and README sentence match the plan, and the
-`flow report` arguments match the real CLI's `--help`. Regrading copies of
-the local workspace reproduced every published `grading.json`, and both
-results READMEs re-render unchanged from their templates. Spot-checked
-`review_counts` against all eight skill trials' `## Review`: correct. No
-paid suites were rerun.
+Reviewed in isolation against `main` and this plan, including the two
+follow-ups. The five skill edits, versions, `allowed-tools` and README
+sentence match the plan, and every `flow report` argument matches the
+real CLI's `--help`. Regrading copies of the local workspace, with the old
+`flow.log` text converted to argv, reproduced every published
+`grading.json` (only `npm test` timings differ), before and after the fix
+below; the README numbers match the gradings. `FLOW=absent` checked with a
+PATH holding `flow` next to another tool. No paid suites were rerun.
 
 **Fixed**
 
-- `FLOW=absent` dropped every PATH entry holding `flow`, so with `flow`
-  next to git, node or claude (a Homebrew bin) a trial lost those too and
-  failed silently; shown with a PATH holding `flow` and `git` together.
-  The runners now share `evals/shared/flow_mode.sh`, which links the rest
-  of such a directory. Plan updated; fix re-checked by a separate agent
-  - 815f718.
-- Pre-existing pyflakes warning in `grade.py` (unused `run`) - b932667.
-- Ragged wrap in design-code's implementation page paragraph - 18c862a.
+- `review_counts` missed bold labels with the colon inside: a review
+  written with `**Fixed:**` and `**Open:**` counted (0, 0), and
+  `- **Open:** none` counted as a finding. Shown with two new tests;
+  published results unchanged - 5dae6bf.
 
 **Open**
 
-- The `flow` stub logs `$*`, so the grader cannot tell `waiting "a b?"`
-  from an unquoted `waiting a b?`, which the real CLI would reject. Every
-  multi-word report in the published transcripts was quoted, so no result
-  changes. Recommendation: log argv as JSON, like the forge stubs, at the
-  next rerun.
-- `review_counts` is a heuristic over free-form labels; a finding line
-  shaped like a label (`- Fixed duplicate tags: ...`) would be missed. It
-  matched every published trial. Recommendation: leave it.
+- `review_counts` still counts `- No open items.` as one open finding,
+  where an agent would report `--open 0`. No published trial wrote it.
+  Recommendation: leave it; widening "none" to "no ..." would drop real
+  findings like `- No test for X`.
+- The local workspace fixtures hold the old `flow.log`, so regrading them
+  as they are now grades stub trials as if run without flow, silently.
+  Only the gitignored workspace is affected. Recommendation: leave it.
 
 **Where to look**
 
-1. `evals/ship-feature/grade.py` `flow_check()`: the four report checks
-   that back the published numbers, especially the phase-order and
-   final-stop rules.
-2. `skills/ship-feature/SKILL.md` reporting note and `## Stops`: the only
-   place that says which stops are `blocked` and which `waiting`.
-3. `evals/shared/flow_mode.sh`: the absent mode that the "works without
-   flow" results rely on.
+1. `evals/ship-feature/grade.py` `REVIEW_LABEL` and `flow_check()`: the
+   label heuristic and the four report checks behind the published
+   numbers.
+2. `skills/ship-feature/SKILL.md` reporting note and `## Stops`: which
+   stops are `blocked` and which `waiting`.
+3. `evals/shared/flow_mode.sh`: the absent mode the "works without flow"
+   results rely on.
 
-Routine, skim: the one-line `env -u FLOW_ID` in the other runners, the
-`--template` option in `export_results.py`, the result files.
+Routine, skim: the `env -u FLOW_ID` runners, `--template` in
+`export_results.py`, the result files.
