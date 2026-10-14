@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # Run one review-changes eval trial headlessly with `claude -p`.
 # Usage: run_trial.sh <eval-name> <prompt> <config> <run-dir> <fixture-root>
-#   config: with_skill | without_skill. Runs are isolated from user and
-#   plugin settings; with_skill copies the skill into the fixture's project
-#   skills, so its presence is the only difference.
+#   config: with_skill | without_skill | code_review. Every run is a fresh
+#   headless session isolated from user and plugin settings, so no config
+#   sees how the branch was written. with_skill copies the skill into the
+#   fixture's project skills; code_review replaces the prompt with Claude
+#   Code's built-in `/code-review medium --fix`.
 set -euo pipefail
 name=$1; prompt=$2; cfg=$3; run=$4; fixtures=$5
 here=$(cd "$(dirname "$0")" && pwd)
@@ -16,11 +18,12 @@ if [ "$cfg" = with_skill ] && [ -d "$here/../../skills/review-changes" ]; then
   cp -R "$here/../../skills/review-changes" "$fx/repo/.claude/skills/"
   echo ".claude/" >> "$fx/repo/.git/info/exclude"
 fi
+[ "$cfg" = code_review ] && prompt="/code-review medium --fix"
 args=(-p "$prompt" --output-format json --model "${MODEL:-claude-opus-5-5}" --effort "${EFFORT:-medium}"
       --setting-sources project,local --strict-mcp-config --mcp-config '{"mcpServers": {}}'
       --disallowedTools AskUserQuestion --permission-mode acceptEdits
       --settings '{"permissions": {"deny": ["Bash(git push:*)"]}}'
-      --allowedTools Skill Bash Read Edit Write Glob Grep)
+      --allowedTools Skill Bash Read Edit Write Glob Grep Agent)
 (cd "$fx/repo" && claude "${args[@]}" < /dev/null) > "$run/outputs/raw.json" 2> "$run/outputs/stderr.txt" || true
 python3 - "$run" <<'P'
 import json, sys, pathlib
