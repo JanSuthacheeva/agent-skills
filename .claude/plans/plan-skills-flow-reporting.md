@@ -250,7 +250,7 @@ The implementation page repeats this chain with "Review the implementation page"
 - [x] Add the `flow` stub to `evals/write-merge-request/setup_fixture.sh` `stubs()` and `FLOW=stub|absent` to the write-merge-request and ship-feature `run_trial.sh`; check both modes with one trial each
 - [x] Add `flow_reports`, `review_counts` and the report expectations to `evals/ship-feature/grade.py`; check them against the stub and absent trials
 - [x] design-code: reporting note, waiting before both polls, version 0.8
-- [ ] implement-plan: reporting note, `tasks`, `decision`, `blocked`, version 0.2
+- [x] implement-plan: reporting note, `tasks`, `decision`, `blocked`, version 0.2
 - [ ] review-changes: reporting note, `review` counts, version 0.5
 - [ ] write-merge-request: `allowed-tools`, reporting note, push question, `merge-request <url>`, version 0.8
 - [ ] ship-feature: reporting note with the phase per step, stops, version 0.3
