@@ -176,5 +176,39 @@ def down(db):
     db.execute("DROP TABLE export_jobs")
 P
   c -m "billing: track export jobs" ;;
+repo-template)
+  git checkout -q main
+  mkdir -p .gitlab/merge_request_templates
+  cat > .gitlab/merge_request_templates/Default.md <<'P'
+## What
+
+## Why
+
+## Deploy notes
+
+## Checklist
+
+- [ ] Tests added or updated
+- [ ] Docs updated
+P
+  c -m "treewide: add merge request template"
+  git push -q origin main
+  git update-ref refs/remotes/origin/main HEAD
+  git rev-parse HEAD > "$dest/base_sha"
+  git checkout -q -b fix/line-rounding
+  cat > billing/totals.py <<'P'
+from decimal import Decimal, ROUND_HALF_UP
+
+CENT = Decimal("0.01")
+
+def invoice_total(lines):
+    return sum(
+        (Decimal(l["qty"]) * Decimal(l["price"])).quantize(CENT, rounding=ROUND_HALF_UP)
+        for l in lines
+    )
+P
+  c -m "billing: round totals per line instead of per invoice" \
+    -m "Per-invoice rounding drifted from the PDF totals by up to one cent,
+which the accounting export rejected." ;;
 *) echo "unknown eval $name" >&2; exit 1 ;;
 esac

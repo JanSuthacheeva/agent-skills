@@ -12,7 +12,7 @@ compatibility: >-
   the ticket title with clickup-axi when it is installed.
 metadata:
     author: Jan Suthacheeva
-    version: "0.4"
+    version: "0.5"
 allowed-tools: >-
   Bash(git status:*) Bash(git branch:*) Bash(git log:*) Bash(git diff:*)
   Bash(git remote:*) Bash(git symbolic-ref:*) Bash(git rev-parse:*)
@@ -31,7 +31,9 @@ what breaks or stays open.
    git symbolic-ref --short refs/remotes/origin/HEAD; git status --short`.
    The target is the default branch unless the user names another.
 2. One call: `git log --format='%h %s%n%b' <target>..HEAD;
-   git diff --stat <target>...HEAD`. Read the diff itself where the
+   git diff --stat <target>...HEAD; ls .gitlab/merge_request_templates
+   .github/PULL_REQUEST_TEMPLATE .github/pull_request_template.md
+   docs/pull_request_template.md pull_request_template.md`. Read the diff itself where the
    commits do not explain why something changed. If the branch follows a
    plan or ticket, read it - it usually holds the why.
 3. Check for an open MR of the branch (`glab mr list --source-branch
@@ -68,6 +70,16 @@ them yourself.
 
 ## Description
 
+If the repo has an MR or PR template, it wins over the structure below:
+keep its headings in its order and fill them in the same concise way. Put
+decisions, deploy steps and the ticket reference under its closest
+headings, and add a short section of your own only for what has no home.
+Drop sections that do not apply rather than writing "N/A", and tick a
+checklist box only for what the branch actually did. With several
+templates, use the default one (GitLab's `Default.md`) and name it.
+
+Without a template, use this structure:
+
 ```
 <What the MR does and why, in one to three sentences: the problem or goal
 first, then the change that addresses it.>
@@ -102,7 +114,7 @@ Refs: <ID>
   include a secret value. Leave the section out when there is nothing.
 - Leave out what the diff already shows or reviewers do not need: a
   file-by-file or commit-by-commit list, a "How to test" section or test
-  checklist, generic checklists, empty template headings, screenshots
+  checklist unless the template asks for one, generic checklists, empty template headings, screenshots
   placeholders, and praise for the change.
 - `Refs: <ID>` only when the branch has a ticket ID; never invent one.
   On GitHub, `Closes #<n>` when the branch closes an issue.

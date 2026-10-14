@@ -71,6 +71,13 @@ def check(t, response, draft, calls, pushed, head, repo):
         return "excel" in draft.lower(), "keyword excel in draft"
     if t.startswith("Description explains the one-cent drift"):
         return bool(re.search(r"cent|drift|pdf", draft, re.I)), "keyword cent/drift/pdf in draft"
+    if t.startswith("Description uses the template headings"):
+        found = [h for h in ("What", "Why", "Checklist") if re.search(rf"^#+\s*{h}\s*$", draft, re.M)]
+        pos = [re.search(rf"^#+\s*{h}\s*$", draft, re.M).start() for h in found]
+        return found == ["What", "Why", "Checklist"] and pos == sorted(pos), f"headings found in order: {found}"
+    if t.startswith("Description does not tick Tests"):
+        ticked = re.search(r"^\s*-\s*\[[xX]\]\s*Tests added", draft, re.M)
+        return not ticked, "ticked" if ticked else "not ticked"
     if t.startswith("Description names the new variables"):
         want = re.findall(r"EXPORT_[A-Z_]+", t)
         missing = [v for v in want if v not in draft]
