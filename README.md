@@ -18,7 +18,9 @@ Trying to keep the evals up to date and run them for different harnesses and mod
 Together they form a flow from idea to merge request:
 `design-code` -> `implement-plan` -> `review-changes` -> `write-merge-request`,
 with `commit` used throughout. `ship-feature` runs the flow for you; each
-skill also works on its own.
+skill also works on its own. With [flow](https://github.com/JanSuthacheeva/flow)
+installed, the skills report their progress to it; without it they work
+the same.
 
 ## Install
 
