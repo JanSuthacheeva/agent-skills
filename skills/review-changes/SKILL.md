@@ -11,7 +11,7 @@ description: >-
   for commenting on someone else's merge request or for lint-only passes.
 metadata:
     author: Jan Suthacheeva
-    version: "0.3"
+    version: "0.4"
 ---
 
 An agent reviewing code it just wrote tends to confirm its own choices, so
@@ -26,6 +26,8 @@ it judges the code by what is in the repository, not by what was meant.
   conversation or your own summary of it. Without one, ask the user to
   run the review in a new session.
 - If this conversation did not write them, you are already isolated: go on.
+  This includes an agent started only to review, given just the branch
+  and the plan - that agent is the isolated review, not a step before it.
 
 ## 2. Gather
 
@@ -83,8 +85,12 @@ step for them. When a fix changed production code, review those commits
 once more, by a fresh agent if you can - you wrote them, so the same bias
 applies. Give it only the fix commits and the findings they address. It
 checks a small diff against named findings, so a smaller, faster model is
-enough. Stop after this one round; whatever is still open goes into the
-summary.
+enough. If you cannot start one - an agent that was itself started by
+another often cannot - review them yourself in a separate pass: re-read
+each fix commit against its finding as if someone else wrote it, try the
+input that showed the finding and its neighbours, and say in the summary
+that the fixes were not reviewed independently. Stop after this one
+round; whatever is still open goes into the summary.
 
 ## 6. Summary
 
