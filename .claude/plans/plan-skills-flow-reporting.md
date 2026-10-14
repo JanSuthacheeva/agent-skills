@@ -274,3 +274,48 @@ The implementation page repeats this chain with "Review the implementation page"
 - [x] README: the sentence on reporting to flow
 - [x] Rerun the ship-feature evals with `FLOW=stub` and `FLOW=absent` on Opus and Sonnet, and publish the results and report
 - [x] End-to-end: a throwaway `flow new` flow, a mid-build ship-feature trial reporting into it with the real CLI, and `flow status` showing phases implement, review and merge-request, 5/5 tasks, the review counts and the push question; then remove the flow
+
+## Review
+
+Reviewed in isolation against `main` and this plan. The five skill edits,
+versions, `allowed-tools` and README sentence match the plan, and the
+`flow report` arguments match the real CLI's `--help`. Regrading copies of
+the local workspace reproduced every published `grading.json`, and both
+results READMEs re-render unchanged from their templates. Spot-checked
+`review_counts` against all eight skill trials' `## Review`: correct. No
+paid suites were rerun.
+
+**Fixed**
+
+- `FLOW=absent` dropped every PATH entry holding `flow`, so with `flow`
+  next to git, node or claude (a Homebrew bin) a trial lost those too and
+  failed silently; shown with a PATH holding `flow` and `git` together.
+  The runners now share `evals/shared/flow_mode.sh`, which links the rest
+  of such a directory. Plan updated; fix re-checked by a separate agent
+  - 815f718.
+- Pre-existing pyflakes warning in `grade.py` (unused `run`) - b932667.
+- Ragged wrap in design-code's implementation page paragraph - 18c862a.
+
+**Open**
+
+- The `flow` stub logs `$*`, so the grader cannot tell `waiting "a b?"`
+  from an unquoted `waiting a b?`, which the real CLI would reject. Every
+  multi-word report in the published transcripts was quoted, so no result
+  changes. Recommendation: log argv as JSON, like the forge stubs, at the
+  next rerun.
+- `review_counts` is a heuristic over free-form labels; a finding line
+  shaped like a label (`- Fixed duplicate tags: ...`) would be missed. It
+  matched every published trial. Recommendation: leave it.
+
+**Where to look**
+
+1. `evals/ship-feature/grade.py` `flow_check()`: the four report checks
+   that back the published numbers, especially the phase-order and
+   final-stop rules.
+2. `skills/ship-feature/SKILL.md` reporting note and `## Stops`: the only
+   place that says which stops are `blocked` and which `waiting`.
+3. `evals/shared/flow_mode.sh`: the absent mode that the "works without
+   flow" results rely on.
+
+Routine, skim: the one-line `env -u FLOW_ID` in the other runners, the
+`--template` option in `export_results.py`, the result files.
