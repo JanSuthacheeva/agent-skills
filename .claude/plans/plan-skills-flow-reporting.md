@@ -252,7 +252,7 @@ The implementation page repeats this chain with "Review the implementation page"
 - [x] design-code: reporting note, waiting before both polls, version 0.8
 - [x] implement-plan: reporting note, `tasks`, `decision`, `blocked`, version 0.2
 - [x] review-changes: reporting note, `review` counts, version 0.5
-- [ ] write-merge-request: `allowed-tools`, reporting note, push question, `merge-request <url>`, version 0.8
+- [x] write-merge-request: `allowed-tools`, reporting note, push question, `merge-request <url>`, version 0.8
 - [ ] ship-feature: reporting note with the phase per step, stops, version 0.3
 - [ ] README: the sentence on reporting to flow
 - [ ] Rerun the ship-feature evals with `FLOW=stub` and `FLOW=absent` on Opus and Sonnet, and publish the results and report
