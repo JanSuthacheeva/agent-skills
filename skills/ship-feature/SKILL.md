@@ -13,7 +13,7 @@ description: >-
   handles.
 metadata:
     author: Jan Suthacheeva
-    version: "0.1"
+    version: "0.2"
 ---
 
 Run the four delivery skills as one flow, so the user only makes the
