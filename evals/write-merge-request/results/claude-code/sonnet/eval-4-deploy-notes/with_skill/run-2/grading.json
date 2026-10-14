@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Description names the new variables EXPORT_BUCKET, EXPORT_ACCESS_KEY_ID and EXPORT_SECRET_ACCESS_KEY",
+      "passed": true,
+      "evidence": "missing: none"
+    },
+    {
+      "text": "Description mentions the export_jobs migration",
+      "passed": true,
+      "evidence": "keywords migration + export_jobs in draft"
+    },
+    {
+      "text": "Description mentions the new boto3 dependency",
+      "passed": true,
+      "evidence": "keyword boto3 in draft"
+    },
+    {
+      "text": "Description has no How to test or Testing section",
+      "passed": true,
+      "evidence": "no test heading"
+    },
+    {
+      "text": "No merge request was created",
+      "passed": true,
+      "evidence": "create calls: 0"
+    },
+    {
+      "text": "Nothing was pushed to origin",
+      "passed": true,
+      "evidence": "origin refs: unchanged"
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

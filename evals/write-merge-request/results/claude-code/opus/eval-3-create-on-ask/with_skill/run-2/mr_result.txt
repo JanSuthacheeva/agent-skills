@@ -1,0 +1,8 @@
+--- stub calls ---
+["glab", "mr", "list", "--source-branch", "ECOM-88-drop-currency-param"]
+["clickup-axi", "tasks", "ECOM-88"]
+["glab", "mr", "create", "--target-branch", "main", "--title", "api: take invoice currency from the account", "--description", "The `currency` query parameter on `GET /invoices/<id>` let clients ask for totals in a currency we never converted to, so they got EUR amounts labelled USD. The invoice now always reports the account's currency and the parameter is removed.\n\nBreaking: the `currency` parameter is gone. Clients must stop sending it and read the currency from the response.\n\nRefs: ECOM-88"]
+["glab", "mr", "view", "57"]
+--- origin refs ---
+refs/heads/ECOM-88-drop-currency-param b3a72a4344df998554026b534f80e588fe4f70f8
+refs/heads/main 390043d2a5d60b04b60b80b9543c964bc3a11368

@@ -1,0 +1,15 @@
+{
+  "eval_id": 2,
+  "eval_name": "no-ticket-fix",
+  "prompt": "MR please",
+  "assertions": [
+    "Response contains a scoped title starting with `billing: `",
+    "Description explains the one-cent drift",
+    "Description has no How to test or Testing section",
+    "Description is at most 600 characters",
+    "Response has no Refs line",
+    "Description has no Review section",
+    "No merge request was created",
+    "Nothing was pushed to origin"
+  ]
+}

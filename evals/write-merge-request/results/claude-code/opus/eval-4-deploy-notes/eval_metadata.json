@@ -1,0 +1,13 @@
+{
+  "eval_id": 4,
+  "eval_name": "deploy-notes",
+  "prompt": "draft the PR description for my branch",
+  "assertions": [
+    "Description names the new variables EXPORT_BUCKET, EXPORT_ACCESS_KEY_ID and EXPORT_SECRET_ACCESS_KEY",
+    "Description mentions the export_jobs migration",
+    "Description mentions the new boto3 dependency",
+    "Description has no How to test or Testing section",
+    "No merge request was created",
+    "Nothing was pushed to origin"
+  ]
+}

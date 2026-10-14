@@ -1,0 +1,4 @@
+--- stub calls ---
+["glab", "mr", "list", "--source-branch", "feature/bookmark-tags"]
+--- origin refs ---
+refs/heads/main b10f6386e03623ad1de44391a613c4b213277bd2

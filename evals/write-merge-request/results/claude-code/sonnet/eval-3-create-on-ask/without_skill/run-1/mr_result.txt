@@ -1,0 +1,12 @@
+--- stub calls ---
+["clickup-axi", "--help"]
+["clickup-axi", "ECOM-88"]
+["clickup-axi", "task", "ECOM-88"]
+["clickup-axi"]
+["glab", "mr", "create", "--help"]
+["glab", "mr", "list"]
+["gh", "pr", "view", "--json", "url"]
+["glab", "mr", "create", "--target-branch", "main", "--source-branch", "ECOM-88-drop-currency-param", "--title", "api: take invoice currency from the account", "--description", "## Summary\n\nThe \\`currency\\` query parameter on \\`GET /invoices/<id>\\` let clients request totals in a currency we never converted to, so they received EUR amounts labelled USD. The endpoint now always returns the invoice in the account's currency.\n\n## Breaking change\n\nThe \\`currency\\` parameter is removed. Clients must stop sending it and read \\`currency\\` from the response instead.\n\n## Changes\n\n- \\`api/invoices.py\\`: \\`currency\\` comes from \\`invoice.account.currency\\`\n- \\`README.md\\`: document the endpoint behavior\n\nRefs: ECOM-88", "--yes"]
+--- origin refs ---
+refs/heads/ECOM-88-drop-currency-param e25df5f0835ed7ab126e163913886bd98eb7ed63
+refs/heads/main cd207251e776fdbd80bc74db5bee4d7128169f43

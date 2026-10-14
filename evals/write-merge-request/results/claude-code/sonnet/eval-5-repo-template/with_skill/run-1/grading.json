@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Description uses the template headings What, Why and Checklist in order",
+      "passed": true,
+      "evidence": "headings found in order: ['What', 'Why', 'Checklist']"
+    },
+    {
+      "text": "Description does not tick Tests added or updated",
+      "passed": true,
+      "evidence": "not ticked"
+    },
+    {
+      "text": "Description explains the one-cent drift",
+      "passed": true,
+      "evidence": "keyword cent/drift/pdf in draft"
+    },
+    {
+      "text": "Description has no Review section",
+      "passed": true,
+      "evidence": "no Review heading"
+    },
+    {
+      "text": "No merge request was created",
+      "passed": true,
+      "evidence": "create calls: 0"
+    },
+    {
+      "text": "Nothing was pushed to origin",
+      "passed": true,
+      "evidence": "origin refs: unchanged"
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

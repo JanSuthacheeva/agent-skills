@@ -1,0 +1,35 @@
+{
+  "skill_version": "0.6",
+  "date": "2026-10-14",
+  "models": {
+    "opus": {
+      "model": "claude-opus-5-5",
+      "run_dir": "evals/write-merge-request/workspace/iteration-6",
+      "skill_invocations": {
+        "with_skill": {
+          "target": 18,
+          "other": 0
+        },
+        "without_skill": {
+          "target": 0,
+          "other": 0
+        }
+      }
+    },
+    "sonnet": {
+      "model": "claude-sonnet-5-5",
+      "run_dir": "evals/write-merge-request/workspace/iteration-6-sonnet",
+      "skill_invocations": {
+        "with_skill": {
+          "target": 18,
+          "other": 0
+        },
+        "without_skill": {
+          "target": 0,
+          "other": 0
+        }
+      }
+    }
+  },
+  "harness": "Claude Code 2.1.296"
+}

@@ -1,0 +1,6 @@
+--- stub calls ---
+["clickup-axi", "--help"]
+["clickup-axi", "SHOP-217"]
+["clickup-axi", "tasks", "SHOP-217"]
+--- origin refs ---
+refs/heads/main 340cb52b076331e314717339a62e4627820d4739

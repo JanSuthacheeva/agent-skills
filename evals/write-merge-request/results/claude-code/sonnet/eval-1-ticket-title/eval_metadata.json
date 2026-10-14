@@ -1,0 +1,15 @@
+{
+  "eval_id": 1,
+  "eval_name": "ticket-title",
+  "prompt": "write the MR description for this branch",
+  "assertions": [
+    "Response contains the title `SHOP-217 Invoices: Export as CSV`",
+    "Description explains why rows are streamed (memory)",
+    "Description explains why semicolons are used (Excel)",
+    "Description has no How to test or Testing section",
+    "Description does not list the changed files",
+    "Response contains `Refs: SHOP-217`",
+    "No merge request was created",
+    "Nothing was pushed to origin"
+  ]
+}

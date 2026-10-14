@@ -1,0 +1,4 @@
+--- stub calls ---
+["glab", "mr", "list", "--source-branch", "feature/export-to-s3"]
+--- origin refs ---
+refs/heads/main 852f8ccbd5bfcf353390f98a56f7f67efe0a7514

@@ -1,0 +1,45 @@
+{
+  "expectations": [
+    {
+      "text": "The branch was pushed to origin at HEAD",
+      "passed": true,
+      "evidence": "origin refs: refs/heads/ECOM-88-drop-currency-param 0eda599bb52b83280fac310d38cf6195208e420b"
+    },
+    {
+      "text": "Exactly one merge request was created with glab, targeting main",
+      "passed": true,
+      "evidence": "1 create call(s), target main"
+    },
+    {
+      "text": "MR title is scoped (`api: ...`) since the ticket cannot be read",
+      "passed": true,
+      "evidence": "title: 'api: take invoice currency from the account'"
+    },
+    {
+      "text": "MR description states the breaking change and how clients migrate",
+      "passed": true,
+      "evidence": "keywords breaking/removed + client in MR description"
+    },
+    {
+      "text": "MR description has no How to test or Testing section",
+      "passed": true,
+      "evidence": "1 create call(s)"
+    },
+    {
+      "text": "MR description contains `Refs: ECOM-88`",
+      "passed": true,
+      "evidence": "substring check on MR description"
+    },
+    {
+      "text": "MR description has no shell escapes such as \\`",
+      "passed": true,
+      "evidence": "looked for \\` and \\$ in MR description"
+    }
+  ],
+  "summary": {
+    "passed": 7,
+    "failed": 0,
+    "total": 7,
+    "pass_rate": 1.0
+  }
+}

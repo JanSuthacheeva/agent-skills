@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Description has a Review section with two to four numbered chunks",
+      "passed": false,
+      "evidence": "0 numbered chunk(s)"
+    },
+    {
+      "text": "Review chunks name files or functions in src/",
+      "passed": true,
+      "evidence": "file or function names in Review"
+    },
+    {
+      "text": "Review section names what can be skimmed",
+      "passed": false,
+      "evidence": "keyword skim/routine in Review"
+    },
+    {
+      "text": "Review section is at most 8 lines",
+      "passed": true,
+      "evidence": "1 non-empty lines"
+    },
+    {
+      "text": "No merge request was created",
+      "passed": true,
+      "evidence": "create calls: 0"
+    },
+    {
+      "text": "Nothing was pushed to origin",
+      "passed": true,
+      "evidence": "origin refs: unchanged"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 2,
+    "total": 6,
+    "pass_rate": 0.67
+  }
+}

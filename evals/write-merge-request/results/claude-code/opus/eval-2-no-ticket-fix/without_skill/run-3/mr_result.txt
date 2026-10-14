@@ -1,0 +1,5 @@
+--- stub calls ---
+["glab", "mr", "create", "--source-branch", "fix/line-rounding", "--target-branch", "main", "--title", "billing: round totals per line instead of per invoice", "--description", "## Why\n\nInvoice totals were rounded once over the whole invoice, while the PDF rounds each line. The two could drift by up to one cent, and the accounting export rejected invoices where they disagreed.\n\n## What\n\n- `invoice_total` now rounds each line (`qty * price`) to the cent with `ROUND_HALF_UP`, then sums the rounded lines, matching the PDF.\n- Extracted the `CENT` constant.\n\n## Example\n\nTwo lines of `1 x 0.005`:\n- Before: `0.010` -> `0.01`\n- After: `0.01 + 0.01` -> `0.02` (matches the PDF)\n\n## Notes\n\n- Affects the `amount` returned by the invoice endpoint (`api/invoices.py`).\n- No tests in the repo cover `billing/totals.py` yet."]
+--- origin refs ---
+refs/heads/fix/line-rounding 30eb192b759e97c43534a080091a9484291a7fb8
+refs/heads/main bf1ee00ade60eea7b7bec159edc9c5fe63a20e24

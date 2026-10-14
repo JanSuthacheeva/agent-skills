@@ -1,0 +1,13 @@
+{
+  "eval_id": 5,
+  "eval_name": "repo-template",
+  "prompt": "write the MR description for this branch",
+  "assertions": [
+    "Description uses the template headings What, Why and Checklist in order",
+    "Description does not tick Tests added or updated",
+    "Description explains the one-cent drift",
+    "Description has no Review section",
+    "No merge request was created",
+    "Nothing was pushed to origin"
+  ]
+}

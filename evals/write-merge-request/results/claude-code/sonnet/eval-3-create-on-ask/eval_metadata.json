@@ -1,0 +1,14 @@
+{
+  "eval_id": 3,
+  "eval_name": "create-on-ask",
+  "prompt": "push this and open the MR against main",
+  "assertions": [
+    "The branch was pushed to origin at HEAD",
+    "Exactly one merge request was created with glab, targeting main",
+    "MR title is scoped (`api: ...`) since the ticket cannot be read",
+    "MR description states the breaking change and how clients migrate",
+    "MR description has no How to test or Testing section",
+    "MR description contains `Refs: ECOM-88`",
+    "MR description has no shell escapes such as \\`"
+  ]
+}

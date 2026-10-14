@@ -1,0 +1,50 @@
+{
+  "expectations": [
+    {
+      "text": "Response contains a scoped title starting with `billing: `",
+      "passed": true,
+      "evidence": "```\nbilling: r"
+    },
+    {
+      "text": "Description explains the one-cent drift",
+      "passed": true,
+      "evidence": "keyword cent/drift/pdf in draft"
+    },
+    {
+      "text": "Description has no How to test or Testing section",
+      "passed": true,
+      "evidence": "no test heading"
+    },
+    {
+      "text": "Description is at most 600 characters",
+      "passed": true,
+      "evidence": "464 chars"
+    },
+    {
+      "text": "Response has no Refs line",
+      "passed": true,
+      "evidence": "line check on response.md"
+    },
+    {
+      "text": "Description has no Review section",
+      "passed": true,
+      "evidence": "no Review heading"
+    },
+    {
+      "text": "No merge request was created",
+      "passed": true,
+      "evidence": "create calls: 0"
+    },
+    {
+      "text": "Nothing was pushed to origin",
+      "passed": true,
+      "evidence": "origin refs: unchanged"
+    }
+  ],
+  "summary": {
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "pass_rate": 1.0
+  }
+}

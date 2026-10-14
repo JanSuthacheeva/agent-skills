@@ -1,0 +1,4 @@
+--- stub calls ---
+["glab", "mr", "list", "--source-branch", "fix/line-rounding"]
+--- origin refs ---
+refs/heads/main f8672430e2149f4d0733e07ffa8ca376a27d5f6b

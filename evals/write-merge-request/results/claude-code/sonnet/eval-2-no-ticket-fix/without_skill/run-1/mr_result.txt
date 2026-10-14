@@ -1,0 +1,8 @@
+--- stub calls ---
+["glab", "--help"]
+["glab", "mr", "create", "--help"]
+["gh", "pr", "view", "--json", "url"]
+["glab", "mr", "create", "--target-branch", "main", "--title", "billing: round totals per line instead of per invoice", "--description", "Why: invoice totals were rounded once on the sum, which drifted from the PDF totals (rounded per line) by up to one cent. The accounting export rejects those invoices.\n\nWhat: invoice_total now quantizes each line (qty * price) to the cent with ROUND_HALF_UP before summing, so the total equals the sum of the displayed line amounts.\n\nNotes: totals can differ by a cent from the previous behavior on invoices with fractional-cent line amounts, which is the intended fix. No tests added in this change."]
+--- origin refs ---
+refs/heads/fix/line-rounding a0014500bca18cac0e7b882349c047a67dd885a3
+refs/heads/main 6460a9a1996ae510dc51bc0e2b3bc093d1a56746

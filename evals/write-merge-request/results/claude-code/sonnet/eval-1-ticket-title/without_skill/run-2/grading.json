@@ -1,0 +1,50 @@
+{
+  "expectations": [
+    {
+      "text": "Response contains the title `SHOP-217 Invoices: Export as CSV`",
+      "passed": false,
+      "evidence": "substring check on response.md"
+    },
+    {
+      "text": "Description explains why rows are streamed (memory)",
+      "passed": true,
+      "evidence": "keyword memory/stream in draft"
+    },
+    {
+      "text": "Description explains why semicolons are used (Excel)",
+      "passed": true,
+      "evidence": "keyword excel in draft"
+    },
+    {
+      "text": "Description has no How to test or Testing section",
+      "passed": false,
+      "evidence": "heading found: ## Testing"
+    },
+    {
+      "text": "Description does not list the changed files",
+      "passed": false,
+      "evidence": "files named: ['billing/export.py', 'api/export.py', 'billing/test_export.py']"
+    },
+    {
+      "text": "Response contains `Refs: SHOP-217`",
+      "passed": true,
+      "evidence": "substring check on response.md"
+    },
+    {
+      "text": "No merge request was created",
+      "passed": true,
+      "evidence": "create calls: 0"
+    },
+    {
+      "text": "Nothing was pushed to origin",
+      "passed": true,
+      "evidence": "origin refs: unchanged"
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 3,
+    "total": 8,
+    "pass_rate": 0.62
+  }
+}

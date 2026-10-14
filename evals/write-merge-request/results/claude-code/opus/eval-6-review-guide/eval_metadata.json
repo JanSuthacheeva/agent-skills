@@ -1,0 +1,13 @@
+{
+  "eval_id": 6,
+  "eval_name": "review-guide",
+  "prompt": "write the MR description for this branch",
+  "assertions": [
+    "Description has a Review section with two to four numbered chunks",
+    "Review chunks name files or functions in src/",
+    "Review section names what can be skimmed",
+    "Review section is at most 8 lines",
+    "No merge request was created",
+    "Nothing was pushed to origin"
+  ]
+}
