@@ -11,7 +11,7 @@ description: >-
   for commenting on someone else's merge request or for lint-only passes.
 metadata:
     author: Jan Suthacheeva
-    version: "0.2"
+    version: "0.3"
 ---
 
 An agent reviewing code it just wrote tends to confirm its own choices, so
@@ -98,5 +98,10 @@ Keep it short and plain - the user reads this instead of every line:
   as a reading order the user can follow in one sitting, for example
   "`src/store.ts` `load()` to `save()`: what happens to a corrupt file".
   Say what is routine and can be skimmed.
+
+If the branch has a plan, also write the summary into it as a
+`## Review` section at the end, replacing an earlier one, and commit it.
+The plan then records that the branch was reviewed, and whoever writes
+the merge request can start its reading guide from it.
 
 Do not push or open a merge request unless asked.

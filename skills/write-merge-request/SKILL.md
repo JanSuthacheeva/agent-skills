@@ -13,7 +13,7 @@ compatibility: >-
   the ticket title with clickup-axi when it is installed.
 metadata:
     author: Jan Suthacheeva
-    version: "0.6"
+    version: "0.7"
 allowed-tools: >-
   Bash(git status:*) Bash(git branch:*) Bash(git log:*) Bash(git diff:*)
   Bash(git remote:*) Bash(git symbolic-ref:*) Bash(git rev-parse:*)
@@ -117,7 +117,8 @@ Refs: <ID>
   commits or by a flow from its entry point (`bm tag` from `src/cli.ts`
   `run()` to `BookmarkStore::tag`), with what to check there. End with
   what is routine and can be skimmed. If a review of the branch left a
-  "where to look" list, start from it. Leave the section out when the
+  "where to look" list - in the conversation or as a `## Review` section
+  in the plan - start from it. Leave the section out when the
   diff is small enough to read in one go.
 - Deploy lists what someone has to do outside the code for the MR to
   work: new or changed environment variables, migrations and backfills,
