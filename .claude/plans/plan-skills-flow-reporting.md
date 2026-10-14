@@ -160,7 +160,10 @@ def flow_reports(fx: Path) -> list[list[str]] | None
 
 def review_counts(plan: str) -> tuple[int, int]
     # outermost list items under Fixed and Open in the plan's ## Review, not
-    # "none" or a whole-line "nothing" item (`- No open items.`); a label is a heading, a bold label or an unindented line, and a
+    # an item saying there is nothing (`- None.`, `- No open items.`,
+    # `- None from this branch. ...`), while one naming a thing (`- No test for X`,
+    # `- Nothing validates X`, `- None of the paths are tested`) stays a finding;
+    # a label is a heading, a bold label or an unindented line, and a
     # list item only when it holds nothing else, so `- Fixed duplicate tags: ...`
     # and an indented continuation line starting with "open" stay findings
 
