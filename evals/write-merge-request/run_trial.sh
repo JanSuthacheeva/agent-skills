@@ -5,8 +5,6 @@
 #   plugin settings; with_skill copies the skill into the fixture's project
 #   skills, so its presence is the only difference. without_skill gets the
 #   title rule as a system prompt line, so it is judged on the rest.
-#   FLOW=stub (default) gives the trial a flow id and the fixture's logging
-#   flow stub; FLOW=absent leaves it no flow command and no flow id.
 set -euo pipefail
 name=$1; prompt=$2; cfg=$3; run=$4; fixtures=$5
 here=$(cd "$(dirname "$0")" && pwd)
@@ -20,7 +18,6 @@ if [ "$cfg" = with_skill ]; then
   cp -R "$here/../../skills/write-merge-request" "$fx/repo/.claude/skills/"
   echo ".claude/" >> "$fx/repo/.git/info/exclude"
 fi
-. "$here/../shared/flow_mode.sh"
 args=(-p "$prompt" --output-format json --model "${MODEL:-claude-opus-5-5}" --effort "${EFFORT:-medium}"
       --setting-sources project,local --strict-mcp-config --mcp-config '{"mcpServers": {}}'
       --disallowedTools AskUserQuestion

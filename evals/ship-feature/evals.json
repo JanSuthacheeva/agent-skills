@@ -19,12 +19,6 @@
         "Nothing was pushed and no MR was created",
         "Response drafts the MR or asks to push"
       ],
-      "flow_expectations": [
-        "Reported the phases implement and review, then merge-request only after a review with nothing open",
-        "Reported tasks 5 5",
-        "Reported the review counts of the plan's ## Review",
-        "Reported the final stop: blocked with open review items, else waiting with a question"
-      ],
       "tests": "A flow interrupted after the first task; continuing the build and going on to an isolated review instead of stopping after the build."
     },
     {
@@ -43,11 +37,6 @@
         "npm test passes",
         "Nothing was pushed and no MR was created",
         "Response drafts the MR or puts open review items to the user"
-      ],
-      "flow_expectations": [
-        "Reported the phase review, then merge-request only after a review with nothing open",
-        "Reported the review counts of the plan's ## Review",
-        "Reported the final stop: blocked with open review items, else waiting with a question"
       ],
       "tests": "A flow interrupted after the build; reviewing without rebuilding, and stopping before the push."
     }
