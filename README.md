@@ -12,15 +12,16 @@ Trying to keep the evals up to date and run them for different harnesses and mod
 | [implement-plan](skills/implement-plan/SKILL.md) | Builds an approved plan task by task: tests first, one commit per task, the plan's names and signatures. Makes cheap deviations and writes them back into the plan, stops on expensive ones (stored data, public surface, user-visible behavior), ends with an end-to-end check and how the result works. | [Claude Code, Opus 5.5 and Sonnet 5.5, medium effort](evals/implement-plan/results/claude-code/README.md): Opus 9/9 trials pass with and without the skill; Sonnet 9/9 with, 1/9 without (changed a public file format, merged tasks, left the plan stale) |
 | [review-changes](skills/review-changes/SKILL.md) | Reviews a branch in a context that has not seen the implementation, proves findings, fixes the cheap ones and re-reviews them, and reports what was fixed, what is open and where to look. | [Claude Code, Opus 5.5 and Sonnet 5.5, medium effort](evals/review-changes/results/claude-code/README.md): every condition repairs every planted defect; blind-judged owner report 36.0 of 40 vs 30.0 for a plain review and 22.0 for `/code-review` (Opus), 35.7 vs 29.3 and 23.1 (Sonnet), ranked first in 18 of 18 |
 | [write-merge-request](skills/write-merge-request/SKILL.md) | Writes MR/PR title and description around the why: decisions a reviewer would question, deploy steps such as new env variables, a short reading order for larger diffs; follows the repo's template. Pushes and creates the MR only when asked. | [Claude Code, Opus 5.5 and Sonnet 5.5, medium effort](evals/write-merge-request/results/claude-code/README.md): 18/18 trials pass with the skill, 6/18 without (Opus); 17/18 vs 5/18 (Sonnet) |
-| [ship-feature](skills/ship-feature/SKILL.md) | Runs the four skills above as one flow from request or ticket to merge request: builds in your conversation after a `/compact` so you can follow it, reviews in a fresh agent given only the plan and the branch, stops only for your decisions (approach, plan, blocked build, open review items, push), and resumes from what the repository shows. | [Claude Code, Opus 5.5 and Sonnet 5.5, medium effort](evals/ship-feature/results/claude-code/README.md): with the skill, every trial builds in the conversation where tasks are open, reviews in a fresh agent and reports its stop to `flow`; 4/4 trials pass all checks (Opus), 2/4 (Sonnet, each missed one report), 0/4 without; [without `flow`](evals/ship-feature/results/claude-code-without-flow/README.md) 4/4 vs 2/4 (Opus), 4/4 vs 0/4 (Sonnet) |
+| [ship-feature](skills/ship-feature/SKILL.md) | Runs the four skills above as one flow from request or ticket to merge request: builds in your conversation after a `/compact` so you can follow it, reviews in a fresh agent given only the plan and the branch, stops only for your decisions (approach, plan, blocked build, open review items, push), and resumes from what the repository shows. | [Claude Code, Opus 5.5 and Sonnet 5.5, medium effort](evals/ship-feature/results/claude-code/README.md): with the skill, every trial builds in the conversation where tasks are open, reviews in a fresh agent and reports its stop to `flow`; 4/4 trials pass all checks (Opus), 2/4 (Sonnet, each missed one report), 0/4 without; [without `flow`](evals/ship-feature/results/claude-code-without-flow/README.md) 4/4 vs 2/4 (Opus), 4/4 vs 0/4 (Sonnet); measured while the skills still reported to flow, which now follows them through hooks |
 | [commit](skills/commit/SKILL.md) | Writes + creates git commits in Scoped Commits format (`scope: description`): reuses scopes from log, adds a `Refs:` trailer from branch's ticket id (if available), keeps git's default revert and merge messages. Never pushes. | [Claude Code, Opus 5.5 and Sonnet 5.5, medium effort](evals/commit/results/claude-code/README.md): 55/55 trials pass with the skill, 45/55 without (Opus); 54/55 vs 27/55 (Sonnet) |
+| [setup-flow](skills/setup-flow/SKILL.md) | Prepares a repo so [flow](https://github.com/JanSuthacheeva/flow) can run several workers side by side, each in its own worktree: makes compose ports configurable (today's ports kept as defaults), writes `.flow/setup` and `.flow/teardown` that give each worktree its own ports, `.env` and containers from `FLOW_SLOT` (Docker Compose, Laravel Sail, plain dev servers), and proves them in a scratch worktree. | [Claude Code, Opus 5.5, medium effort](evals/setup-flow/results/claude-code/README.md): 44/45 checks with the skill, 38/50 without; every skill trial proves the scripts in a scratch worktree, no baseline trial does |
 
 Together they form a flow from idea to merge request:
 `design-code` -> `implement-plan` -> `review-changes` -> `write-merge-request`,
 with `commit` used throughout. `ship-feature` runs the flow for you; each
-skill also works on its own. With [flow](https://github.com/JanSuthacheeva/flow)
-installed, the skills report their progress to it; without it they work
-the same.
+skill also works on its own. [flow](https://github.com/JanSuthacheeva/flow)
+follows them through Claude Code's own hooks, so the skills know nothing
+about it; `setup-flow` gets a repo ready for flow's parallel workers.
 
 ## Install
 
@@ -32,6 +33,7 @@ npx skills add JanSuthacheeva/agent-skills --skill commit
 npx skills add JanSuthacheeva/agent-skills --skill design-code
 npx skills add JanSuthacheeva/agent-skills --skill implement-plan
 npx skills add JanSuthacheeva/agent-skills --skill review-changes
+npx skills add JanSuthacheeva/agent-skills --skill setup-flow
 npx skills add JanSuthacheeva/agent-skills --skill ship-feature
 npx skills add JanSuthacheeva/agent-skills --skill write-merge-request
 ```
