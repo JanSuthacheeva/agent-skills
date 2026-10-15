@@ -1,5 +1,10 @@
 # Handover: making the skills report into `flow`, and auto mode
 
+> **Superseded 2026-10-14:** the skills no longer report to flow. flow observes a worker
+> through Claude Code's own hooks instead (`~/projects/flow`, `src/adapter/`, plan
+> `.claude/plans/plan-flow-adapters.md`); the skills know nothing about flow. Auto mode below still
+> stands as a plan.
+
 Written 2026-10-14. Piece 6 of 6 of the flows system; pieces 1-5 are built. Everything a
 session in this repo needs is here; the full system record is
 `~/projects/flow/docs/HANDOVER.md`.

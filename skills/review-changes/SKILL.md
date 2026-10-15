@@ -11,18 +11,12 @@ description: >-
   for commenting on someone else's merge request or for lint-only passes.
 metadata:
     author: Jan Suthacheeva
-    version: "0.5"
+    version: "0.6"
 ---
 
 An agent reviewing code it just wrote tends to confirm its own choices, so
 the review always runs in a context that has not seen the implementation:
 it judges the code by what is in the repository, not by what was meant.
-
-If a `flow` command is available, report this skill's progress to it with
-`flow report`: `phase review` now, `waiting "<the question>"` before every
-question you put to the user and `working` once it is answered, and the
-reports the steps below name. Otherwise, or when a report fails, go on -
-the skill works the same without them.
 
 ## 1. Isolate
 
@@ -115,7 +109,5 @@ If the branch has a plan, also write the summary into it as a
 `## Review` section at the end, replacing an earlier one, and commit it.
 The plan then records that the branch was reviewed, and whoever writes
 the merge request can start its reading guide from it.
-
-Report `review --fixed <n> --open <n>`, counting the Fixed and Open lines.
 
 Do not push or open a merge request unless asked.

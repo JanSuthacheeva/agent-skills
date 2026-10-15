@@ -13,7 +13,7 @@ description: >-
   review or MR - which the step's own skill handles.
 metadata:
     author: Jan Suthacheeva
-    version: "0.4"
+    version: "0.5"
 ---
 
 Run the four delivery skills as one flow, so the user only makes the
@@ -21,13 +21,6 @@ decisions that are theirs: the approach, the plan, what the build or the
 review could not settle, and the push. Every step is the step's own skill,
 unchanged - this skill only decides which comes next, what each gets and
 where to stop.
-
-If a `flow` command is available, report the flow's progress to it with
-`flow report`: `phase design`, `phase implement`, `phase review` or
-`phase merge-request` as each step starts, `waiting "<the question>"`
-before every question you put to the user and `working` once it is
-answered, and the stops below. Otherwise, or when a report fails, go on -
-the flow works the same without them.
 
 ## 1. Find where it stands
 
@@ -106,10 +99,8 @@ The flow waits for the user at exactly these points: approach, plan
 approval and the compaction after it, a blocked build or red base, open
 review items, and the push. Everywhere else it goes on without asking.
 
-At a stop, report it - a blocked build, a red base or open review items as
-`blocked "<one line>"`, the other stops as `waiting "<the question>"` - then
-say in a few lines what was found, the options and your recommendation, and
-ask the user directly.
+At a stop, say in a few lines what was found, the options and your
+recommendation, and ask the user directly.
 
 When the merge request is open, end with its URL, the commits per step,
 and the review's "Where to look".
