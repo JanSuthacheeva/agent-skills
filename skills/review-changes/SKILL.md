@@ -11,7 +11,7 @@ description: >-
   for commenting on someone else's merge request or for lint-only passes.
 metadata:
     author: Jan Suthacheeva
-    version: "0.6"
+    version: "0.7"
 ---
 
 An agent reviewing code it just wrote tends to confirm its own choices, so
@@ -38,7 +38,10 @@ it judges the code by what is in the repository, not by what was meant.
 - The project's rules (such as `AGENTS.md`, contributing docs, lint
   configs) and the code the diff calls or is called from.
 - Run the tests, lint and type checks once, so you know what was green
-  before you touched anything.
+  before you touched anything. Skip this if you were told they passed at
+  a commit and nothing but the plan changed since
+  (`git diff --stat <commit>`): a passing run holds until the code
+  changes.
 
 ## 3. Review
 
@@ -104,6 +107,8 @@ Keep it short and plain - the user reads this instead of every line:
   as a reading order the user can follow in one sitting, for example
   "`src/store.ts` `load()` to `save()`: what happens to a corrupt file".
   Say what is routine and can be skimmed.
+- **Checks** - the commit at which the tests, lint and type checks last
+  passed, or what is red.
 
 If the branch has a plan, also write the summary into it as a
 `## Review` section at the end, replacing an earlier one, and commit it.

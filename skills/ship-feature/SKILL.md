@@ -13,7 +13,7 @@ description: >-
   review or MR - which the step's own skill handles.
 metadata:
     author: Jan Suthacheeva
-    version: "0.5"
+    version: "0.6"
 ---
 
 Run the four delivery skills as one flow, so the user only makes the
@@ -70,10 +70,17 @@ If the build stops:
 - **Red base** - tests that failed before the build began: ask the user
   whether to build on it.
 
+When the build goes back to work after a review, tell implement-plan the
+commit at which the review's checks last passed, so it does not run the
+suite again on code nothing has changed.
+
 ## 4. Review - in a fresh agent
 
 Start another fresh agent with only the review-changes skill, the branch,
-its target and the plan's path. It must not see this conversation, a
+its target, the plan's path and the commit at which the build's final
+tests, lint and type checks passed. That commit is a fact you saw, not an
+opinion of the code, and it saves the review from running the suite again
+on unchanged code. It must not see this conversation, a
 report of the build or your opinion of the code - an isolated review is
 the point of this step. Tell it that it is that isolated review, so it
 reviews instead of trying to isolate itself again. Without fresh agents,

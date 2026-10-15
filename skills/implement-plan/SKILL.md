@@ -11,7 +11,7 @@ description: >-
   for small changes that have no plan.
 metadata:
     author: Jan Suthacheeva
-    version: "0.3"
+    version: "0.4"
 ---
 
 Build what the plan says, in the order its tasks say, so the user gets the
@@ -31,6 +31,10 @@ build is.
   tests, lint and type checks are run.
 - Run the tests once before changing anything. Failures that exist before
   you start are not yours, but they hide yours, so report them up front.
+  Skip this if you were told the tests, lint and type checks passed at a
+  commit and nothing but the plan changed since
+  (`git diff --stat <commit>`): a passing run holds until the code
+  changes.
 - Tick each task's checkbox in the plan when it is done, so the file
   shows how far the build is. If your environment offers a tool for
   reporting plan progress, use it instead - doing, done, blocked - and
@@ -80,7 +84,8 @@ tasks as checkboxes in its place before building them.
 - Run the end-to-end check the plan ends with, the way a user would use
   the feature - the real command, request or page - and show what you
   observed. Passing unit tests are not that check.
-- Run the full test suite, lint and type checks once more.
+- Run the full test suite, lint and type checks once more, unless the
+  last task already ran all of them at this commit.
 - Summarize in a few lines:
   - the tasks done, with their commits
   - every deviation from the plan, and why
