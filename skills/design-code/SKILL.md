@@ -3,7 +3,7 @@ name: design-code
 description: >-
   Plans the code design of a feature or change before any code is written:
   investigates the codebase, compares implementation approaches in an
-  Artifact for the user to pick from, then lays out every class, method
+  HTML review page for the user to pick from, then lays out every class, method
   signature, data structure and call chain with diagrams - no function
   bodies - and saves a Markdown plan ending in a task checklist. Use whenever
   the user asks to plan an implementation, design the code for a feature,
@@ -12,8 +12,9 @@ description: >-
   even if they just say "plan this" or "how would we build X". Not for
   product specs or trivial one-file changes.
 compatibility: >-
-  Requires Claude Code's Artifact tool (claude.ai Artifacts) for the review
-  pages, so the user can review them from any device.
+  Publishes the review pages as claude.ai Artifacts where the Artifact tool
+  exists (Claude Code), otherwise opens them with the lavish skill
+  (npx lavish-axi).
   Tested in Claude Code with Claude Opus 5.5 at medium effort, see
   https://github.com/JanSuthacheeva/agent-skills/tree/main/evals/design-code/results/claude-code
 metadata:
@@ -57,7 +58,7 @@ is clean in isolation, so earn the right to propose one first.
   to change.
 - For wide sweeps, dispatch Explore subagents in parallel and read the key
   files yourself. Keep `file:line` references for every claim you will
-  make; the artifacts cite them.
+  make; the pages cite them.
 
 If a requirement is ambiguous in a way that changes the design (not a
 detail you can decide and flag), ask before phase 2. Keep it to the
@@ -87,7 +88,7 @@ abstraction vs extending an existing one, which layer is responsible. If
 only one approach is sensible, say so and show the alternatives you
 rejected and why, rather than inventing strawmen.
 
-Build an Artifact, `<slug>-approaches.html` (see Artifacts below). It only has to
+Build a review page, `<slug>-approaches.html` (see Review pages below). It only has to
 support one decision, so keep it lean - roughly a screen per approach,
 not a mini design doc. For each approach show:
 
@@ -103,9 +104,8 @@ not a mini design doc. For each approach show:
 Put a short "What exists today" section first so the user can check your
 understanding of the codebase. End with your recommendation and why.
 
-Publish it, give the user the link, and ask them to choose - in the chat
-or as a comment on the page. Answer follow-up comments and questions
-until the user has chosen. The chosen approach may be a mix - take what
+Show it to the user and ask them to choose. Answer their follow-up
+comments and questions until they have chosen. The chosen approach may be a mix - take what
 they say literally.
 
 ## 3. Implementation page - the user reviews
@@ -116,7 +116,7 @@ bodies (`;`, `{ ... }`, `todo!()` or the language's equivalent). Every name
 is a proposal the user will judge, so choose names that say what the thing
 does in the codebase's vocabulary.
 
-Build the implementation page as a new Artifact,
+Build the implementation page as a new review page,
 `<slug>-implementation.html`. It holds the design and its code-level
 detail on one page, with these sections:
 
@@ -169,9 +169,9 @@ appears in the overview, every DTO used in a signature is defined in Data
 or already exists. Mismatches here are what makes a design review go in
 circles.
 
-Publish it, give the user the link, and iterate on their replies and
-comments. Apply all changes from one round of feedback in a single
-message, as parallel edits followed by one republish to the same URL:
+Show it and iterate on the user's replies and comments. Apply all
+changes from one round of feedback in a single message, as parallel
+edits followed by one republish:
 every separate tool call re-reads the whole conversation, so many
 sequential small edits cost more than the page itself. Rewrite the page only when
 the changes touch most of it. Rename consistently everywhere, remove
@@ -214,11 +214,20 @@ nowhere else in the plan.
 Tell the user where the plan file is and link the implementation page. Do
 not start implementing unless asked.
 
-## Artifacts
+## Review pages
 
-Write the pages in the scratchpad directory unless told otherwise, and
-publish each with the Artifact tool. Load the `artifact-design` skill
-(and `artifact-diagramming` for the diagrams) before writing the first
-page. Update a page by republishing the same file, so its link stays
-the same. Keep pages readable at phone width - the user often reviews
-from a phone.
+Show each page the way your harness allows:
+
+- **Artifact tool available (Claude Code):** write the page in the
+  scratchpad directory, load the `artifact-design` skill (and
+  `artifact-diagramming` for the diagrams) before the first page, and
+  publish it with the Artifact tool. Give the user the link; they answer
+  in the chat or as comments on the page. Republish the same file to
+  update it, so its link stays the same.
+- **Otherwise:** follow the lavish skill. Save the page under `.lavish/`,
+  open it with `npx -y lavish-axi <file>`, poll for the user's
+  annotations, and end the session with `npx -y lavish-axi end <file>`
+  once the plan is persisted.
+
+Either way, keep pages readable at phone width, and follow the user's
+own design system when their instructions name one.
