@@ -63,9 +63,15 @@ first:
 6. **Conventions** - the project's rules and the patterns of the code
    around it.
 
+Then go over the diff once more for what the list does not name: inputs
+at their edges (empty, missing, duplicate, very large), the same command
+run twice or at once, and callers outside the diff that rely on what
+changed.
+
 Prove each finding before acting on it: a failing test, or a command run
-that shows the wrong result. Something you suspect but cannot show is a
-question for the summary, not a fix. Correct code you would have written
+that shows the wrong result. Try to prove every suspicion before you let
+it go. Something you suspect but cannot show is a question for the
+summary, not a fix. Correct code you would have written
 differently is not a finding.
 
 ## 4. Fix
