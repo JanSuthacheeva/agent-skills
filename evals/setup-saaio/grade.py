@@ -114,7 +114,9 @@ for branch in git("branch", "--format=%(refname:short)").splitlines():
         git("branch", "-D", branch)
 sh("docker", "volume", "prune", "-f", "--filter", "label=com.docker.compose.project=grade-check")
 
-said_dry_run = bool(re.search(r"dry run|scratch worktree|setup-saaio-check|slot (9|20)\b", response, re.I))
+said_dry_run = bool(re.search(
+    r"dry run|scratch worktree|setup-saaio-check|slot (9|20)\b|\btested\b|\bto test it\b|\*\*test:?\*\*"
+    r"|simulated workers?|temporary (copies|worktrees?)", response, re.I))
 compose_changed = git("diff", base, "--stat", "--", "docker-compose.yml").strip()
 
 
