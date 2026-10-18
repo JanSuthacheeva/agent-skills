@@ -98,7 +98,7 @@ and the default branch `flow/<name>`, which saaio still uses.
 ## Tasks
 
 - [x] Move `skills/setup-flow` to `skills/setup-saaio` and rewrite SKILL.md per the name map, step 6 without `.gitignore`, version 0.2
-- [ ] Move `evals/setup-flow` to `evals/setup-saaio` and rename `evals.json`, `run_trials.sh`, `grade.py`, `setup_fixture.sh`; drop the `.gitignore` assertion and its grader branch; check `grade.py` on a hand-written solution
+- [x] Move `evals/setup-flow` to `evals/setup-saaio` and rename `evals.json`, `run_trials.sh`, `grade.py`, `setup_fixture.sh`; drop the `.gitignore` assertion and its grader branch; check `grade.py` on a hand-written solution
 - [ ] Update `README.md`: setup-saaio row and install line, the saaio paragraph, the ship-feature row
 - [ ] Re-run the setup-saaio eval with Docker (`run_iteration.sh`, 2 trials) and replace `results/claude-code/` and the README numbers
 - [ ] End-to-end: grep the live files for old names, install the skill from the branch with `npx skills add` into a scratch dir and read its frontmatter

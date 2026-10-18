@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Grade one setup-flow eval run by using what it wrote, the way flow would.
+"""Grade one setup-saaio eval run by using what it wrote, the way saaio would.
 
 Usage: grade.py <run-dir> <eval-name>
-Checks the files, then plays flow: a fresh worktree on slot 7 with the run's
-uncommitted changes applied (as a commit would bring them), .flow/setup,
-a request to the service, .flow/teardown. Writes <run>/grading.json and
+Checks the files, then plays saaio: a fresh worktree on slot 7 with the run's
+uncommitted changes applied (as a commit would bring them), .saaio/setup,
+a request to the service, .saaio/teardown. Writes <run>/grading.json and
 cleans up every worktree, branch and container the run or the grader left.
 """
 import json, os, re, signal, subprocess, sys, time, urllib.request
@@ -48,7 +48,7 @@ def executable(path: Path):
     return path.is_file() and os.access(path, os.X_OK)
 
 
-setup, teardown = repo / ".flow/setup", repo / ".flow/teardown"
+setup, teardown = repo / ".saaio/setup", repo / ".saaio/teardown"
 compose = next((repo / f for f in ("compose.yaml", "compose.yml", "docker-compose.yml") if (repo / f).exists()), None)
 compose_text = compose.read_text() if compose else ""
 
@@ -61,10 +61,10 @@ leftover = containers(repo)
 clean_after_run = len(worktrees) == 1 and branches == ["main"] and not leftover
 left_evidence = f"worktrees={len(worktrees)} branches={branches} containers={len(leftover)}"
 
-# Play flow on slot 7.
-wt = repo / ".flow/worktrees/grade-check"
-env = dict(os.environ, FLOW_SLOT="7", FLOW_WORKTREE=str(wt), FLOW_REPO=str(repo),
-           FLOW_NAME="grade-check", FLOW_ID="grade-check")
+# Play saaio on slot 7.
+wt = repo / ".saaio/worktrees/grade-check"
+env = dict(os.environ, SAAIO_SLOT="7", SAAIO_WORKTREE=str(wt), SAAIO_REPO=str(repo),
+           SAAIO_FLOW_NAME="grade-check", SAAIO_FLOW_ID="grade-check")
 served = served_evidence = None
 setup_ok = teardown_ok = False
 teardown_evidence = "not run"
@@ -114,7 +114,7 @@ for branch in git("branch", "--format=%(refname:short)").splitlines():
         git("branch", "-D", branch)
 sh("docker", "volume", "prune", "-f", "--filter", "label=com.docker.compose.project=grade-check")
 
-said_dry_run = bool(re.search(r"dry run|scratch worktree|setup-flow-check|slot (9|20)\b", response, re.I))
+said_dry_run = bool(re.search(r"dry run|scratch worktree|setup-saaio-check|slot (9|20)\b", response, re.I))
 compose_changed = git("diff", base, "--stat", "--", "docker-compose.yml").strip()
 
 
@@ -124,20 +124,17 @@ def verdict(text):
         return ok, re.findall(r'"?\S*:\d+"?$', compose_text, re.M)
     if text.startswith("compose.yaml has no container_name"):
         return "container_name" not in compose_text, "container_name present" if "container_name" in compose_text else "none"
-    if text.startswith(".flow/setup exists and is executable"):
+    if text.startswith(".saaio/setup exists and is executable"):
         return executable(setup), f"setup={executable(setup)}"
-    if text.startswith("If .flow/teardown exists"):
+    if text.startswith("If .saaio/teardown exists"):
         return (not teardown.exists()) or teardown_ok, teardown_evidence if teardown.exists() else "no teardown"
     if text.startswith("Nothing was committed"):
         return not new_commits, new_commits or "no new commits"
-    if text.startswith(".flow/setup and .flow/teardown exist"):
+    if text.startswith(".saaio/setup and .saaio/teardown exist"):
         return executable(setup) and executable(teardown), f"setup={executable(setup)} teardown={executable(teardown)}"
-    if text.startswith(".gitignore ignores .flow/worktrees"):
-        gi = (repo / ".gitignore").read_text() if (repo / ".gitignore").exists() else ""
-        return bool(re.search(r"^/?\.flow/(worktrees/?|\*)?$", gi, re.M)), gi.replace("\n", " | ")
     if text.startswith("In a fresh worktree") or text.startswith("In a fresh worktree on slot 7, npm"):
         return bool(served), served_evidence or "; ".join(notes)[-300:]
-    if text.startswith(".flow/teardown removes") or text.startswith(".flow/teardown runs"):
+    if text.startswith(".saaio/teardown removes") or text.startswith(".saaio/teardown runs"):
         return teardown_ok, teardown_evidence
     if text.startswith("The dry run left no"):
         return clean_after_run, left_evidence
@@ -147,10 +144,10 @@ def verdict(text):
         return compose is None, str(compose)
     if text.startswith("docker-compose.yml is unchanged"):
         return not compose_changed, compose_changed or "unchanged"
-    if text.startswith(".flow/setup sets APP_PORT and FORWARD_REDIS_PORT"):
+    if text.startswith(".saaio/setup sets APP_PORT and FORWARD_REDIS_PORT"):
         body = setup.read_text() if setup.exists() else ""
-        ok = "APP_PORT" in body and "FORWARD_REDIS_PORT" in body and "FLOW_SLOT" in body
-        return ok, "both named with FLOW_SLOT" if ok else "missing"
+        ok = "APP_PORT" in body and "FORWARD_REDIS_PORT" in body and "SAAIO_SLOT" in body
+        return ok, "both named with SAAIO_SLOT" if ok else "missing"
     if text.startswith("The response says the compose change reaches flows"):
         return bool(re.search(r"commit", response, re.I)), response[-200:]
     return False, "no check for this expectation"

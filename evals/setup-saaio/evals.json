@@ -1,0 +1,59 @@
+{
+  "skill_name": "setup-saaio",
+  "evals": [
+    {
+      "id": 1,
+      "name": "compose-hardcoded-ports",
+      "prompt": "get this repo ready for saaio so I can run a few workers next to each other. I'm away for a bit, go ahead and change the compose file if you need to.",
+      "expected_output": "compose ports read variables with today's ports as defaults, container_name gone, executable .saaio/setup and .saaio/teardown deriving ports from SAAIO_SLOT with a repo-qualified COMPOSE_PROJECT_NAME, a dry run that leaves nothing behind.",
+      "files": [
+        "setup_fixture.sh"
+      ],
+      "expectations": [
+        "compose.yaml publishes both ports through variables with 8080 and 6379 as defaults",
+        "compose.yaml has no container_name",
+        ".saaio/setup and .saaio/teardown exist and are executable",
+        "In a fresh worktree on slot 7, .saaio/setup serves the site on a port other than 8080",
+        ".saaio/teardown removes the worktree's containers",
+        "The dry run left no worktree, branch or container behind",
+        "The response reports what the dry run showed",
+        "The response says the compose change reaches flows once committed"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "dev-server",
+      "prompt": "two saaio workers in this repo both start the dev server on 5173 and clash. set it up so every worktree gets its own port",
+      "expected_output": "No containers; .saaio/setup gives the worktree a slot port that npm run dev actually listens on; teardown exists and does no harm; a dry run that leaves nothing behind.",
+      "files": [
+        "setup_fixture.sh"
+      ],
+      "expectations": [
+        ".saaio/setup exists and is executable",
+        "No compose file was created",
+        "In a fresh worktree on slot 7, npm run dev listens on a port other than 5173",
+        "If .saaio/teardown exists, it runs without error",
+        "The dry run left no worktree, branch or container behind",
+        "The response reports what the dry run showed"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "sail-env",
+      "prompt": "set up saaio for this sail project, I want to run 3-4 workers at once",
+      "expected_output": "The compose file already reads APP_PORT and FORWARD_REDIS_PORT and stays unchanged; .saaio/setup sets those from SAAIO_SLOT in the worktree's .env and starts it with sail; a dry run that leaves nothing behind.",
+      "files": [
+        "setup_fixture.sh"
+      ],
+      "expectations": [
+        "docker-compose.yml is unchanged",
+        ".saaio/setup and .saaio/teardown exist and are executable",
+        ".saaio/setup sets APP_PORT and FORWARD_REDIS_PORT from SAAIO_SLOT",
+        "In a fresh worktree on slot 7, .saaio/setup serves the site on a port other than 80",
+        ".saaio/teardown removes the worktree's containers",
+        "The dry run left no worktree, branch or container behind",
+        "The response reports what the dry run showed"
+      ]
+    }
+  ]
+}
