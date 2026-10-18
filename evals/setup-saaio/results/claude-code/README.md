@@ -33,7 +33,9 @@ The difference is in what else changed. The skill trials touched only the hooks,
 file and, for the dev server, `package.json` (nothing read `.env` before). The baseline trials
 added `.saaio/worktrees/` to `.gitignore` in 5 of 6 (saaio already excludes it), edited the
 README in 4 and `.env.example` in 2, and one moved `main` onto a test commit during its test and
-had to put it back. The skill costs about 0.08 USD more per trial.
+had to put it back. Both skill replies in the compose scenario said why new workers get the
+change (it is committed, and worktrees start from the last commit); neither baseline reply did.
+The skill costs about 0.08 USD more per trial.
 
 Every trial in both conditions committed. The sessions read the author's global instructions
 ("commit as you go"), which the skill counts as asking.
@@ -46,6 +48,9 @@ Every trial in both conditions committed. The sessions read the author's global 
 - The dry-run check read only the skill's own words ("dry run", "scratch worktree"), so it failed
   baseline replies that reported a test as "tested" or "simulated workers". It now accepts those;
   this run was re-tallied for that one check. Under the old pattern the baseline scored 36 of 42.
+- The commit check passed any reply with the word "commit" in it. It now passes when the compose
+  change is committed, or when the reply says workers get it only once it is; this run was
+  re-tallied for it with no change in score.
 
 Reproduce: `./run_iteration.sh workspace/iteration-N workspace/fixtures 2` (Docker running; trials
 run one at a time, as their dry runs would share ports).

@@ -17,7 +17,7 @@
         ".saaio/teardown removes the worktree's containers",
         "The dry run left no worktree, branch or container behind",
         "The response reports what the dry run showed",
-        "The response says the compose change reaches flows once committed"
+        "The compose change is committed, or the response says it reaches flows only once committed"
       ]
     },
     {

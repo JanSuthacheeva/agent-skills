@@ -106,6 +106,7 @@ and the default branch `flow/<name>`, which saaio still uses.
 - [x] Update `README.md`: setup-saaio row and install line, the saaio paragraph, the ship-feature row
 - [x] Re-run the setup-saaio eval with Docker (`run_iteration.sh`, 2 trials) and replace `results/claude-code/` and the README numbers
 - [x] End-to-end: grep the live files for old names, install the skill from the branch with `npx skills add` into a scratch dir and read its frontmatter
+- [x] Tighten the commit check in `grade.py` and `evals.json` (committed, or the reply says workers get it once committed), drop the unused "Nothing was committed" branch, re-tally and re-export the results
 
 ## Review
 
@@ -157,3 +158,12 @@ eval scripts pass at fe671e3; the eval last ran at 9d55e03 (only the
 plan and one skill sentence changed since). A grep of live files for
 `FLOW_`, `.flow/`, `setup-flow` and `JanSuthacheeva/flow` finds only the
 kept records.
+
+**Decided after review**
+
+- The commit check is tightened now, not later: it grades only the reply
+  and the repo, which the run kept, so it can be re-tallied without a new
+  run.
+- The unused "Nothing was committed" branch goes.
+- `runs_per_configuration` stays: skill-creator's `aggregate_benchmark.py`
+  writes it.

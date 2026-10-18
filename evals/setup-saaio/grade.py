@@ -52,7 +52,8 @@ setup, teardown = repo / ".saaio/setup", repo / ".saaio/teardown"
 compose = next((repo / f for f in ("compose.yaml", "compose.yml", "docker-compose.yml") if (repo / f).exists()), None)
 compose_text = compose.read_text() if compose else ""
 
-new_commits = git("log", "--oneline", f"{base}..HEAD").strip()
+compose_committed = bool(compose) and bool(git("diff", "--stat", base, "HEAD", "--", compose.name).strip()) \
+    and not git("status", "--porcelain", "--", compose.name).strip()
 
 # What the run left behind, before the grader adds its own worktree.
 worktrees = [l for l in git("worktree", "list", "--porcelain").splitlines() if l.startswith("worktree ")]
@@ -130,8 +131,6 @@ def verdict(text):
         return executable(setup), f"setup={executable(setup)}"
     if text.startswith("If .saaio/teardown exists"):
         return (not teardown.exists()) or teardown_ok, teardown_evidence if teardown.exists() else "no teardown"
-    if text.startswith("Nothing was committed"):
-        return not new_commits, new_commits or "no new commits"
     if text.startswith(".saaio/setup and .saaio/teardown exist"):
         return executable(setup) and executable(teardown), f"setup={executable(setup)} teardown={executable(teardown)}"
     if text.startswith("In a fresh worktree") or text.startswith("In a fresh worktree on slot 7, npm"):
@@ -150,8 +149,12 @@ def verdict(text):
         body = setup.read_text() if setup.exists() else ""
         ok = "APP_PORT" in body and "FORWARD_REDIS_PORT" in body and "SAAIO_SLOT" in body
         return ok, "both named with SAAIO_SLOT" if ok else "missing"
-    if text.startswith("The response says the compose change reaches flows"):
-        return bool(re.search(r"commit", response, re.I)), response[-200:]
+    if text.startswith("The compose change is committed, or the response says"):
+        if compose_committed:
+            return True, "compose change committed"
+        said = re.search(r"[^.\n]*\bcommit[^.\n]*\b(reach|worktree|worker|flow)[^.\n]*"
+                         r"|[^.\n]*\b(reach|worktree|worker|flow)[^.\n]*\bcommit[^.\n]*", response, re.I)
+        return bool(said), said.group(0).strip() if said else response[-200:]
     return False, "no check for this expectation"
 
 
