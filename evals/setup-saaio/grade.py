@@ -152,9 +152,11 @@ def verdict(text):
     if text.startswith("The compose change is committed, or the response says"):
         if compose_committed:
             return True, "compose change committed"
-        said = re.search(r"[^.\n]*\bcommit[^.\n]*\b(reach|worktree|worker|flow)[^.\n]*"
-                         r"|[^.\n]*\b(reach|worktree|worker|flow)[^.\n]*\bcommit[^.\n]*", response, re.I)
-        return bool(said), said.group(0).strip() if said else response[-200:]
+        said = next((s.strip() for s in re.split(r"(?<=[.;!?])\s+|\n", response)
+                     if re.search(r"\bcommit", s, re.I)
+                     and re.search(r"\b(worktrees?|workers?|flows?)\b", s, re.I)
+                     and re.search(r"\b(reach|pick|get|see|start|use)", s, re.I)), None)
+        return bool(said), said or response[-200:]
     return False, "no check for this expectation"
 
 
