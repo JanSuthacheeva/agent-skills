@@ -44,8 +44,10 @@ working directory and get:
 
 The worker's session gets the same variables. `saaio start` waits for
 setup, so keep it as quick as the project allows. A setup that exits
-non-zero marks the flow blocked with its last output line, so make the
-last line of every failure say what went wrong.
+non-zero marks the flow blocked with its last line on stderr (stdout
+only when stderr is empty), so end every failure with a message on
+stderr (`echo "failed: ..." >&2`) that says what went wrong: tools such
+as `docker compose` write their progress there too.
 
 saaio runs the hooks from the main checkout, so they work uncommitted, but
 it creates every worktree from the last commit: a compose change reaches
