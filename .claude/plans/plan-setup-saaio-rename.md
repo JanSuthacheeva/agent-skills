@@ -106,3 +106,54 @@ and the default branch `flow/<name>`, which saaio still uses.
 - [x] Update `README.md`: setup-saaio row and install line, the saaio paragraph, the ship-feature row
 - [x] Re-run the setup-saaio eval with Docker (`run_iteration.sh`, 2 trials) and replace `results/claude-code/` and the README numbers
 - [x] End-to-end: grep the live files for old names, install the skill from the branch with `npx skills add` into a scratch dir and read its frontmatter
+
+## Review
+
+Reviewed in an isolated agent against `~/projects/saaio/docs/repository.md`
+and `~/projects/saaio/src` (main at 763453d).
+
+**Fixed**
+
+- The skill said a failing setup blocks the flow with "its last output
+  line". saaio reports the last stderr line and reads stdout only when
+  stderr is empty (`src/workspace.rs` `last_line`; the docs say "last
+  error line"), so a failure echoed to stdout after `docker compose`
+  wrote progress to stderr would show compose's line. Step text now says
+  to end failures on stderr. fe671e3. Text-only, after the eval run;
+  reviewed by the same agent, not independently.
+
+**Open**
+
+- The check "The response says the compose change reaches flows once
+  committed" is `re.search("commit", response)`. Every trial in this run
+  committed, so any "committed" passes it; it no longer measures the
+  hand-over. Recommendation: match the claim itself (committed + reach /
+  worktrees / flows) in a later eval iteration.
+- `summary.json` metadata says `runs_per_configuration: 3` with 2 trials
+  per scenario (also on main; it counts scenarios). Cosmetic.
+- `grade.py` keeps a "Nothing was committed" branch no assertion uses
+  (also on main). Harmless.
+
+**Where to look**
+
+1. `skills/setup-saaio/SKILL.md` "What saaio gives the hooks" and step 6:
+   every name checked against saaio's docs and source (`SAAIO_*` from
+   `launch/worktree.rs` `hook_env`, the executable check and
+   `.git/info/exclude` in `workspace.rs`, `saaio status --all`). Correct.
+2. `README.md` setup-saaio row: 42/42 both ways, baseline edits
+   `.gitignore` 5/6, README 4/6, `.env.example` 2/6, 0.28 vs 0.20 USD -
+   verified against the local `workspace/iteration-2` runs.
+3. `grade.py` dry-run regex widening: re-tally makes the baseline 42/42
+   (36/42 under the old pattern), so the check no longer separates the
+   conditions either.
+
+Routine, skim: the `evals/` renames, `run_trials.sh`, `setup_fixture.sh`,
+`evals.json` (all mechanical per the name map).
+
+**Checks**
+
+No test suite or lint. `py_compile` on `grade.py` and `bash -n` on the
+eval scripts pass at fe671e3; the eval last ran at 9d55e03 (only the
+plan and one skill sentence changed since). A grep of live files for
+`FLOW_`, `.flow/`, `setup-flow` and `JanSuthacheeva/flow` finds only the
+kept records.
