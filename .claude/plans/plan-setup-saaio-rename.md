@@ -167,3 +167,48 @@ kept records.
 - The unused "Nothing was committed" branch goes.
 - `runs_per_configuration` stays: skill-creator's `aggregate_benchmark.py`
   writes it.
+
+## Review 2
+
+Isolated agent, commits after aef8a11 (3cf4318) against the last task and
+"Decided after review".
+
+**Fixed**
+
+- The new fallback (reply says workers get it once committed) matched any
+  sentence naming commit and a worktree, worker or flow: "Nothing was
+  committed; review the worktree diff first." passed. It also split
+  sentences at every dot, so "Commit compose.yaml so new worktrees get
+  it." failed. A sentence now needs commit, a worker/worktree/flow and an
+  effect verb (reach, pick, get, see, start, use), split at sentence ends.
+  Shown and checked on hand-written sentences. 46a4197. Reviewed by the
+  same agent in a second pass, not independently.
+
+**Open**
+
+- The fallback is still a word heuristic: "use" also matches "user", and
+  a negated hand-over ("I did not commit, so flows will not see it")
+  passes, which is arguably right. The v0.2 run never reaches it - all
+  four compose trials committed - so it is untested by real replies.
+  Recommendation: accept for now; an LLM grader is the real fix if it
+  starts to matter.
+
+**Where to look**
+
+1. `evals/setup-saaio/grade.py` `compose_committed` and the commit
+   verdict: committed means the compose file differs from the base at
+   HEAD and has no uncommitted edits. Correct.
+2. `results/claude-code/README.md` new sentence on the compose replies:
+   verified against `workspace/iteration-2` - both skill replies give the
+   reason ("committed as 602d2a6, so new flows will pick it up"; "start
+   from the latest commit"), neither baseline reply matches. Score
+   unchanged (all four trials pass on the committed branch), matching
+   `summary.json`, which equals `workspace/iteration-2/summary.json`.
+
+Routine, skim: `evals.json` assertion text, the removed "Nothing was
+committed" branch (no assertion uses it).
+
+**Checks**
+
+No test suite or lint. `py_compile` on `grade.py` passes at 46a4197.
+The eval was not re-run; the fix does not change any v0.2 verdict.
