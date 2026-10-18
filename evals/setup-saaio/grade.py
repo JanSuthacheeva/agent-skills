@@ -155,7 +155,8 @@ def verdict(text):
         said = next((s.strip() for s in re.split(r"(?<=[.;!?])\s+|\n", response)
                      if re.search(r"\bcommit", s, re.I)
                      and re.search(r"\b(worktrees?|workers?|flows?)\b", s, re.I)
-                     and re.search(r"\b(reach|pick|get|see|start|use)", s, re.I)), None)
+                     and re.search(r"\b(reach(es|ed|ing)?|pick(s|ed|ing)?|get(s|ting)?|got|see(s|n|ing)?|saw"
+                                   r"|start(s|ed|ing)?|use[sd]?|using)\b", s, re.I)), None)
         return bool(said), said or response[-200:]
     return False, "no check for this expectation"
 
