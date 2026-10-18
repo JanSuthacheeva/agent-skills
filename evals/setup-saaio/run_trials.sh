@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run one setup-flow eval trial headlessly with `claude -p`, then grade it.
+# Run one setup-saaio eval trial headlessly with `claude -p`, then grade it.
 # Usage: run_trials.sh <eval-name> <prompt> <config> <run-dir> <fixture-root>
 #   config: with_skill | without_skill. Runs are isolated from user and
 #   plugin settings; with_skill copies the skill into the fixture's project
@@ -14,14 +14,14 @@ mkdir -p "$run/outputs"
 ln -sfn "$fx/shop" "$run/repo"; cp "$fx/base_sha" "$run/base_sha"
 if [ "$cfg" = with_skill ]; then
   mkdir -p "$fx/shop/.claude/skills"
-  cp -R "$here/../../skills/setup-flow" "$fx/shop/.claude/skills/"
+  cp -R "$here/../../skills/setup-saaio" "$fx/shop/.claude/skills/"
   echo ".claude/" >> "$fx/shop/.git/info/exclude"
 fi
 args=(-p "$prompt" --output-format json --model "${MODEL:-claude-opus-5-5}" --effort "${EFFORT:-medium}"
       --setting-sources project,local --strict-mcp-config --mcp-config '{"mcpServers": {}}'
       --allowedTools Skill Bash Read Write Edit Glob Grep)
 args+=(--append-system-prompt \
-  "flow runs .flow/setup and .flow/teardown in each worker's git worktree (.flow/worktrees/<name>) with FLOW_SLOT (1-20), FLOW_WORKTREE, FLOW_REPO, FLOW_NAME and FLOW_ID set.")
+  "saaio runs .saaio/setup and .saaio/teardown in each worker's git worktree (.saaio/worktrees/<name>) with SAAIO_SLOT (1-20), SAAIO_WORKTREE, SAAIO_REPO, SAAIO_FLOW_NAME and SAAIO_FLOW_ID set.")
 (cd "$fx/shop" && claude "${args[@]}" < /dev/null) > "$run/outputs/raw.json" 2> "$run/outputs/stderr.txt" || true
 python3 - "$run" <<'P'
 import json, sys, pathlib

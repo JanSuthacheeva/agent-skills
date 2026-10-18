@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build a throwaway project repo for one setup-flow eval.
+# Build a throwaway project repo for one setup-saaio eval.
 # Usage: setup_fixture.sh <eval-name> <dest-dir>
 set -euo pipefail
 name=$1; dest=$2
