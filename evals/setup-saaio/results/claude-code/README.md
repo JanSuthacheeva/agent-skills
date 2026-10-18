@@ -1,39 +1,51 @@
-# Evaluation of the `setup-flow` skill v0.1 in Claude Code
+# Evaluation of the `setup-saaio` skill v0.2 in Claude Code
 
-Claude Code 2.1.300, `claude-opus-5-5` at medium effort, 3 scenarios, 2 trials per scenario and
-condition, 15 October 2026. A first look, not a statistical claim: 6 trials per condition.
+Claude Code 2.1.302, `claude-opus-5-5` at medium effort, 3 scenarios, 2 trials per scenario and
+condition, 18 October 2026. A first look, not a statistical claim: 6 trials per condition.
 
 ## Setup
 
 Each scenario is a throwaway repository: a compose project with hard-coded ports and a fixed
 `container_name`, a plain Node dev server on 5173, and a Sail-style project whose compose file
-already reads `APP_PORT` and `FORWARD_REDIS_PORT`. Both conditions are told how flow runs
-`.flow/setup` and `.flow/teardown` and which variables it sets; only the skill condition has the
+already reads `APP_PORT` and `FORWARD_REDIS_PORT`. Both conditions are told how saaio runs
+`.saaio/setup` and `.saaio/teardown` and which variables it sets; only the skill condition has the
 skill.
 
-The grader does not trust the run's report. It plays flow: a fresh worktree on slot 7 with the
-run's uncommitted changes applied (as a commit would bring them), `.flow/setup`, a request to the
-service (or `npm run dev`), `.flow/teardown`, and a look for containers, worktrees and branches the
-run left behind. A hand-written correct solution scores 9 of 9; the untouched repository 1 of 9.
+The grader does not trust the run's report. It plays saaio: a fresh worktree on slot 7 with the
+run's uncommitted changes applied (as a commit would bring them), `.saaio/setup`, a request to the
+service (or `npm run dev`), `.saaio/teardown`, and a look for containers, worktrees and branches the
+run left behind. A hand-written correct solution scores 8 of 8; the untouched repository 1 of 8.
 
 ## Results
 
 | | with skill | without skill |
 | --- | --- | --- |
-| checks passed | 44 of 45 (98%) | 38 of 50 (76%) |
-| time per trial | 54 s | 51 s |
-| tokens per trial (excluding cache reads) | 29.9k | 21.0k |
+| checks passed | 42 of 42 | 42 of 42 |
+| time per trial | 49 s | 47 s |
+| tokens per trial (excluding cache reads) | 23.1k | 14.9k |
+| cost per trial | 0.28 USD | 0.20 USD |
 
-Both conditions made compose read its ports from variables with today's ports as defaults,
-removed the fixed `container_name`, ignored `.flow/worktrees` and made the dev server read its
-port from `.env`; every setup they wrote served on the slot port in the grader's worktree. The
-difference is the proof: every skill trial ran setup and teardown in a scratch worktree and
-reported what answered where, and none of the baseline trials did.
+The checks no longer separate the conditions. Every trial in both made the ports configurable
+with today's ports as defaults, wrote hooks that served on the slot port in the grader's
+worktree, tested them next to each other and reported what answered where.
 
-The one failed skill check, and every baseline trial, committed without being asked. The
-sessions read the author's global instructions ("commit as you go"), so a commit there follows a
-standing rule; the skill now counts such a rule as asking, and the check is dropped from later
-runs. `summary.json` is this iteration's benchmark, which still includes it.
+The difference is in what else changed. The skill trials touched only the hooks, the compose
+file and, for the dev server, `package.json` (nothing read `.env` before). The baseline trials
+added `.saaio/worktrees/` to `.gitignore` in 5 of 6 (saaio already excludes it), edited the
+README in 4 and `.env.example` in 2, and one moved `main` onto a test commit during its test and
+had to put it back. The skill costs about 0.08 USD more per trial.
+
+Every trial in both conditions committed. The sessions read the author's global instructions
+("commit as you go"), which the skill counts as asking.
+
+## Changes since v0.1
+
+- Renamed from `setup-flow` with the tool (flow is now saaio): `.saaio/`, `SAAIO_*`. The v0.1
+  results, 44 of 45 checks with the skill and 38 of 50 without, are in this folder's git history.
+- The skill no longer asks for a `.gitignore` entry, and the check for it is gone.
+- The dry-run check read only the skill's own words ("dry run", "scratch worktree"), so it failed
+  baseline replies that reported a test as "tested" or "simulated workers". It now accepts those;
+  this run was re-tallied for that one check. Under the old pattern the baseline scored 36 of 42.
 
 Reproduce: `./run_iteration.sh workspace/iteration-N workspace/fixtures 2` (Docker running; trials
 run one at a time, as their dry runs would share ports).

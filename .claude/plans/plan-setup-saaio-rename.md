@@ -59,6 +59,10 @@ and the default branch `flow/<name>`, which saaio still uses.
     `SAAIO_FLOW_NAME="grade-check"`, `SAAIO_FLOW_ID="grade-check"`), the
     dry-run regex (`setup-saaio-check`), assertion prefixes; the `.gitignore`
     branch is removed. "Play flow" becomes "play saaio".
+    Found while building: the dry-run check matched only the skill's words
+    ("dry run", "scratch worktree") and failed baselines that reported a test
+    as "tested" or "simulated workers"; it now accepts those, and the new run
+    was re-tallied for that check.
   - `setup_fixture.sh`: comment.
   - `results/claude-code/`: replaced by the new run (README written in the
     shape of the old one, `summary.json`, per-trial outputs).
@@ -99,6 +103,6 @@ and the default branch `flow/<name>`, which saaio still uses.
 
 - [x] Move `skills/setup-flow` to `skills/setup-saaio` and rewrite SKILL.md per the name map, step 6 without `.gitignore`, version 0.2
 - [x] Move `evals/setup-flow` to `evals/setup-saaio` and rename `evals.json`, `run_trials.sh`, `grade.py`, `setup_fixture.sh`; drop the `.gitignore` assertion and its grader branch; check `grade.py` on a hand-written solution
-- [ ] Update `README.md`: setup-saaio row and install line, the saaio paragraph, the ship-feature row
-- [ ] Re-run the setup-saaio eval with Docker (`run_iteration.sh`, 2 trials) and replace `results/claude-code/` and the README numbers
+- [x] Update `README.md`: setup-saaio row and install line, the saaio paragraph, the ship-feature row
+- [x] Re-run the setup-saaio eval with Docker (`run_iteration.sh`, 2 trials) and replace `results/claude-code/` and the README numbers
 - [ ] End-to-end: grep the live files for old names, install the skill from the branch with `npx skills add` into a scratch dir and read its frontmatter
