@@ -6,10 +6,13 @@ description: >-
   ports, containers and env: reads how the project runs (Docker Compose,
   Laravel Sail, npm/pnpm/vite or artisan dev servers, .env files), makes
   compose ports configurable, writes .saaio/setup and .saaio/teardown that
-  take their ports from SAAIO_SLOT, and proves them in a scratch worktree.
+  take their ports from SAAIO_SLOT, and .saaio/pause and .saaio/resume that
+  stop and start a resting flow's stack, and proves them in a scratch
+  worktree.
   Use when the user asks to set up saaio for a project, make a repo ready
   for parallel worktrees or agents, write the saaio setup/teardown hooks,
-  or fix port or container clashes between worktrees, even if they just
+  write the pause/resume hooks, or fix port or container clashes between
+  worktrees, even if they just
   say "get this repo ready for saaio". Not for installing saaio itself or
   for starting a flow.
 compatibility: >-
@@ -17,7 +20,7 @@ compatibility: >-
   needs it running.
 metadata:
     author: Jan Suthacheeva
-    version: "0.2"
+    version: "0.3"
 ---
 
 saaio runs each worker in `.saaio/worktrees/<name>` on its own branch. When
@@ -25,7 +28,8 @@ the project needs services (a database, a web server, a dev server), two
 workers on the same ports or container names break each other, and a
 fresh worktree has no `.env` and no installed dependencies. This skill
 gives each worktree its own stack, numbered by its slot, so workers never
-collide and the checkout you work in stays as it is.
+collide and the checkout you work in stays as it is, and stops a stack
+while its flow rests, so many flows do not hold CPU and memory for nothing.
 
 ## What saaio gives the hooks
 
@@ -41,6 +45,14 @@ working directory and get:
 | `SAAIO_REPO` | the main checkout's absolute path |
 | `SAAIO_FLOW_NAME` | the flow's name, e.g. `shop-217` |
 | `SAAIO_FLOW_ID` | the flow's id |
+
+`saaio server` runs `.saaio/pause` when a flow has rested (idle, waiting,
+blocked, done or ended) for a few minutes, and `.saaio/resume` when its
+worker works again; the worker's tool calls wait for the resume, up to two
+minutes. They run the same way, with the same variables, at most five
+minutes each. saaio pauses only a repo that has both. A server that stops
+mid-script runs it again, and the scripts can meet a stack in any state, so
+both must be idempotent.
 
 The worker's session gets the same variables. `saaio start` waits for
 setup, so keep it as quick as the project allows. A setup that exits
@@ -114,11 +126,24 @@ git itself, in `.git/info/exclude`.
    `sail down -v`). It must not fail on a worktree whose setup failed
    halfway: guard each step so a missing `.env` or stack is not an error.
 
-6. **Make them executable.** `chmod +x` both scripts; saaio skips a hook
+6. **Write `.saaio/pause` and `.saaio/resume`** when setup starts a stack
+   (a project with only dev servers has none: the worker runs those
+   itself). From the worktree:
+   - pause: `docker compose stop` (or `sail stop`), keeping the containers,
+     volumes and ports setup made;
+   - resume: `docker compose up -d --no-recreate --wait` (or `sail up -d`),
+     which starts the same containers and returns once they are healthy.
+     Compose reads the ports and `COMPOSE_PROJECT_NAME` from the
+     worktree's `.env`, so nothing is computed again.
+   Both quiet, idempotent (pausing a stopped stack, resuming a running one
+   succeed), and ending a failure with one line on stderr: saaio shows it
+   on the flow.
+
+7. **Make them executable.** `chmod +x` every script; saaio skips a hook
    that is not executable. `.gitignore` needs no change: saaio excludes
    `.saaio/worktrees/` itself.
 
-7. **Prove it in a scratch worktree.** Use slot 20 (the one real flows
+8. **Prove it in a scratch worktree.** Use slot 20 (the one real flows
    reach last; with saaio installed, check `saaio status --all` and pick a
    free one): `git worktree add .saaio/worktrees/setup-saaio-check -b
    setup-saaio-check`, bring the uncommitted changes into it
@@ -126,13 +151,16 @@ git itself, in `.git/info/exclude`.
    `.saaio/setup` there with the five variables
    set, check that each service answers on its slot port (`curl` for
    HTTP, `nc -z` or a client for the rest) and that a stack already
-   running in the main checkout is untouched. Then run `.saaio/teardown`,
+   running in the main checkout is untouched. Run `.saaio/pause` and check
+   the stack's containers are stopped, run it again, then `.saaio/resume`
+   twice and check each service answers on the same port. Then run
+   `.saaio/teardown`,
    check its containers and volumes are gone, and remove the worktree and
    branch (`git worktree remove --force`, `git branch -D`). Fix what
    fails and run it again. Without Docker running, say so and give the
    command to run the check later.
 
-8. **Offer the branch convention.** If the project's rules
+9. **Offer the branch convention.** If the project's rules
    (`CLAUDE.md`, `CONTRIBUTING.md`, the README) name a branch convention,
    offer `.saaio/config.toml`:
    ```toml
@@ -143,15 +171,15 @@ git itself, in `.git/info/exclude`.
    `{ticket}` is the request's ticket key, `{slug}` up to five words after
    it, `{name}` the flow's name; the first type is the default.
 
-9. **Hand over.** List the files changed and the port table, and say
-   what the dry run showed. Say that the compose change takes effect for
-   flows once committed, and offer to commit it with the scripts (so the
-   team gets them too). Commit when the user asks for a
-   commit, now or as a standing rule in their instructions ("commit as you
-   go"); otherwise leave the changes and say what to commit. A commit goes
-   into the history the whole team shares, and the user may want to read
-   the compose diff first, so permission to change files is not permission
-   to commit.
+10. **Hand over.** List the files changed and the port table, and say
+    what the dry run showed. Say that the compose change takes effect for
+    flows once committed, and offer to commit it with the scripts (so the
+    team gets them too). Commit when the user asks for a
+    commit, now or as a standing rule in their instructions ("commit as you
+    go"); otherwise leave the changes and say what to commit. A commit goes
+    into the history the whole team shares, and the user may want to read
+    the compose diff first, so permission to change files is not permission
+    to commit.
 
 ## Example
 
@@ -166,4 +194,6 @@ A Laravel project whose `compose.yaml` publishes `"8080:80"` (nginx) and
   `docker compose up -d --wait`;
   `docker compose exec -T php php artisan migrate --seed --force`; prints
   `http://localhost:18083` and `mysql 127.0.0.1:13309` for slot 3;
-- `.saaio/teardown`: `docker compose down -v --remove-orphans`.
+- `.saaio/teardown`: `docker compose down -v --remove-orphans`;
+- `.saaio/pause`: `docker compose stop`; `.saaio/resume`:
+  `docker compose up -d --no-recreate --wait`.

@@ -4,7 +4,7 @@
 Usage: grade.py <run-dir> <eval-name>
 Checks the files, then plays saaio: a fresh worktree on slot 7 with the run's
 uncommitted changes applied (as a commit would bring them), .saaio/setup,
-a request to the service, .saaio/teardown. Writes <run>/grading.json and
+a request to the service, .saaio/pause and .saaio/resume twice each, .saaio/teardown. Writes <run>/grading.json and
 cleans up every worktree, branch and container the run or the grader left.
 """
 import json, os, re, signal, subprocess, sys, time, urllib.request
@@ -49,6 +49,7 @@ def executable(path: Path):
 
 
 setup, teardown = repo / ".saaio/setup", repo / ".saaio/teardown"
+pause, resume = repo / ".saaio/pause", repo / ".saaio/resume"
 compose = next((repo / f for f in ("compose.yaml", "compose.yml", "docker-compose.yml") if (repo / f).exists()), None)
 compose_text = compose.read_text() if compose else ""
 
@@ -69,6 +70,7 @@ env = dict(os.environ, SAAIO_SLOT="7", SAAIO_WORKTREE=str(wt), SAAIO_REPO=str(re
 served = served_evidence = None
 setup_ok = teardown_ok = False
 teardown_evidence = "not run"
+paused_ok, paused_evidence = False, "not run"
 if executable(setup):
     git("worktree", "add", "-q", str(wt), "-b", "grade-check")
     diff = subprocess.run(["git", "-C", str(repo), "diff", base], capture_output=True, text=True).stdout
@@ -98,6 +100,16 @@ if executable(setup):
         status = get(f"http://localhost:{port}/") if port else out
         served = port not in (None, 8080, 80) and status == 200
         served_evidence = f"{service} on {port}: {status}"
+        if served and executable(pause) and executable(resume):
+            paused = [sh(str(pause), cwd=wt, env=env, timeout=300)[0] for _ in range(2)]
+            running = sh("docker", "compose", "ps", "--status", "running", "-q", cwd=wt, env=env)[1]
+            resumed = [sh(str(resume), cwd=wt, env=env, timeout=300)[0] for _ in range(2)]
+            again = get(f"http://localhost:{port}/")
+            paused_ok = paused == [0, 0] and not running.strip() and resumed == [0, 0] and again == 200
+            paused_evidence = (f"pause exits {paused}, running after: {len(running.split())}, "
+                               f"resume exits {resumed}, {service} on {port}: {again}")
+        elif served:
+            paused_evidence = f"pause={executable(pause)} resume={executable(resume)}"
     if executable(teardown):
         code, out = sh(str(teardown), cwd=wt, env=env, timeout=300)
         gone = not containers(wt)
@@ -135,6 +147,10 @@ def verdict(text):
         return executable(setup) and executable(teardown), f"setup={executable(setup)} teardown={executable(teardown)}"
     if text.startswith("In a fresh worktree") or text.startswith("In a fresh worktree on slot 7, npm"):
         return bool(served), served_evidence or "; ".join(notes)[-300:]
+    if text.startswith("In that worktree, .saaio/pause stops"):
+        return paused_ok, paused_evidence
+    if text.startswith("No .saaio/pause or .saaio/resume"):
+        return not (pause.exists() or resume.exists()), f"pause={pause.exists()} resume={resume.exists()}"
     if text.startswith(".saaio/teardown removes") or text.startswith(".saaio/teardown runs"):
         return teardown_ok, teardown_evidence
     if text.startswith("The dry run left no"):

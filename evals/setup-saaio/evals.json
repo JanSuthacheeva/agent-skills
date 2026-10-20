@@ -5,7 +5,7 @@
       "id": 1,
       "name": "compose-hardcoded-ports",
       "prompt": "get this repo ready for saaio so I can run a few workers next to each other. I'm away for a bit, go ahead and change the compose file if you need to.",
-      "expected_output": "compose ports read variables with today's ports as defaults, container_name gone, executable .saaio/setup and .saaio/teardown deriving ports from SAAIO_SLOT with a repo-qualified COMPOSE_PROJECT_NAME, a dry run that leaves nothing behind.",
+      "expected_output": "compose ports read variables with today's ports as defaults, container_name gone, executable .saaio/setup and .saaio/teardown deriving ports from SAAIO_SLOT with a repo-qualified COMPOSE_PROJECT_NAME, pause and resume that stop and start the same stack; a dry run that leaves nothing behind.",
       "files": [
         "setup_fixture.sh"
       ],
@@ -14,6 +14,7 @@
         "compose.yaml has no container_name",
         ".saaio/setup and .saaio/teardown exist and are executable",
         "In a fresh worktree on slot 7, .saaio/setup serves the site on a port other than 8080",
+        "In that worktree, .saaio/pause stops the stack and .saaio/resume serves the site on the same port again, each run twice in a row",
         ".saaio/teardown removes the worktree's containers",
         "The dry run left no worktree, branch or container behind",
         "The response reports what the dry run showed",
@@ -33,6 +34,7 @@
         "No compose file was created",
         "In a fresh worktree on slot 7, npm run dev listens on a port other than 5173",
         "If .saaio/teardown exists, it runs without error",
+        "No .saaio/pause or .saaio/resume was written (the worker runs the dev server itself)",
         "The dry run left no worktree, branch or container behind",
         "The response reports what the dry run showed"
       ]
@@ -41,7 +43,7 @@
       "id": 3,
       "name": "sail-env",
       "prompt": "set up saaio for this sail project, I want to run 3-4 workers at once",
-      "expected_output": "The compose file already reads APP_PORT and FORWARD_REDIS_PORT and stays unchanged; .saaio/setup sets those from SAAIO_SLOT in the worktree's .env and starts it with sail; a dry run that leaves nothing behind.",
+      "expected_output": "The compose file already reads APP_PORT and FORWARD_REDIS_PORT and stays unchanged; .saaio/setup sets those from SAAIO_SLOT in the worktree's .env and starts it with sail; pause and resume that stop and start the same stack; a dry run that leaves nothing behind.",
       "files": [
         "setup_fixture.sh"
       ],
@@ -50,6 +52,7 @@
         ".saaio/setup and .saaio/teardown exist and are executable",
         ".saaio/setup sets APP_PORT and FORWARD_REDIS_PORT from SAAIO_SLOT",
         "In a fresh worktree on slot 7, .saaio/setup serves the site on a port other than 80",
+        "In that worktree, .saaio/pause stops the stack and .saaio/resume serves the site on the same port again, each run twice in a row",
         ".saaio/teardown removes the worktree's containers",
         "The dry run left no worktree, branch or container behind",
         "The response reports what the dry run showed"
