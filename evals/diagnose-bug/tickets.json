@@ -1,4 +1,5 @@
 {
   "SHOP-311": "task:\n  id: SHOP-311\n  title: Tags disappear\n  status: open\n  type: bug\n  description: |\n    I tagged bookmarks, added a new one, and `bm list --tag work` shows\n    nothing. I think list --tag is broken.\n",
-  "SHOP-312": "task:\n  id: SHOP-312\n  title: Titles with quotes break the bookmarks file\n  status: open\n  type: bug\n  description: |\n    When I add a bookmark whose title has double quotes in it, like\n    bm add https://example.com 'The \"best\" tools', the bookmarks file\n    gets corrupted and bm stops working.\n"
+  "SHOP-312": "task:\n  id: SHOP-312\n  title: Titles with quotes break the bookmarks file\n  status: open\n  type: bug\n  description: |\n    When I add a bookmark whose title has double quotes in it, like\n    bm add https://example.com 'The \"best\" tools', the bookmarks file\n    gets corrupted and bm stops working.\n",
+  "SHOP-313": "task:\n  id: SHOP-313\n  title: Tagging one bookmark tags all of them\n  status: open\n  type: bug\n  description: |\n    Since I updated bm, when I tag a bookmark, every other bookmark gets\n    the same tag too. `bm tag 3 recipes` and now `bm list --tag recipes`\n    shows all 40 of my bookmarks. I guess the tag command ignores the id?\n"
 }

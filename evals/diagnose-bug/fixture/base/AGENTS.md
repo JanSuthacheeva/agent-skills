@@ -9,5 +9,6 @@ dependencies and no build step.
   The CLI never touches the file directly.
 - Errors are classes extending `Error`; the CLI maps them to messages and
   exit codes (1 for not found, 2 for bad input).
+- Tickets live in ClickUp: `clickup-axi tasks <id>` shows one.
 - Imports use the `.ts` extension. No parameter properties or enums, so
   Node can strip the types.

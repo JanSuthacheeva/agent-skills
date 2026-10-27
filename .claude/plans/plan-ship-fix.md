@@ -129,11 +129,12 @@ behaviour unchanged.
 ### `evals/diagnose-bug/` (new)
 
 ```
-evals.json           tags-lost, not-reproducible
+evals.json           tags-lost, not-reproducible, tags-spread
 fixture/src/*.ts     tags app, correct except BookmarkStore.save() writes through
                      toRecord(), a field list from before tags (tags dropped on add)
 fixture/test/*.ts    green suite that misses the bug
-fixture/tickets.json SHOP-311, SHOP-312 as the clickup-axi stub returns them
+tickets.json         SHOP-311, SHOP-312, SHOP-313 as the clickup-axi stub returns them
+trigger-queries.json the 20 trigger queries for run_eval.py
 setup_fixture.sh     <eval-name> <dest>: repo on main, stubs
 run_trial.sh         <eval> <prompt> <config> <run-dir> <fixture-root>
                      config: with_skill | systematic_debugging | without_skill
@@ -249,6 +250,13 @@ questions to the user; no branch, no commit, no fix unless asked.
     already lost are named.
   - Contract (diagnose-bug only): `src/` and `test/` unchanged, nothing committed; plan
     in the fix-plan format, first task the regression test, last the end-to-end check.
+- diagnose-bug `tags-spread` (added in the build, when the two scenarios above hit a
+  ceiling for every condition in the smoke run), prompt "Look into SHOP-313."; ticket:
+  tagging one bookmark tags all of them since an update. Cause: `fromRecord()` gives every
+  record without `tags` one shared `noTags` array and `tag()` pushes into it, so only a
+  file written before tags shows it. Diagnosis: reproduced through the CLI with such a
+  file; the shared array named; any source change in `fromRecord` and stops the spread;
+  regression test; wrongly tagged bookmarks named. Contract as for `tags-lost`.
 - diagnose-bug `not-reproducible`, prompt "Look into SHOP-312."; ticket: titles with
   quotes break the file (they do not).
   - Diagnosis: tried through the CLI; no code changed; reply says it did not reproduce
@@ -262,7 +270,7 @@ questions to the user; no branch, no commit, no fix unless asked.
   build report; `## Review` in the plan; `npm test` green; nothing pushed, no MR; reply
   drafts the MR or puts open items.
 - Runs: Opus 5.5 and Sonnet 5.5, medium effort. diagnose-bug 3 conditions x 2 scenarios
-  x 3 trials (36, about 15 USD); ship-fix 2 x 2 x 2 (16, about 10 USD).
+  x 3 trials, 3 scenarios (54, about 22 USD); ship-fix 2 x 2 x 2 (16, about 10 USD).
   write-merge-request's suite once after the stub extraction.
 
 ## Assumptions
@@ -280,16 +288,27 @@ questions to the user; no branch, no commit, no fix unless asked.
   `/ship-fix {request}`) is configured in saaio, not here.
 - Linking the skills into `~/.claude/skills` happens after the merge, outside the branch.
 
+## Decided in the build
+
+- The fix plan reference is `references/fix-plan-format.md`: the plan path hook refuses
+  `*-plan.md` outside `.claude/plans/`.
+- Trigger eval (Opus 5.5, 3 runs per query): 19 of 20. The miss, "fix SHOP-311 all the way
+  to a merge request", triggers diagnose-bug because ship-fix does not exist yet; it is
+  re-tested in ship-fix's trigger eval. `run_eval.py` must run with `--num-workers 1`: its
+  parallel workers share one commands directory, so each run sees all workers' copies.
+- `export_results.py` reports a grader's parts (diagnosis, contract) separately and knows
+  the `systematic_debugging` condition.
+
 ## Tasks
 
 ### diagnose-bug
 
 - [x] Write `skills/diagnose-bug/SKILL.md`, `references/reproduce.md` and `references/fix-plan-format.md` per Units and Data
 - [x] Authoring checks on diagnose-bug: `quick_validate.py`, component review in a fresh agent, findings fixed or answered
-- [ ] Trigger eval of diagnose-bug's description (20 queries) with `run_eval.py`, improved with `run_loop.py` if any misfires
+- [x] Trigger eval of diagnose-bug's description (20 queries) with `run_eval.py`, improved with `run_loop.py` if any misfires
 - [x] Extract `evals/shared/forge_stubs.sh` (`forge_stubs`, `forge_remote`) and use it in `evals/write-merge-request/setup_fixture.sh`; prove every write-merge-request fixture builds the same repo and stub answers as before
 - [x] Build `evals/diagnose-bug/` fixture and `setup_fixture.sh`: suite green, bug reproduced through the CLI, `not-reproducible` report does not reproduce
-- [ ] Write `evals.json`, `run_trial.sh` (three configs), `run_iteration.sh` and `grade.py` (diagnosis and contract checks); smoke one trial per config and grade it
+- [x] Write `evals.json`, `run_trial.sh` (three configs), `run_iteration.sh` and `grade.py` (diagnosis and contract checks); smoke one trial per config and grade it
 - [ ] Run the diagnose-bug eval on Opus and Sonnet, export results, write `results/claude-code/README.md`; README table row and install line
 - [ ] Re-run the write-merge-request eval once after the stub extraction and confirm the same grades
 
