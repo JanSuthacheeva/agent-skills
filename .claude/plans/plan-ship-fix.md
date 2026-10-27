@@ -58,7 +58,7 @@ metadata:
                            sort choices into assume / ask (cost to reverse)
 ## 5. Write the plan       project's plan location, else
                            docs/plans/<YYYY-MM-DD>-fix-<slug>.md, in the format of
-                           references/fix-plan.md
+                           references/fix-plan-format.md
 ## 6. Hand over            root cause in two sentences, evidence, plan path,
                            open questions; leave the tree as found but the plan
 ```
@@ -74,7 +74,7 @@ reproduce.md   read in step 2: reproducing by kind of surface - command line, HT
                API, browser page, background job or queue, data-dependent,
                intermittent (repeat counts, timing, seeds); recording a
                reproduction someone else can rerun
-fix-plan.md    read in step 5: the fix plan template (see Data) with one short
+fix-plan-format.md  read in step 5: the fix plan template (see Data) with one short
                filled-in example
 ```
 
@@ -161,7 +161,7 @@ alphabetical order, flow paragraph names the fix flow
 (`diagnose-bug` -> `implement-plan` -> `review-changes` -> `write-merge-request`, run by
 `ship-fix`).
 
-## Data: the fix plan (references/fix-plan.md)
+## Data: the fix plan (references/fix-plan-format.md)
 
 ```
 # Fix: <what the user sees, one line>
@@ -284,7 +284,7 @@ questions to the user; no branch, no commit, no fix unless asked.
 
 ### diagnose-bug
 
-- [ ] Write `skills/diagnose-bug/SKILL.md`, `references/reproduce.md` and `references/fix-plan.md` per Units and Data
+- [x] Write `skills/diagnose-bug/SKILL.md`, `references/reproduce.md` and `references/fix-plan-format.md` per Units and Data
 - [ ] Authoring checks on diagnose-bug: `quick_validate.py`, component review in a fresh agent, findings fixed or answered
 - [ ] Trigger eval of diagnose-bug's description (20 queries) with `run_eval.py`, improved with `run_loop.py` if any misfires
 - [ ] Extract `evals/shared/forge_stubs.sh` (`forge_stubs`, `forge_remote`) and use it in `evals/write-merge-request/setup_fixture.sh`; prove every write-merge-request fixture builds the same repo and stub answers as before
