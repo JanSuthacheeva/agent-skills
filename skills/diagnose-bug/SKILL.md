@@ -22,8 +22,7 @@ reproduction and an experiment tell them apart. The result is a fix plan
 another session can build without this conversation.
 
 Change no project code beyond temporary instrumentation you remove again,
-and commit nothing. Copy this checklist and tick it off as
-you go:
+and commit nothing. Copy this checklist and tick it off as you go:
 
 ```
 - [ ] 1. Read the report
@@ -38,8 +37,9 @@ you go:
 
 If the report names a ticket and you can reach the ticket system (a CLI,
 an MCP server, an API), read it: the ticket is the report. If you cannot
-and the report is too thin to reproduce from, ask the user to paste it. Pull out what the user expected, what happened instead, the
-steps they took and their environment (version, data, platform).
+and the report is too thin to reproduce from, ask the user to paste it.
+Pull out what the user expected, what happened instead, the steps they
+took and their environment (version, data, platform).
 
 Keep the reporter's guess at the cause apart from what they saw. "List is
 broken" is a guess; "list shows nothing after I added a bookmark" is an
@@ -84,8 +84,9 @@ that does the wrong thing with correct input.
 - The cause must explain every symptom in the report, including the ones
   the reporter did not connect. If one is left over, keep looking.
 - Find when it came in, if the history is there, with `git log -S
-  <code>` or `git blame` on the lines: the commit's intent often shows what the code was meant to do,
-  and whether other places were changed the same way.
+  <code>` or `git blame` on the lines: the commit's intent often shows
+  what the code was meant to do, and whether other places were changed
+  the same way.
 
 Remove every temporary log and scratch test before going on.
 

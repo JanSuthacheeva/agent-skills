@@ -113,8 +113,8 @@ Then read the `## Review` section it wrote into the plan:
 - **Open has items**: put them to the user with the reviewer's
   recommendations. Write what the user decides into the plan as new tasks
   under `## Tasks`, before the end-to-end task, untick that task so the
-  reproduction runs again, commit, and go back to Build. A second review then
-  covers the new commits.
+  reproduction runs again, commit, and go back to Build. A second review
+  then covers the new commits.
 
 ## 5. Merge request - in this conversation
 
@@ -126,8 +126,9 @@ already exists, offer to update its description instead.
 
 The flow waits for the user at exactly these points: a report that does
 not reproduce or whose expected behaviour is unclear, approval of the fix
-plan (including its open questions) and the compaction after it, a regression test that disproves the
-diagnosis, a blocked build or red base, open review items, and the push.
+plan (including its open questions) and the compaction after it, a
+regression test that disproves the diagnosis, a blocked build or red base,
+open review items, and the push.
 Everywhere else it goes on without asking.
 
 At a stop, say in a few lines what was found, the options and your

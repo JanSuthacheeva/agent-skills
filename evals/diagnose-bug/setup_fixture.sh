@@ -5,7 +5,8 @@
 # The suite is green and misses it. SHOP-312 (quotes in titles) does not
 # reproduce. tags-spread instead ships a tags commit that saves tags but
 # gives every record without them one shared array, so tagging a bookmark
-# from a file written before tags tags them all (SHOP-313). bin/ holds the forge and ticket stubs, logging to calls.jsonl.
+# from a file written before tags tags them all (SHOP-313). bin/ holds
+# the forge and ticket stubs, logging to calls.jsonl.
 # Usage: setup_fixture.sh <eval-name> <dest-dir>
 set -euo pipefail
 name=$1; dest=$2
