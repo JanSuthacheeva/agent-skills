@@ -298,6 +298,12 @@ questions to the user; no branch, no commit, no fix unless asked.
   to a merge request", triggers diagnose-bug because ship-fix does not exist yet; it is
   re-tested in ship-fix's trigger eval. `run_eval.py` must run with `--num-workers 1`: its
   parallel workers share one commands directory, so each run sees all workers' copies.
+- Trigger evals with the sibling installed as a competitor (Opus 5.5, 3 runs per query):
+  ship-fix 20 of 20 with diagnose-bug present, diagnose-bug 20 of 20 with ship-fix present,
+  after the ship-fix review added "only diagnosing (diagnose-bug)" to its exclusions.
+- ship-fix component review applied: resume finds an unapproved fix plan and the fix
+  branch, a disproved diagnosis goes back through diagnose-bug (which rewrites the plan in
+  place) and approval, and review tasks go before the end-to-end task, which is unticked.
 - write-merge-request after the stub extraction (Opus, one trial each): 10 of 12 cells match
   the published grades; ticket-title without the skill guessed `clickup-axi task` instead
   of `tasks` (refused by old and new stub alike) and review-guide with the skill wrote a
@@ -321,7 +327,7 @@ questions to the user; no branch, no commit, no fix unless asked.
 ### ship-fix
 
 - [x] Write `skills/ship-fix/SKILL.md` per Units
-- [ ] Authoring checks and trigger eval on ship-fix, as for diagnose-bug
-- [ ] Build `evals/ship-fix/` (fixture plan, `setup_fixture.sh`, runner, `grade.py`); smoke one trial per config
+- [x] Authoring checks and trigger eval on ship-fix, as for diagnose-bug
+- [x] Build `evals/ship-fix/` (fixture plan, `setup_fixture.sh`, runner, `grade.py`); smoke one trial per config
 - [ ] Run the ship-fix eval on Opus and Sonnet, export results, write its README; README row, install line and flow paragraph
 - [ ] End-to-end: in a scratch copy of the diagnose-bug fixture with both skills installed, run `/ship-fix SHOP-311` as saaio would start it, through the approval stop, then "continue fixing" to the MR draft
