@@ -3,7 +3,7 @@
 the session transcripts (for the commands it ran).
 
 Usage: grade.py <iteration-dir>
-Writes <run>/grading.json and <run>/outputs/result.txt for every run.
+Writes <run>/grading.json and <run>/outputs/diagnosis_result.txt for every run.
 Expectations starting "Diagnosis:" apply to every config; those starting
 "Contract:" are what diagnose-bug promises (no code, a fix plan), graded
 for every config but only expected of with_skill. Text checks are keyword
@@ -17,17 +17,17 @@ CLI = re.compile(r"(src/main\.ts|npm run\b[^;&|\n]*\bbm\b)")
 LOST = re.compile(
     r"(already|existing|previously|past|historic|since)\b.{0,120}\b(lost|dropp|gone|wiped|stripped|erased|removed|missing)"
     r"|(lost|dropp|wiped|stripped|erased).{0,120}\b(already|existing|users'? (data|files?)|on disk|cannot be recovered|unrecoverable)"
-    r"|\b(recover|restore|backfill|repair|migrat)", re.I | re.S)
+    r"|\b(recover|restore|backfill|repair|migrat|re-?tag)|(get|bring) them back", re.I | re.S)
 NOT_REPRODUCED = re.compile(
-    r"(not|n't|unable to|never|no longer)\s+(be\s+)?(reproduc|repro\b)|could not get it to|does not (break|corrupt)|is not reproducible"
+    r"(not|n't|unable to|never|no longer)\s+(be\s+)?(reproduc|repro\b)|could not get it to|(couldn't|could not|can't|cannot) make .{0,40}happen|does not (break|corrupt)|is not reproducible"
     r"|works (correctly|fine|as expected)|handled correctly|no corruption|stays? (valid|intact)", re.I)
 OLD_FILE = re.compile(
     r"before tags|pre-?tags|without (a |any )?[`\"']?tags[`\"']? (field|key|propert)|no [`\"']?tags[`\"']? (field|key|propert)"
     r"|old(er)? (bookmarks )?(file|format|version|data)|legacy|upgrad", re.I)
 WRONGLY_TAGGED = re.compile(
     r"(already|existing|users'?).{0,160}\b(wrong|spurious|incorrect|extra|unwanted|bogus|polluted|bad)"
-    r"|clean ?up|remove the (wrong|extra|spurious)|\b(repair|migrat)|(cannot|can't|no way to) (tell|know|distinguish)", re.I | re.S)
-ASKS = re.compile(r"\?|\b(share|send|attach|provide|which version|exact (steps|command)|more (detail|info))", re.I)
+    r"|clean ?up|remove (the|those) (wrong|extra|spurious|tags)|by hand|\b(repair|migrat)|(cannot|can't|no way to) (tell|know|distinguish)", re.I | re.S)
+ASKS = re.compile(r"\?|\b(share|send|attach|provide|which version|exact (steps|command)|more (detail|info)|need (the|their|a|to know)|ask (the reporter|them|for))", re.I)
 
 
 def sh(cwd, *args, env=None):
@@ -130,7 +130,7 @@ def check(t, ctx):
         m = OLD_FILE.search(texts)
         return bool(tagged and m), f"{len(tagged)} CLI tag commands; old data: {m.group(0) if m else None}"
     if t.startswith("Diagnosis: the cause named is the shared"):
-        m = re.search(r"noTags|shar(ed|es|ing) (one |a |the )?(same |single )?(empty )?(`?\[\]`? )?array|same (empty )?array|alias", texts, re.I)
+        m = re.search(r"noTags|shar(ed|es|ing) (one |a |the )?(same |single )?(empty )?(`?\[\]`? )?array|same (empty )?(array|list)|one (shared )?list|shared (with|list|default)|alias", texts, re.I)
         return bool(m), m.group(0) if m else "shared array not named"
     if t.startswith("Diagnosis: any source change is in fromRecord"):
         if not src:
@@ -160,6 +160,9 @@ def check(t, ctx):
         if tests:
             failing = fails_on_base(repo, base, tests)
             return bool(failing), f"written: {tests}; fail on base: {failing}"
+        first = [tasks(p)[0] for _, p in ctx["plans"] if tasks(p)]
+        if first and re.search(r"\btest", first[0], re.I):
+            return True, " ".join(first[0].split())[:120]
         named = [l.strip() for l in texts.splitlines()
                  if re.search(r"\btest", l, re.I) and re.search(r"\btag", l, re.I)
                  and re.search(r"\b(add|save|before|old|without|shared|other|only)", l, re.I)]
@@ -224,7 +227,7 @@ def main(it):
             status = git(repo, "status", "--short")
             cli = "\n".join(c for c in ctx["commands"] if CLI.search(c))
             plan = "\n\n".join(f"== {f}\n{p}" for f, p in ctx["plans"])
-            (run / "outputs/result.txt").write_text(f"status:\n{status}\nCLI commands:\n{cli}\n\nplans:\n{plan}\n")
+            (run / "outputs/diagnosis_result.txt").write_text(f"status:\n{status}\nCLI commands:\n{cli}\n\nplans:\n{plan}\n")
             print(f"{run.relative_to(it)}: {n}/{len(results)} "
                   f"(diagnosis {parts['diagnosis']['passed']}/{parts['diagnosis']['total']}, "
                   f"contract {parts['contract']['passed']}/{parts['contract']['total']})")
