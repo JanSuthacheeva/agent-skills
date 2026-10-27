@@ -1,0 +1,60 @@
+{
+  "expectations": [
+    {
+      "text": "All plan boxes are ticked",
+      "passed": true,
+      "evidence": "xxx"
+    },
+    {
+      "text": "The build ran in this session, not in an agent",
+      "passed": true,
+      "evidence": "build agents: 0"
+    },
+    {
+      "text": "A regression test fails on the pre-fix source",
+      "passed": true,
+      "evidence": "changed tests: ['test/store.tags.test.ts']; fail before the fix: ['test/store.tags.test.ts']"
+    },
+    {
+      "text": "Tags survive bm add through the CLI",
+      "passed": true,
+      "evidence": "list --tag work after add: '1  A  https://a.dev'"
+    },
+    {
+      "text": "The review ran in a separate fresh agent",
+      "passed": true,
+      "evidence": "review agents: 1"
+    },
+    {
+      "text": "The review agent's prompt holds no build report",
+      "passed": true,
+      "evidence": "766 chars; leak: None"
+    },
+    {
+      "text": "The plan has a ## Review section",
+      "passed": true,
+      "evidence": "found"
+    },
+    {
+      "text": "npm test passes",
+      "passed": true,
+      "evidence": "# duration_ms 76.182833"
+    },
+    {
+      "text": "Nothing was pushed and no MR was created",
+      "passed": true,
+      "evidence": "remote heads: ['main']; mr create: False"
+    },
+    {
+      "text": "Response drafts the MR or puts open review items to the user",
+      "passed": true,
+      "evidence": "No merge request exists for this branch, and the repo has no template. Here is the draft. I haven't pushed anything.  **"
+    }
+  ],
+  "summary": {
+    "passed": 10,
+    "failed": 0,
+    "total": 10,
+    "pass_rate": 1.0
+  }
+}

@@ -14,13 +14,16 @@ Trying to keep the evals up to date and run them for different harnesses and mod
 | [review-changes](skills/review-changes/SKILL.md) | Reviews a branch in a context that has not seen the implementation, proves findings, fixes the cheap ones and re-reviews them, and reports what was fixed, what is open and where to look. | [Claude Code, Opus 5.5 and Sonnet 5.5, medium effort](evals/review-changes/results/claude-code/README.md): every condition repairs every planted defect; blind-judged owner report 36.0 of 40 vs 30.0 for a plain review and 22.0 for `/code-review` (Opus), 35.7 vs 29.3 and 23.1 (Sonnet), ranked first in 18 of 18 |
 | [write-merge-request](skills/write-merge-request/SKILL.md) | Writes MR/PR title and description around the why: decisions a reviewer would question, deploy steps such as new env variables, a short reading order for larger diffs; follows the repo's template. Pushes and creates the MR only when asked. | [Claude Code, Opus 5.5 and Sonnet 5.5, medium effort](evals/write-merge-request/results/claude-code/README.md): 18/18 trials pass with the skill, 6/18 without (Opus); 17/18 vs 5/18 (Sonnet) |
 | [ship-feature](skills/ship-feature/SKILL.md) | Runs the four skills above as one flow from request or ticket to merge request: builds in your conversation after a `/compact` so you can follow it, reviews in a fresh agent given only the plan and the branch, stops only for your decisions (approach, plan, blocked build, open review items, push), and resumes from what the repository shows. | [Claude Code, Opus 5.5 and Sonnet 5.5, medium effort](evals/ship-feature/results/claude-code/README.md): with the skill, every trial builds in the conversation where tasks are open, reviews in a fresh agent and reports its stop to saaio (then called `flow`); 4/4 trials pass all checks (Opus), 2/4 (Sonnet, each missed one report), 0/4 without; [without saaio](evals/ship-feature/results/claude-code-without-flow/README.md) 4/4 vs 2/4 (Opus), 4/4 vs 0/4 (Sonnet); measured while the skills still reported to saaio, which now follows them through hooks |
+| [ship-fix](skills/ship-fix/SKILL.md) | The same flow for a bug, from report or ticket to merge request: `diagnose-bug` in place of `design-code`, then build, isolated review and MR as in `ship-feature`. Always stops for approval of the fix plan before any code changes, and goes back to diagnosis when the regression test does not fail as the plan says. | [Claude Code, Opus 5.5 and Sonnet 5.5, medium effort](evals/ship-fix/results/claude-code/README.md): 4/4 trials pass all checks with the skill on both models, 0/4 without; given a new report, the step skills alone fixed and committed without a plan to approve and tried to push in 3 of 4 trials; given an approved plan, they never reviewed |
 | [commit](skills/commit/SKILL.md) | Writes + creates git commits in Scoped Commits format (`scope: description`): reuses scopes from log, adds a `Refs:` trailer from branch's ticket id (if available), keeps git's default revert and merge messages. Never pushes. | [Claude Code, Opus 5.5 and Sonnet 5.5, medium effort](evals/commit/results/claude-code/README.md): 55/55 trials pass with the skill, 45/55 without (Opus); 54/55 vs 27/55 (Sonnet) |
 | [setup-saaio](skills/setup-saaio/SKILL.md) | Prepares a repo so [saaio](https://github.com/JanSuthacheeva/saaio) can run several workers side by side, each in its own worktree: makes compose ports configurable (today's ports kept as defaults), writes `.saaio/setup` and `.saaio/teardown` that give each worktree its own ports, `.env` and containers from `SAAIO_SLOT` (Docker Compose, Laravel Sail, plain dev servers), and proves them in a scratch worktree. | [Claude Code, Opus 5.5, medium effort](evals/setup-saaio/results/claude-code/README.md): 42/42 checks with the skill and without; the skill changes only the hooks and what they need, every baseline trial also edits `.gitignore`, the README or `.env.example`, for 0.08 USD less per trial |
 
 Together they form a flow from idea to merge request:
 `design-code` -> `implement-plan` -> `review-changes` -> `write-merge-request`,
-with `commit` used throughout. `ship-feature` runs the flow for you; each
-skill also works on its own. [saaio](https://github.com/JanSuthacheeva/saaio)
+with `commit` used throughout. A bug takes the same flow from its
+diagnosis: `diagnose-bug` -> `implement-plan` -> `review-changes` ->
+`write-merge-request`. `ship-feature` and `ship-fix` run the two flows for
+you; each skill also works on its own. [saaio](https://github.com/JanSuthacheeva/saaio)
 follows them through Claude Code's own hooks, so the skills know nothing
 about it; `setup-saaio` gets a repo ready for saaio's parallel workers.
 
@@ -37,6 +40,7 @@ npx skills add JanSuthacheeva/agent-skills --skill implement-plan
 npx skills add JanSuthacheeva/agent-skills --skill review-changes
 npx skills add JanSuthacheeva/agent-skills --skill setup-saaio
 npx skills add JanSuthacheeva/agent-skills --skill ship-feature
+npx skills add JanSuthacheeva/agent-skills --skill ship-fix
 npx skills add JanSuthacheeva/agent-skills --skill write-merge-request
 ```
 

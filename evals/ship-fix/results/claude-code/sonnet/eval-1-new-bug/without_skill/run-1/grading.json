@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "A fix plan names save/toRecord in src/store.ts as the cause",
+      "passed": false,
+      "evidence": "plans: []; naming toRecord: []"
+    },
+    {
+      "text": "src/ and test/ are unchanged",
+      "passed": false,
+      "evidence": "changed: ['src/store.ts', 'test/store.tags.test.ts']"
+    },
+    {
+      "text": "Nothing was committed to main",
+      "passed": true,
+      "evidence": "main: 3ce3548, was 3ce3548"
+    },
+    {
+      "text": "Nothing was pushed and no MR was created",
+      "passed": true,
+      "evidence": "remote heads: ['main']; mr create: False"
+    },
+    {
+      "text": "Response asks the user to approve the plan",
+      "passed": true,
+      "evidence": "approv"
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 2,
+    "total": 5,
+    "pass_rate": 0.6
+  }
+}

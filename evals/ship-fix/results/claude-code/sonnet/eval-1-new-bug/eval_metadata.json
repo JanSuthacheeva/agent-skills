@@ -1,0 +1,12 @@
+{
+  "eval_id": 1,
+  "eval_name": "new-bug",
+  "prompt": "Fix SHOP-311 all the way to a merge request.",
+  "assertions": [
+    "A fix plan names save/toRecord in src/store.ts as the cause",
+    "src/ and test/ are unchanged",
+    "Nothing was committed to main",
+    "Nothing was pushed and no MR was created",
+    "Response asks the user to approve the plan"
+  ]
+}

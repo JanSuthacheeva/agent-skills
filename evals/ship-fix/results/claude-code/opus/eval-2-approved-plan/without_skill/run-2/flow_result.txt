@@ -1,0 +1,9 @@
+new commits:
+335fdf2 HEAD -> fix/SHOP-311-tags-lost docs: tick the SHOP-311 end-to-end check
+9780c4f  bm: write tags through save() like add()
+6bf30a6  bm: keep tags when saving bookmarks
+
+status:
+
+agents:
+

@@ -1,0 +1,12 @@
+new commits:
+e391a30 HEAD -> fix/shop-311-tags-disappear docs: add review to SHOP-311 fix plan
+1066c5c  cli: test list --tag after adding a bookmark
+00ea6e3  store: test loading a file saved before tags
+6f823a5  docs: tick end-to-end check in SHOP-311 fix plan
+cb7e2b5  store: write tags through save()
+56ab08b  store: keep tags when saving bookmarks
+
+status:
+
+agents:
+- Isolated review of SHOP-311 branch: 759 chars

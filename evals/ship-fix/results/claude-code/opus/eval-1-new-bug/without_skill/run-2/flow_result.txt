@@ -1,0 +1,11 @@
+new commits:
+5237895 HEAD -> fix/SHOP-311-tags-lost-on-add docs: plans: add review of tags fix
+2420286  bm: store: test loading a file written before tags
+e733678  docs: plans: tick end-to-end check for tags fix
+4ef89fa  bm: store: write tags through save()
+9d31642  bm: store: keep tags when adding a bookmark
+
+status:
+
+agents:
+- Isolated review of SHOP-311 branch: 658 chars

@@ -1,0 +1,7 @@
+new commits:
+f57f6ae HEAD -> fix/SHOP-311-tags-lost-on-add bm: keep tags when saving bookmarks
+
+status:
+
+agents:
+

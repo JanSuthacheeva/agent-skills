@@ -1,0 +1,10 @@
+new commits:
+ec1f36b HEAD -> fix/SHOP-311-tags-lost docs: add review to SHOP-311 plan
+317d64e  docs: tick SHOP-311 end-to-end check
+a6b9e91  store: save tags through save() like add()
+5135ad8  store: keep tags when saving bookmarks
+
+status:
+
+agents:
+- Isolated review of SHOP-311 fix: 766 chars

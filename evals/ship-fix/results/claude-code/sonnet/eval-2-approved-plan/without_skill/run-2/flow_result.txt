@@ -1,0 +1,9 @@
+new commits:
+fbed0ce HEAD -> fix/SHOP-311-tags-lost docs: tick off SHOP-311 plan
+1dd3204  store: save tags through save()
+cc89526  store: keep tags when saving bookmarks
+
+status:
+
+agents:
+
