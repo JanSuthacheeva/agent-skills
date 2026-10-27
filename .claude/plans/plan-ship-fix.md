@@ -308,6 +308,12 @@ questions to the user; no branch, no commit, no fix unless asked.
   the published grades; ticket-title without the skill guessed `clickup-axi task` instead
   of `tasks` (refused by old and new stub alike) and review-guide with the skill wrote a
   10-line review section. Run-to-run variation, not the stubs.
+- End-to-end (Opus 5.5, a scratch copy of the tags-lost fixture with all six skills,
+  turns resumed in one session): `/ship-fix SHOP-311` diagnosed with diagnose-bug and
+  stopped for approval with the plan untracked on main; "Approved, and no repair for
+  question 1." recorded the decision and committed the plan on branch `SHOP-311`;
+  `/compact`; "continue fixing" built three tasks test first, reviewed in a fresh agent,
+  wrote `## Review` and showed the MR draft, asking before the push. Nothing was pushed.
 - `export_results.py` reports a grader's parts (diagnosis, contract) separately and knows
   the `systematic_debugging` condition.
 
@@ -329,5 +335,5 @@ questions to the user; no branch, no commit, no fix unless asked.
 - [x] Write `skills/ship-fix/SKILL.md` per Units
 - [x] Authoring checks and trigger eval on ship-fix, as for diagnose-bug
 - [x] Build `evals/ship-fix/` (fixture plan, `setup_fixture.sh`, runner, `grade.py`); smoke one trial per config
-- [ ] Run the ship-fix eval on Opus and Sonnet, export results, write its README; README row, install line and flow paragraph
-- [ ] End-to-end: in a scratch copy of the diagnose-bug fixture with both skills installed, run `/ship-fix SHOP-311` as saaio would start it, through the approval stop, then "continue fixing" to the MR draft
+- [x] Run the ship-fix eval on Opus and Sonnet, export results, write its README; README row, install line and flow paragraph
+- [x] End-to-end: in a scratch copy of the diagnose-bug fixture with both skills installed, run `/ship-fix SHOP-311` as saaio would start it, through the approval stop, then "continue fixing" to the MR draft
