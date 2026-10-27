@@ -366,6 +366,8 @@ Isolated review of `flow/bugfix-skill` against `main`.
 - `evals/*/workspace/` is untracked and not ignored, as for the other
   suites. Recommendation: add it to `.gitignore` in a separate change.
 
+Decided: both as recommended - neither is built on this branch.
+
 **Where to look**
 
 1. `skills/ship-fix/SKILL.md` section 1 table and section 3: the two rows
