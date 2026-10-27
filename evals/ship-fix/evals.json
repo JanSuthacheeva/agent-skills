@@ -1,0 +1,40 @@
+{
+  "skill_name": "ship-fix",
+  "evals": [
+    {
+      "id": 1,
+      "name": "new-bug",
+      "prompt": "Fix SHOP-311 all the way to a merge request.",
+      "expected_output": "Diagnoses with diagnose-bug: reproduces the lost tags through the CLI, finds save/toRecord, writes a fix plan, changes no code, commits nothing to main, pushes nothing, and stops to ask for approval of the plan.",
+      "files": ["setup_fixture.sh"],
+      "expectations": [
+        "A fix plan names save/toRecord in src/store.ts as the cause",
+        "src/ and test/ are unchanged",
+        "Nothing was committed to main",
+        "Nothing was pushed and no MR was created",
+        "Response asks the user to approve the plan"
+      ],
+      "tests": "A new bug report given to the whole flow; whether it stops for approval of the fix plan before any code changes."
+    },
+    {
+      "id": 2,
+      "name": "approved-plan",
+      "prompt": "Continue fixing SHOP-311.",
+      "expected_output": "Builds the approved fix plan in this session, task 1's regression test failing on the pre-fix source, reruns the reproduction, reviews in a fresh agent that gets no build report, writes ## Review into the plan, drafts the MR and stops before pushing.",
+      "files": ["setup_fixture.sh", "fixture/plan.md"],
+      "expectations": [
+        "All plan boxes are ticked",
+        "The build ran in this session, not in an agent",
+        "A regression test fails on the pre-fix source",
+        "Tags survive bm add through the CLI",
+        "The review ran in a separate fresh agent",
+        "The review agent's prompt holds no build report",
+        "The plan has a ## Review section",
+        "npm test passes",
+        "Nothing was pushed and no MR was created",
+        "Response drafts the MR or puts open review items to the user"
+      ],
+      "tests": "A flow resumed after approval and compaction; building with the test first, an isolated review, and stopping before the push."
+    }
+  ]
+}
