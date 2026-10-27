@@ -96,17 +96,19 @@ metadata:
     author: Jan Suthacheeva
     version: "0.1"
 ---
-## 1. Find where it stands  ship-feature's table; "No fix plan" -> Diagnose
+## 1. Find where it stands  ship-feature's table; "No fix plan" -> Diagnose;
+                            "fix plan not committed on a fix branch" -> approval
 ## 2. Diagnose              diagnose-bug here; stops: not reproducible, unclear
                             expected behaviour, open questions, plan approval;
                             then a fix branch + commit the plan; ask for /compact
                             and "continue fixing"
-## 3. Build                 = ship-feature 3
+## 3. Build                 = ship-feature 3, plus: a regression test that passes or
+                            fails for another reason stops the build (diagnose again)
 ## 4. Review                = ship-feature 4
 ## 5. Merge request         = ship-feature 5
 ## Stops                    report unclear or not reproducible, plan approval and
-                            the compaction, blocked build or red base, open review
-                            items, push
+                            the compaction, a test that disproves the diagnosis,
+                            blocked build or red base, open review items, push
 ```
 
 Sections 3 to 5 and the stops are copied from `skills/ship-feature/SKILL.md` with the
@@ -318,7 +320,7 @@ questions to the user; no branch, no commit, no fix unless asked.
 
 ### ship-fix
 
-- [ ] Write `skills/ship-fix/SKILL.md` per Units
+- [x] Write `skills/ship-fix/SKILL.md` per Units
 - [ ] Authoring checks and trigger eval on ship-fix, as for diagnose-bug
 - [ ] Build `evals/ship-fix/` (fixture plan, `setup_fixture.sh`, runner, `grade.py`); smoke one trial per config
 - [ ] Run the ship-fix eval on Opus and Sonnet, export results, write its README; README row, install line and flow paragraph
