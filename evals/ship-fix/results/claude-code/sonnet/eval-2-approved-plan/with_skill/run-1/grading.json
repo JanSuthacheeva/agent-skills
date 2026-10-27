@@ -38,7 +38,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "# duration_ms 73.405167"
+      "evidence": "# duration_ms 74.293584"
     },
     {
       "text": "Nothing was pushed and no MR was created",
@@ -48,7 +48,7 @@
     {
       "text": "Response drafts the MR or puts open review items to the user",
       "passed": true,
-      "evidence": "No MR exists yet. Here are the title and description. I won't push until you say so.  **Title:** `SHOP-311 Tags disappea"
+      "evidence": "MR draft: True; open items put: None"
     }
   ],
   "summary": {

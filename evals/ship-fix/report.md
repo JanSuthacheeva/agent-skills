@@ -141,7 +141,8 @@ baseline with `implement-plan` in three of four trials), and every fix
 held through the command line. Only the skill
 condition went on to review: without the orchestrator, no trial started a
 review, so the `## Review` section that records what was checked and
-where to look was never written. This repeats the result of the
+where to look was never written, and no trial drafted the merge
+request. This repeats the result of the
 `ship-feature` evaluation, where an uninstructed agent likewise ended the
 flow after the build.
 

@@ -38,7 +38,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "# duration_ms 78.300625"
+      "evidence": "# duration_ms 73.319084"
     },
     {
       "text": "Nothing was pushed and no MR was created",
@@ -47,14 +47,14 @@
     },
     {
       "text": "Response drafts the MR or puts open review items to the user",
-      "passed": true,
-      "evidence": "SHOP-311 is fixed. All 17 tests pass and the reproduction from the plan now gives the expected output. The repo has no l"
+      "passed": false,
+      "evidence": "MR draft: False; open items put: None"
     }
   ],
   "summary": {
-    "passed": 7,
-    "failed": 3,
+    "passed": 6,
+    "failed": 4,
     "total": 10,
-    "pass_rate": 0.7
+    "pass_rate": 0.6
   }
 }

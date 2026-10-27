@@ -38,7 +38,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "# duration_ms 76.182833"
+      "evidence": "# duration_ms 76.977292"
     },
     {
       "text": "Nothing was pushed and no MR was created",
@@ -48,7 +48,7 @@
     {
       "text": "Response drafts the MR or puts open review items to the user",
       "passed": true,
-      "evidence": "No merge request exists for this branch, and the repo has no template. Here is the draft. I haven't pushed anything.  **"
+      "evidence": "MR draft: True; open items put: None"
     }
   ],
   "summary": {

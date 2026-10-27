@@ -11,7 +11,9 @@ from pathlib import Path
 
 PLAN = "docs/plans/2026-10-27-fix-tags-lost.md"
 BUILD_REPORT = re.compile(r"deviation|I (built|implemented|fixed)|has been (built|implemented|fixed)|tasks? \d+ (to|-) \d+ (are|were) (done|built)", re.I)
-APPROVAL = re.compile(r"approv|go ahead|shall I|should I (start|build|proceed)|ok to (build|proceed)|sign.?off|confirm", re.I)
+APPROVAL = re.compile(r"\bplan\b.{0,80}\b(approv|go ahead|sign.?off|confirm)|\b(approv|confirm|sign.?off)\w*\b.{0,40}\bplan\b", re.I | re.S)
+MR_DRAFT = re.compile(r"\btitle\b.{0,400}\bdescription\b", re.I | re.S)
+OPEN_ITEMS = re.compile(r"\b(open (items?|questions?|points?)|left (one |two |\w+ )?(open|undecided))\b", re.I)
 
 
 def sh(cwd, *args, env=None):
@@ -123,8 +125,8 @@ def check(t, ctx):
         return r.returncode == 0, out.splitlines()[-1][:80] if out else ""
     if t.startswith("Response drafts the MR"):
         r = ctx["response"]
-        ok = re.search(r"merge request|\bMR\b|push", r, re.I) or re.search(r"open|decid|recommend", r, re.I)
-        return bool(ok), r.strip()[:120].replace("\n", " ")
+        draft, items = MR_DRAFT.search(r), OPEN_ITEMS.search(r) if "?" in r else None
+        return bool(draft or items), f"MR draft: {bool(draft)}; open items put: {items.group(0) if items else None}"
     raise ValueError(t)
 
 

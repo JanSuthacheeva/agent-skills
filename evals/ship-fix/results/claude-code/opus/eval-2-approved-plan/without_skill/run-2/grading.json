@@ -38,7 +38,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "# duration_ms 74.400834"
+      "evidence": "# duration_ms 72.936125"
     },
     {
       "text": "Nothing was pushed and no MR was created",
@@ -47,14 +47,14 @@
     },
     {
       "text": "Response drafts the MR or puts open review items to the user",
-      "passed": true,
-      "evidence": "SHOP-311 is fixed: tags now survive a `bm add`. All three tasks in the plan are done and committed on `fix/SHOP-311-tags"
+      "passed": false,
+      "evidence": "MR draft: False; open items put: None"
     }
   ],
   "summary": {
-    "passed": 7,
-    "failed": 3,
+    "passed": 6,
+    "failed": 4,
     "total": 10,
-    "pass_rate": 0.7
+    "pass_rate": 0.6
   }
 }

@@ -38,7 +38,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "# duration_ms 84.402541"
+      "evidence": "# duration_ms 79.709083"
     },
     {
       "text": "Nothing was pushed and no MR was created",
@@ -48,7 +48,7 @@
     {
       "text": "Response drafts the MR or puts open review items to the user",
       "passed": true,
-      "evidence": "The SHOP-311 fix is built and reviewed on `fix/SHOP-311-tags-lost`. Before I write the merge request, I need your decisi"
+      "evidence": "MR draft: False; open items put: left open"
     }
   ],
   "summary": {

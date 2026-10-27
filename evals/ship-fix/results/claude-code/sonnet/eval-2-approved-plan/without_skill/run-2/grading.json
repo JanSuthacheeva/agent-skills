@@ -38,7 +38,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "# duration_ms 83.716834"
+      "evidence": "# duration_ms 75.713"
     },
     {
       "text": "Nothing was pushed and no MR was created",
@@ -48,7 +48,7 @@
     {
       "text": "Response drafts the MR or puts open review items to the user",
       "passed": false,
-      "evidence": "SHOP-311 is fixed. The tests pass (17/17), and the reproduction from the plan now ends with `1  A  https://a.example` fr"
+      "evidence": "MR draft: False; open items put: None"
     }
   ],
   "summary": {

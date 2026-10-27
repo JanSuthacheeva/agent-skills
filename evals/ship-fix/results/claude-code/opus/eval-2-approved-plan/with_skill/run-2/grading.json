@@ -38,7 +38,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "# duration_ms 75.005666"
+      "evidence": "# duration_ms 78.3885"
     },
     {
       "text": "Nothing was pushed and no MR was created",
@@ -48,7 +48,7 @@
     {
       "text": "Response drafts the MR or puts open review items to the user",
       "passed": true,
-      "evidence": "The fix for SHOP-311 is built and reviewed, and the branch is ready for a merge request. The review left one open item, "
+      "evidence": "MR draft: True; open items put: left one open"
     }
   ],
   "summary": {

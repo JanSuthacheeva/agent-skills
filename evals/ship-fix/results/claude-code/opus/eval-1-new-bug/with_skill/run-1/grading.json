@@ -23,7 +23,7 @@
     {
       "text": "Response asks the user to approve the plan",
       "passed": true,
-      "evidence": "approv"
+      "evidence": "plan. I need your approv"
     }
   ],
   "summary": {

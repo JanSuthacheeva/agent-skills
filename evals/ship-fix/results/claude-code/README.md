@@ -118,13 +118,13 @@ from the transcripts.
 
 | Check | Opus Skill | Opus Baseline | Sonnet Skill | Sonnet Baseline |
 |---|---|---|---|---|
+| Response asks the user to approve the plan | 0 | 2 | 0 | 2 |
+| Response drafts the MR or puts open review items to the user | 0 | 2 | 0 | 2 |
 | The plan has a ## Review section | 0 | 2 | 0 | 2 |
 | The review agent's prompt holds no build report | 0 | 2 | 0 | 2 |
 | The review ran in a separate fresh agent | 0 | 2 | 0 | 2 |
 | src/ and test/ are unchanged | 0 | 2 | 0 | 2 |
-| Response asks the user to approve the plan | 0 | 2 | 0 | 1 |
 | A fix plan names save/toRecord in src/store.ts as the cause | 0 | 0 | 0 | 2 |
-| Response drafts the MR or puts open review items to the user | 0 | 0 | 0 | 1 |
 
 **Table 4.** Resource use per trial, mean (standard deviation). Cost
 includes subagents started by the session.
@@ -155,7 +155,8 @@ baseline with `implement-plan` in three of four trials), and every fix
 held through the command line. Only the skill
 condition went on to review: without the orchestrator, no trial started a
 review, so the `## Review` section that records what was checked and
-where to look was never written. This repeats the result of the
+where to look was never written, and no trial drafted the merge
+request. This repeats the result of the
 `ship-feature` evaluation, where an uninstructed agent likewise ended the
 flow after the build.
 

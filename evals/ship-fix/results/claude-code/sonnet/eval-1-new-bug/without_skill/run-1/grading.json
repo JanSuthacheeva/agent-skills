@@ -22,14 +22,14 @@
     },
     {
       "text": "Response asks the user to approve the plan",
-      "passed": true,
-      "evidence": "approv"
+      "passed": false,
+      "evidence": "The push was denied, so I haven't pushed the branch or created the MR. Everything up to that point is done.  **Cause:** "
     }
   ],
   "summary": {
-    "passed": 3,
-    "failed": 2,
+    "passed": 2,
+    "failed": 3,
     "total": 5,
-    "pass_rate": 0.6
+    "pass_rate": 0.4
   }
 }
