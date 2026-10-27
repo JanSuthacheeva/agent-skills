@@ -1,0 +1,4 @@
+{
+  "SHOP-311": "task:\n  id: SHOP-311\n  title: Tags disappear\n  status: open\n  type: bug\n  description: |\n    I tagged bookmarks, added a new one, and `bm list --tag work` shows\n    nothing. I think list --tag is broken.\n",
+  "SHOP-312": "task:\n  id: SHOP-312\n  title: Titles with quotes break the bookmarks file\n  status: open\n  type: bug\n  description: |\n    When I add a bookmark whose title has double quotes in it, like\n    bm add https://example.com 'The \"best\" tools', the bookmarks file\n    gets corrupted and bm stops working.\n"
+}
