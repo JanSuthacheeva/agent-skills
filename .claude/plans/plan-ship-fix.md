@@ -296,6 +296,10 @@ questions to the user; no branch, no commit, no fix unless asked.
   to a merge request", triggers diagnose-bug because ship-fix does not exist yet; it is
   re-tested in ship-fix's trigger eval. `run_eval.py` must run with `--num-workers 1`: its
   parallel workers share one commands directory, so each run sees all workers' copies.
+- write-merge-request after the stub extraction (Opus, one trial each): 10 of 12 cells match
+  the published grades; ticket-title without the skill guessed `clickup-axi task` instead
+  of `tasks` (refused by old and new stub alike) and review-guide with the skill wrote a
+  10-line review section. Run-to-run variation, not the stubs.
 - `export_results.py` reports a grader's parts (diagnosis, contract) separately and knows
   the `systematic_debugging` condition.
 
@@ -309,8 +313,8 @@ questions to the user; no branch, no commit, no fix unless asked.
 - [x] Extract `evals/shared/forge_stubs.sh` (`forge_stubs`, `forge_remote`) and use it in `evals/write-merge-request/setup_fixture.sh`; prove every write-merge-request fixture builds the same repo and stub answers as before
 - [x] Build `evals/diagnose-bug/` fixture and `setup_fixture.sh`: suite green, bug reproduced through the CLI, `not-reproducible` report does not reproduce
 - [x] Write `evals.json`, `run_trial.sh` (three configs), `run_iteration.sh` and `grade.py` (diagnosis and contract checks); smoke one trial per config and grade it
-- [ ] Run the diagnose-bug eval on Opus and Sonnet, export results, write `results/claude-code/README.md`; README table row and install line
-- [ ] Re-run the write-merge-request eval once after the stub extraction and confirm the same grades
+- [x] Run the diagnose-bug eval on Opus and Sonnet, export results, write `results/claude-code/README.md`; README table row and install line
+- [x] Re-run the write-merge-request eval once after the stub extraction and confirm the same grades
 
 ### ship-fix
 
