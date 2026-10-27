@@ -287,7 +287,7 @@ questions to the user; no branch, no commit, no fix unless asked.
 - [x] Write `skills/diagnose-bug/SKILL.md`, `references/reproduce.md` and `references/fix-plan-format.md` per Units and Data
 - [x] Authoring checks on diagnose-bug: `quick_validate.py`, component review in a fresh agent, findings fixed or answered
 - [ ] Trigger eval of diagnose-bug's description (20 queries) with `run_eval.py`, improved with `run_loop.py` if any misfires
-- [ ] Extract `evals/shared/forge_stubs.sh` (`forge_stubs`, `forge_remote`) and use it in `evals/write-merge-request/setup_fixture.sh`; prove every write-merge-request fixture builds the same repo and stub answers as before
+- [x] Extract `evals/shared/forge_stubs.sh` (`forge_stubs`, `forge_remote`) and use it in `evals/write-merge-request/setup_fixture.sh`; prove every write-merge-request fixture builds the same repo and stub answers as before
 - [ ] Build `evals/diagnose-bug/` fixture and `setup_fixture.sh`: suite green, bug reproduced through the CLI, `not-reproducible` report does not reproduce
 - [ ] Write `evals.json`, `run_trial.sh` (three configs), `run_iteration.sh` and `grade.py` (diagnosis and contract checks); smoke one trial per config and grade it
 - [ ] Run the diagnose-bug eval on Opus and Sonnet, export results, write `results/claude-code/README.md`; README table row and install line
