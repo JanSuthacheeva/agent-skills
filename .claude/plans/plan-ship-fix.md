@@ -337,3 +337,56 @@ questions to the user; no branch, no commit, no fix unless asked.
 - [x] Build `evals/ship-fix/` (fixture plan, `setup_fixture.sh`, runner, `grade.py`); smoke one trial per config
 - [x] Run the ship-fix eval on Opus and Sonnet, export results, write its README; README row, install line and flow paragraph
 - [x] End-to-end: in a scratch copy of the diagnose-bug fixture with both skills installed, run `/ship-fix SHOP-311` as saaio would start it, through the approval stop, then "continue fixing" to the MR draft
+
+## Review
+
+Isolated review of `flow/bugfix-skill` against `main`.
+
+**Fixed**
+
+- ship-fix grader credited stops never made: "asks to approve the plan"
+  passed on "approve the push", "drafts the MR or puts open review items"
+  passed on any reply containing "open". One baseline `new-bug` and three
+  baseline `approved-plan` trials were wrongly passed on these checks
+  (Table 3 under-counted baseline failures). Checks tightened, all 16
+  runs regraded and re-exported, headline (4/4 vs 0/4) unchanged;
+  Discussion notes no baseline drafted the MR. 15b8956
+- Lines left over-long by review edits in both SKILL.md files and the
+  diagnose-bug fixture comment, rewrapped. 7484f5c
+
+**Open**
+
+- The ship-fix text checks stay keyword heuristics (an independent pass
+  on 15b8956 found both directions: "Does this plan look right?" or a
+  draft labelled "Body" fail, "If you approve the push, I'll open the
+  plan MR" passes). Every published grade was checked by hand and is
+  right. Recommendation: before the next ship-fix iteration, grade these
+  two checks with a small judge or labelled-field patterns instead of
+  more regex; not worth it for v0.1.
+- `evals/*/workspace/` is untracked and not ignored, as for the other
+  suites. Recommendation: add it to `.gitignore` in a separate change.
+
+**Where to look**
+
+1. `skills/ship-fix/SKILL.md` section 1 table and section 3: the two rows
+   added over ship-feature (unapproved plan, disproved diagnosis) are
+   the only flow logic that is new.
+2. `skills/diagnose-bug/SKILL.md` steps 2-5 with
+   `references/fix-plan-format.md`: the contract the build relies on
+   (first task = failing test + fix, last = rerun the reproduction).
+3. `evals/diagnose-bug/grade.py` `check()`: keyword heuristics behind the
+   README's diagnosis numbers; regrading the existing runs reproduces
+   every published grade.
+
+Routine, skim: the eval result files, fixtures, `forge_stubs.sh`
+extraction (write-merge-request fixture unchanged in behaviour), the
+`export_results.py` parts tables, README rows.
+
+**Checks**
+
+`bash -n` on all changed shell scripts and `python3 -m py_compile` on the
+graders pass at 7484f5c; every setup_fixture builds (suite 15/15 green,
+SHOP-311 reproduces through the CLI); both graders reproduce the
+published grades from the workspace runs (ship-fix after 15b8956).
+Fixes reviewed by a separate agent (15b8956) or by a re-read (7484f5c,
+wording only).
