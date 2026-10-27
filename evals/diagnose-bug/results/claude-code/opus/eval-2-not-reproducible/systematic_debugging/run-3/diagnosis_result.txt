@@ -1,0 +1,7 @@
+status:
+
+CLI commands:
+cd "$(mktemp -d)" && export BM_FILE=$PWD/b.json && R=<tmp> && cat $R/src/main.ts && cd $R && npm run -s bm -- add https://example.com 'The "best" tools'; npm run -s bm -- add https://a.com "it's \"x\" \\ back"; npm run -s bm -- tag 1 tools; npm run -s bm -- add https://c.com 'more "q"'; npm run -s bm -- list; cat $BM_FILE; npm test 2>&1 | tail -5
+
+plans:
+

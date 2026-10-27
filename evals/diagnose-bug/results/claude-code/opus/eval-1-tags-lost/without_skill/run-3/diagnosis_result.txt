@@ -1,0 +1,12 @@
+status:
+ M src/store.ts
+ M test/store.tags.test.ts
+
+CLI commands:
+export BM_FILE=$(mktemp -d)/b.json; npm run -s bm -- add https://a.com A; npm run -s bm -- tag 1 work; npm run -s bm -- list --tag work; echo ---; npm run -s bm -- add https://b.com B; npm run -s bm -- list --tag work; cat $BM_FILE; echo; cat test/store.tags.test.ts
+cd <tmp> && export BM_FILE=$(mktemp -d)/b.json; npm run -s bm -- add https://a.com A; npm run -s bm -- tag 1 work; npm run -s bm -- list --tag work; echo ---; npm run -s bm -- add https://b.com B; npm run -s bm -- list --tag work; cat $BM_FILE; echo; cat test/store.tags.test.ts
+npm test 2>&1 | tail -12; export BM_FILE=$(mktemp -d)/b.json; npm run -s bm -- add https://a.com A; npm run -s bm -- tag 1 work; npm run -s bm -- add https://b.com B; npm run -s bm -- list --tag work
+cd <tmp> && npm test 2>&1 | tail -12; export BM_FILE=$(mktemp -d)/b.json; npm run -s bm -- add https://a.com A; npm run -s bm -- tag 1 work; npm run -s bm -- add https://b.com B; npm run -s bm -- list --tag work
+
+plans:
+

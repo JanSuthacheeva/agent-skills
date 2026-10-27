@@ -1,0 +1,109 @@
+status:
+?? docs/
+
+CLI commands:
+D=$(mktemp -d); R="$PWD"
+git show c34a1ee:src/store.ts | head -40 | grep -n "tags" ; echo ---
+# legacy file: written by the pre-tags version
+git worktree add -q "$D/old" c34a1ee 2>/dev/null
+for u in a b c; do (cd "$D/old" && BM_FILE=$D/legacy.json node src/main.ts add https://$u.example $u); done
+cat $D/legacy.json | head -8
+echo "--- tag 3 on legacy"; BM_FILE=$D/legacy.json npm run -s bm -- tag 3 recipes; BM_FILE=$D/legacy.json npm run -s bm -- list --tag recipes; grep -A2 tags $D/legacy.json
+echo "--- fresh file"
+for u in a b c; do BM_FILE=$D/fresh.json npm run -s bm -- add https://$u.example $u; done
+BM_FILE=$D/fresh.json npm run -s bm -- tag 3 recipes; BM_FILE=$D/fresh.json npm run -s bm -- list --tag recipes
+git worktree remove --force "$D/old"; rm -rf "$D"
+
+plans:
+== docs/plans/2026-10-27-fix-tag-spreads-to-all-bookmarks.md
+# Fix: tagging one bookmark tags every bookmark saved before the update
+
+Report: SHOP-313 "Tagging one bookmark tags all of them"
+
+## Report
+
+Expected: `bm tag 3 recipes` tags only bookmark 3, so `bm list --tag recipes`
+lists only bookmark 3.
+Actual: `bm list --tag recipes` lists all 40 bookmarks.
+Steps and environment: an existing bookmarks file from before the update
+that added tags (f026bce), then `bm tag 3 recipes`, then
+`bm list --tag recipes`. The reporter's guess ("the tag command ignores the
+id") is wrong: the id is used; see Root cause.
+
+## Reproduction
+
+Write a bookmarks file with the pre-tags version (c34a1ee), so the records
+have no `tags` field, then tag with the current version:
+
+    git worktree add /tmp/bm-old c34a1ee
+    for u in a b c; do (cd /tmp/bm-old && BM_FILE=/tmp/legacy.json node src/main.ts add https://$u.example $u); done
+    BM_FILE=/tmp/legacy.json npm run -s bm -- tag 3 recipes
+    # tagged 3 recipes
+    BM_FILE=/tmp/legacy.json npm run -s bm -- list --tag recipes
+    # 1  a  https://a.example
+    # 2  b  https://b.example
+    # 3  c  https://c.example
+
+`/tmp/legacy.json` now has `"tags": ["recipes"]` on all three records. The
+same steps on a file created by the current version list only `3  c`.
+Fails every run, for every file containing records without `tags`.
+
+## Root cause
+
+`src/store.ts:38` `fromRecord()` gives every record without `tags` the same
+module-level array `noTags` (`src/store.ts:18`) instead of a new one. So all
+legacy bookmarks loaded in one `load()` share one array, and
+`BookmarkStore.tag()` (`src/store.ts:75`) pushes the tag into it, which
+tags every legacy bookmark at once; `save()` then writes the tag to each of
+them. Proven by loading a two-record legacy file: `b[0].tags === b[1].tags`
+is `true`. Introduced in f026bce "bm: tag bookmarks and list by tag".
+
+The existing test "bookmarks saved before tags load with no tags"
+(`test/store.tags.test.ts:40`) does not cover this: it creates the bookmark
+with `add()`, which writes `tags: []`, so it never loads a record without
+`tags`.
+
+## Fix
+
+`fromRecord()` returns a fresh array per record: `tags: record.tags ?? []`,
+and the `noTags` constant is removed. Fixing it there, not in `tag()`
+(e.g. copying before push), keeps any future mutator of `bookmark.tags`
+from hitting the same shared array. No signatures change.
+
+## Also affected
+
+- No other code mutates `noTags`-backed arrays today; `tag()` is the only
+  mutator. `add()` already creates its own `[]`.
+- Data: every bookmarks file that had legacy records and was tagged since
+  the update now carries each tag on all of its legacy records, written to
+  disk. The fix stops new damage but does not remove these tags. Records
+  added after the update are not affected. The file does not record which
+  bookmark was really tagged, so a repair cannot tell intended tags from
+  spread ones.
+
+## Assumptions
+
+- The regression test goes in `test/store.tags.test.ts`, writing a legacy
+  JSON file (records without `tags`) directly to the temp path.
+- The misleading test at `test/store.tags.test.ts:40` is rewritten to load
+  a real legacy record.
+
+## Open questions
+
+1. Repair files already damaged? - recommended: no automatic repair, since
+   intended tags cannot be told apart from spread ones; tell affected users
+   (the reporter at least) to remove the spread tags by hand. A `bm untag`
+   command would help but is new public surface, so a separate ticket.
+
+## Tasks
+
+- [ ] Add "tagging a bookmark saved before tags tags only that bookmark" in
+  `test/store.tags.test.ts` (two legacy records, `tag(2, 'work')`, assert
+  `listTagged('work')` titles; fails today with `['A', 'B']` vs `['B']`),
+  then fix `fromRecord()` in `src/store.ts` and remove `noTags`
+- [ ] Rewrite "bookmarks saved before tags load with no tags" to load a
+  record without `tags`
+- [ ] Run `npm test`
+- [ ] End-to-end: run the reproduction again and see only
+  `3  c  https://c.example` from `list --tag recipes`
+

@@ -1,0 +1,10 @@
+status:
+
+CLI commands:
+cat src/store.ts src/bookmark.ts; cd "$(mktemp -d)" && export BM_FILE=$PWD/b.json && cd - >/dev/null && npm run -s bm -- add https://example.com 'The "best" tools'; echo "exit $?"; cat $BM_FILE; npm run -s bm -- list; echo "exit $?"
+cat src/cli.ts | head -80; d=$(mktemp -d); export BM_FILE=$d/b.json; npm run -s bm -- add https://a.com 'The "best" tools'; npm run -s bm -- tag 1 'my "fav"'; npm run -s bm -- add https://b.com "x\\\"y \\ z"; npm run -s bm -- list; npm run -s bm -- list --tag 'my "fav"' ; echo "exit $?"; cat $BM_FILE
+git log -p --follow src/store.ts | grep -nE '^[-+].*(write|stringify|\\")' ; git status --short; d=$(mktemp -d); export BM_FILE=$d/b.json; npm run -s bm -- add https://a.com A; npm run -s bm -- tag 1 work; npm run -s bm -- add https://b.com B; npm run -s bm -- list --tag work; echo "exit $?"; cat $BM_FILE
+d=$(mktemp -d); export BM_FILE=$d/b.json; printf '[{"id":1,"url":"u","title":"The "best" tools","createdAt":"2026-01-01T00:00:00Z"}]' > $BM_FILE; npm run -s bm -- list 2>&1 | head -5; echo "exit $?"
+
+plans:
+

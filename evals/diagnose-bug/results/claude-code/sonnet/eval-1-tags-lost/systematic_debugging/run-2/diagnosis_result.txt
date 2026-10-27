@@ -1,0 +1,9 @@
+status:
+ M src/store.ts
+ M test/store.tags.test.ts
+
+CLI commands:
+cat test/store.tags.test.ts | head -30; d=$(mktemp -d); export BM_FILE=$d/b.json; npm run -s bm -- add http://a a; npm run -s bm -- tag 1 work; npm run -s bm -- add http://b b; npm run -s bm -- list --tag work; echo "exit $?"; cat $BM_FILE | head -8
+
+plans:
+

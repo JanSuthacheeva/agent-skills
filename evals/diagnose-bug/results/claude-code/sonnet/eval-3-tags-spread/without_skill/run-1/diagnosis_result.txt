@@ -1,0 +1,8 @@
+status:
+ M src/store.ts
+
+CLI commands:
+
+
+plans:
+

@@ -1,0 +1,15 @@
+status:
+
+CLI commands:
+D=$(mktemp -d); export BM_FILE=$D/b.json; cd "$PWD"
+node src/main.ts add https://example.com 'The "best" tools'; echo "exit $?"; cat $BM_FILE
+node src/main.ts list; echo "exit $?"
+node src/main.ts add https://a.com "x \"y\" 'z' \\ back"; node src/main.ts add https://b.com The '"best"' tools; node src/main.ts tag 1 tools; echo "exit $?"
+node src/main.ts list; node src/main.ts list --tag tools; echo "exit $?"
+node -e 'JSON.parse(require("fs").readFileSync(process.env.BM_FILE,"utf8"));console.log("valid json")'
+node src/main.ts add https://c.com 'after tag'; node src/main.ts list --tag tools; echo "tagged after add: exit $?"; cat $BM_FILE
+npm run bm -- add https://example.com 'The "best" tools'; npm run bm -- list
+node --version; rm -rf $D
+
+plans:
+

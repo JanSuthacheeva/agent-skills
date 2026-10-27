@@ -1,0 +1,8 @@
+status:
+
+CLI commands:
+cat src/store.ts; git log --oneline | head; export BM_FILE=/tmp/bm-repro.txt; rm -f $BM_FILE; npm run bm -- add https://example.com 'The "best" tools'; echo "exit $?"; cat $BM_FILE; npm run bm -- list; echo "exit $?"
+cat src/cli.ts src/main.ts; ls -a; export BM_FILE=/tmp/bm-repro.txt; node src/main.ts tag 1 foo; echo "exit $?"; cat $BM_FILE; node src/main.ts list; node src/main.ts list --tag foo
+
+plans:
+

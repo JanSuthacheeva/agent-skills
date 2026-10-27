@@ -1,0 +1,10 @@
+status:
+ M src/store.ts
+ M test/store.tags.test.ts
+
+CLI commands:
+head -20 test/store.tags.test.ts 2>/dev/null || ls; f=/tmp/bm-repro.json; echo '[{"id":1,"url":"a","title":"a","createdAt":"2026-01-01T00:00:00Z"},{"id":2,"url":"b","title":"b","createdAt":"2026-01-01T00:00:00Z"}]' > $f; BM_FILE=$f npm run -s bm -- tag 1 recipes; BM_FILE=$f npm run -s bm -- list --tag recipes
+cd <tmp> && head -20 test/store.tags.test.ts 2>/dev/null || ls; f=/tmp/bm-repro.json; echo '[{"id":1,"url":"a","title":"a","createdAt":"2026-01-01T00:00:00Z"},{"id":2,"url":"b","title":"b","createdAt":"2026-01-01T00:00:00Z"}]' > $f; BM_FILE=$f npm run -s bm -- tag 1 recipes; BM_FILE=$f npm run -s bm -- list --tag recipes
+
+plans:
+

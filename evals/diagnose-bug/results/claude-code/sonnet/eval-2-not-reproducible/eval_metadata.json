@@ -1,0 +1,11 @@
+{
+  "eval_id": 2,
+  "eval_name": "not-reproducible",
+  "prompt": "Look into SHOP-312.",
+  "assertions": [
+    "Diagnosis: the report was tried through the CLI with quotes in a title",
+    "Diagnosis: no source was changed",
+    "Diagnosis: the reply says it did not reproduce and asks for details",
+    "Contract: no fix plan was written and nothing was committed"
+  ]
+}

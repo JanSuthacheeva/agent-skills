@@ -1,0 +1,8 @@
+status:
+
+CLI commands:
+cat src/store.ts; ls . src test* 2>/dev/null; export BM_FILE=/tmp/bm-test.json; rm -f $BM_FILE; npm run bm -- add https://example.com 'The "best" tools'; cat $BM_FILE; npm run bm -- list
+export BM_FILE=/tmp/bm-test.json; npm run bm -- tag 1 foo >/dev/null; npm run bm -- add https://a.com 'x "y"' ; cat $BM_FILE | head -30; npm run bm -- list; git log --oneline | head; grep -n '"\|quote' src/cli.ts | head -30
+
+plans:
+

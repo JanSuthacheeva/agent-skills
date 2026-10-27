@@ -1,0 +1,15 @@
+{
+  "eval_id": 1,
+  "eval_name": "tags-lost",
+  "prompt": "Look into SHOP-311.",
+  "assertions": [
+    "Diagnosis: the bug was reproduced through the CLI",
+    "Diagnosis: the cause named is save/toRecord in src/store.ts",
+    "Diagnosis: any source change is at the cause and keeps tags through bm add",
+    "Diagnosis: a regression test is written or named that fails on today's code",
+    "Diagnosis: tags already lost in users' files are named",
+    "Contract: src/ and test/ are unchanged and nothing was committed",
+    "Contract: a fix plan with Report, Reproduction, Root cause, Fix and Tasks was written",
+    "Contract: the plan's first task is the regression test and its last the end-to-end check"
+  ]
+}

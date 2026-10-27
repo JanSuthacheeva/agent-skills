@@ -1,0 +1,110 @@
+status:
+?? docs/
+
+CLI commands:
+export BM_FILE=/tmp/bm311.json; rm -f $BM_FILE; bm(){ npm run -s bm -- "$@"; echo "exit $?"; }
+bm add https://a.com A; bm tag 1 work; bm list --tag work; cat $BM_FILE | head -20; bm add https://b.com B; bm list --tag work; cat $BM_FILE; rm $BM_FILE
+git log -S"toRecord" --oneline; git status --short; grep -n "save\|toRecord" -r src
+mkdir -p docs/plans; cat > docs/plans/2026-10-27-fix-tags-lost-on-add.md <<'EOF'
+# Fix: tags disappear after adding a bookmark
+
+Report: SHOP-311 "Tags disappear" - "I tagged bookmarks, added a new one, and `bm list --tag work` shows nothing. I think list --tag is broken."
+
+## Report
+
+Expected: tags survive adding another bookmark; `bm list --tag work` still lists tagged bookmarks.
+Actual: `list --tag work` shows nothing after a `bm add`.
+Steps and environment: tag bookmarks, add a new one, list by tag. The reporter's guess (list --tag is broken) is not the cause.
+
+## Reproduction
+
+    export BM_FILE=/tmp/bm311.json; rm -f $BM_FILE
+    npm run -s bm -- add https://a.com A      # added 1
+    npm run -s bm -- tag 1 work               # tagged 1 work
+    npm run -s bm -- list --tag work          # 1  A  https://a.com
+    npm run -s bm -- add https://b.com B      # added 2
+    npm run -s bm -- list --tag work          # (no output, exit 0)
+    cat $BM_FILE                              # no "tags" key on either record
+
+Fails every run. The file after `tag` has `"tags": ["work"]`; after the second `add` it is gone from bookmark 1.
+
+## Root cause
+
+`src/store.ts:26` `toRecord()` builds a record without `tags`. `BookmarkStore.add()` (`src/store.ts:60`) loads all bookmarks and writes them back through `save()` (`src/store.ts:54`), which maps with `toRecord`, so every existing bookmark's tags are erased on disk. `listTagged` is correct; it just reads data with no tags. Proven by the reproduction: the file holds the tags after `tag` and loses them after `add`. `tag()` works around the omission at `src/store.ts:74` by re-adding `tags` itself. Introduced in 0b70eb5 "bm: tag bookmarks and list by tag", which added `tags` to the model but not to `toRecord`.
+
+## Fix
+
+`toRecord(bookmark)` includes `tags: bookmark.tags`. Fixed there so every writer (`save`, `add`) keeps tags. Then `tag()` at line 74 simplifies to `this.save(all)`, removing the workaround.
+
+## Also affected
+
+- `save()` is public and has the same loss for any caller; fixed by the same change.
+- Data already damaged: any `.bookmarks.json` where a bookmark was tagged and then another was added has lost those tags. They are not recoverable from the file.
+
+## Assumptions
+
+- The regression test goes in `test/store.tags.test.ts`.
+- `tag()` is simplified to use `save()`.
+
+## Open questions
+
+1. Repair already-lost tags? - recommended: no; the data is gone, tell the reporter to re-tag.
+
+## Tasks
+
+- [ ] Add "add keeps existing tags" in `test/store.tags.test.ts` (tag bookmark 1, `add` another, `listTagged` still returns bookmark 1; fails today with an empty list vs. expected one bookmark), then fix `toRecord()` and simplify `tag()`
+- [ ] End-to-end: run the reproduction again and see `1  A  https://a.com` from the final `list --tag work`
+EOF
+git status --short
+
+plans:
+== docs/plans/2026-10-27-fix-tags-lost-on-add.md
+# Fix: tags disappear after adding a bookmark
+
+Report: SHOP-311 "Tags disappear" - "I tagged bookmarks, added a new one, and `bm list --tag work` shows nothing. I think list --tag is broken."
+
+## Report
+
+Expected: tags survive adding another bookmark; `bm list --tag work` still lists tagged bookmarks.
+Actual: `list --tag work` shows nothing after a `bm add`.
+Steps and environment: tag bookmarks, add a new one, list by tag. The reporter's guess (list --tag is broken) is not the cause.
+
+## Reproduction
+
+    export BM_FILE=/tmp/bm311.json; rm -f $BM_FILE
+    npm run -s bm -- add https://a.com A      # added 1
+    npm run -s bm -- tag 1 work               # tagged 1 work
+    npm run -s bm -- list --tag work          # 1  A  https://a.com
+    npm run -s bm -- add https://b.com B      # added 2
+    npm run -s bm -- list --tag work          # (no output, exit 0)
+    cat $BM_FILE                              # no "tags" key on either record
+
+Fails every run. The file after `tag` has `"tags": ["work"]`; after the second `add` it is gone from bookmark 1.
+
+## Root cause
+
+`src/store.ts:26` `toRecord()` builds a record without `tags`. `BookmarkStore.add()` (`src/store.ts:60`) loads all bookmarks and writes them back through `save()` (`src/store.ts:54`), which maps with `toRecord`, so every existing bookmark's tags are erased on disk. `listTagged` is correct; it just reads data with no tags. Proven by the reproduction: the file holds the tags after `tag` and loses them after `add`. `tag()` works around the omission at `src/store.ts:74` by re-adding `tags` itself. Introduced in 0b70eb5 "bm: tag bookmarks and list by tag", which added `tags` to the model but not to `toRecord`.
+
+## Fix
+
+`toRecord(bookmark)` includes `tags: bookmark.tags`. Fixed there so every writer (`save`, `add`) keeps tags. Then `tag()` at line 74 simplifies to `this.save(all)`, removing the workaround.
+
+## Also affected
+
+- `save()` is public and has the same loss for any caller; fixed by the same change.
+- Data already damaged: any `.bookmarks.json` where a bookmark was tagged and then another was added has lost those tags. They are not recoverable from the file.
+
+## Assumptions
+
+- The regression test goes in `test/store.tags.test.ts`.
+- `tag()` is simplified to use `save()`.
+
+## Open questions
+
+1. Repair already-lost tags? - recommended: no; the data is gone, tell the reporter to re-tag.
+
+## Tasks
+
+- [ ] Add "add keeps existing tags" in `test/store.tags.test.ts` (tag bookmark 1, `add` another, `listTagged` still returns bookmark 1; fails today with an empty list vs. expected one bookmark), then fix `toRecord()` and simplify `tag()`
+- [ ] End-to-end: run the reproduction again and see `1  A  https://a.com` from the final `list --tag work`
+

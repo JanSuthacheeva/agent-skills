@@ -1,0 +1,9 @@
+status:
+
+CLI commands:
+cd <tmp> export BM_FILE=/tmp/bm-scratch.json; rm -f $BM_FILE; npm run bm -- add https://example.com 'The "best" tools'; echo "exit $?"; cat $BM_FILE; npm run bm -- list; echo "exit $?"; git status --short; ls; cat src/store.ts
+cd <tmp> export BM_FILE=/tmp/bm-scratch.json; ls src; grep -n "case '\|argv" src/cli.ts | head -30
+for c in "tag 1 work" "add https://b.com 'say \"hi\"'" "add https://c.com '\"'" "list"; do eval "npm run -s bm -- $c"; echo "exit $?"; done; node -e "JSON.parse(require('fs').readFileSync('$BM_FILE','utf8'));console.log('valid json')"; git log --oneline | head; rm -f $BM_FILE; git status --short
+
+plans:
+

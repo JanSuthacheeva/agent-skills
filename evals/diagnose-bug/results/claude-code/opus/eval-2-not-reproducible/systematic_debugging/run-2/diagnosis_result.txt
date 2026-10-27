@@ -1,0 +1,8 @@
+status:
+
+CLI commands:
+cd "$PWD"; D=$(mktemp -d); export BM_FILE=$D/b.json; cat src/cli.ts | head -80; echo ---; npm run -s bm -- add https://example.com 'The "best" tools'; echo "exit $?"; cat $BM_FILE; npm run -s bm -- list; echo "exit $?"; npm run -s bm -- add https://two.example 'a \"x\" and \\ b'; npm run -s bm -- tag 1 foo; npm run -s bm -- list; echo "exit $?"; cat $BM_FILE
+cd "$PWD"; git log -p --follow src/store.ts | grep -nE '^[-+].*(write|stringify|JSON|join|split)' ; git status --short; cat package.json; ls src; D=$(mktemp -d); export BM_FILE=$D/b.json; npm run -s bm -- add https://a.example A; npm run -s bm -- tag 1 foo; npm run -s bm -- add https://b.example B; npm run -s bm -- list --tag foo; echo "(tagged list above)"; cat $BM_FILE
+
+plans:
+

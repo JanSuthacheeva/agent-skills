@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Diagnosis: the report was tried through the CLI with quotes in a title",
+      "passed": true,
+      "evidence": "cat src/store.ts; ls src test* 2>/dev/null; export BM_FILE=/tmp/bm-test.json; rm -f $BM_FILE; npm run bm -- add https://"
+    },
+    {
+      "text": "Diagnosis: no source was changed",
+      "passed": true,
+      "evidence": "changed: []"
+    },
+    {
+      "text": "Diagnosis: the reply says it did not reproduce and asks for details",
+      "passed": true,
+      "evidence": "not reproduced: n't reproduc; asks: ask them"
+    },
+    {
+      "text": "Contract: no fix plan was written and nothing was committed",
+      "passed": true,
+      "evidence": "plans: []; commits: 0"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0,
+    "parts": {
+      "diagnosis": {
+        "passed": 3,
+        "total": 3
+      },
+      "contract": {
+        "passed": 1,
+        "total": 1
+      }
+    }
+  }
+}

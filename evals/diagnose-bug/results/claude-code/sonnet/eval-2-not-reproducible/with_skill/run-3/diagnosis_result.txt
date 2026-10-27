@@ -1,0 +1,10 @@
+status:
+
+CLI commands:
+cd <tmp> export BM_FILE=$(mktemp -d)/b.json; npm run -s bm -- add https://example.com 'The "best" tools'; echo "exit $?"; cat $BM_FILE; npm run -s bm -- list; echo "exit $?"; git status --short; ls; cat src/store.ts
+cd <tmp> export BM_FILE=$(mktemp -d)/b.json; cat src/cli.ts | head -80; ls src test; 
+bm(){ npm run -s bm -- "$@"; echo "exit $?"; }
+bm add https://example.com 'The "best" tools'; bm tag 1 'a"b'; bm add https://x.com '"quoted"'; bm add https://y.com 'back\slash "q"'; bm list; bm tag 1 foo; bm list; cat $BM_FILE; git status --short
+
+plans:
+

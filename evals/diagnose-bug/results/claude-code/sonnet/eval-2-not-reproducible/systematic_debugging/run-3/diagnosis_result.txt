@@ -1,0 +1,8 @@
+status:
+
+CLI commands:
+export BM_FILE=/tmp/bm-repro.json; rm -f $BM_FILE; npm run -s bm -- add https://example.com 'The "best" tools'; echo "exit $?"; cat $BM_FILE; npm run -s bm -- list; echo "exit $?"; npm test 2>&1 | tail -8
+export BM_FILE=/tmp/bm-repro.json; npm run -s bm -- tag 1 'a"b'; echo "exit $?"; npm run -s bm -- list; grep -n "writeFile\|JSON\|BM_FILE" -r src | grep -v test
+
+plans:
+

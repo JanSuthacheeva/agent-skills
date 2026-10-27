@@ -1,0 +1,60 @@
+{
+  "expectations": [
+    {
+      "text": "Diagnosis: the bug was reproduced through the CLI with a file from before tags",
+      "passed": true,
+      "evidence": "2 CLI tag commands; old data: no `tags` key"
+    },
+    {
+      "text": "Diagnosis: the cause named is the shared noTags array in fromRecord",
+      "passed": true,
+      "evidence": "noTags"
+    },
+    {
+      "text": "Diagnosis: any source change is in fromRecord and stops the spread",
+      "passed": true,
+      "evidence": "no source change"
+    },
+    {
+      "text": "Diagnosis: a regression test is written or named that fails on today's code",
+      "passed": true,
+      "evidence": "Add \"tagging one legacy bookmark leaves the others untagged\" in `test/store.tags.test.ts` (load a file with two records "
+    },
+    {
+      "text": "Diagnosis: bookmarks already tagged wrongly in users' files are named",
+      "passed": true,
+      "evidence": "existing file where an old bookmark was tagged now has that tag on every old bookmark. The fix stops new damage but does"
+    },
+    {
+      "text": "Contract: src/ and test/ are unchanged and nothing was committed",
+      "passed": true,
+      "evidence": "changed: []; commits: 0"
+    },
+    {
+      "text": "Contract: a fix plan with Report, Reproduction, Root cause, Fix and Tasks was written",
+      "passed": true,
+      "evidence": "docs/plans/2026-10-27-fix-tag-applies-to-all-bookmarks.md; missing: []"
+    },
+    {
+      "text": "Contract: the plan's first task is the regression test and its last the end-to-end check",
+      "passed": true,
+      "evidence": "2 tasks, 2 boxes; first: Add \"tagging one legacy bookmark leaves the others untagged\"; last: End-to-end: run the reproduction again and see only `3  c  h"
+    }
+  ],
+  "summary": {
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "pass_rate": 1.0,
+    "parts": {
+      "diagnosis": {
+        "passed": 5,
+        "total": 5
+      },
+      "contract": {
+        "passed": 3,
+        "total": 3
+      }
+    }
+  }
+}

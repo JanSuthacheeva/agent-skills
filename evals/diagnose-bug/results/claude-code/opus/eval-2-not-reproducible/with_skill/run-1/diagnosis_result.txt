@@ -1,0 +1,8 @@
+status:
+
+CLI commands:
+D=$(mktemp -d); export BM_FILE=$D/b.json; cat src/main.ts; npm run -s bm -- add https://example.com 'The "best" tools'; echo "exit $?"; cat $BM_FILE; npm run -s bm -- list; echo "exit $?"; npm run -s bm -- tag 1 tools; npm run -s bm -- add https://x.com 'He said "hi" \ back'; cat $BM_FILE; npm run -s bm -- list; echo "exit $?"; npm run -s bm -- list --tag tools; echo $D
+git log -p --format='--- %h %s' -- src/store.ts | grep -n -i -E 'stringify|replace|"\\"|title' | head -20; D=$(mktemp -d); export BM_FILE=$D/b.json; node src/main.ts add https://example.com 'The “best” tools' ; node src/main.ts add https://e.com The '"best"' tools; node src/main.ts add 'https://e.com/?q="a"'; node src/main.ts list; echo "exit $?"; rm -rf $D <tmp>
+
+plans:
+
