@@ -1,13 +1,14 @@
 ---
 name: diagnose-bug
 description: >-
-  Reproduces a reported bug end to end the way a user hits it, traces it
-  to its root cause and proves the cause with an experiment, then writes a
-  fix plan whose first task is a failing regression test and whose last is
-  the end-to-end check - without changing any code. Use when the user asks
-  to diagnose, reproduce or find the cause of a bug, says "why does X
-  happen", "look into SHOP-311" or hands over a bug report or ticket.
-  Not for building the fix (implement-plan, ship-fix) or for features
+  Reproduces a reported bug end to end the way a user hits it, proves its
+  root cause with an experiment and writes a fix plan that starts with a
+  regression test - without changing any code. Use when the user reports a
+  bug, regression, crash or unexpected behaviour and wants it diagnosed,
+  reproduced or its cause found, says "why does X happen", "X is broken,
+  look into it", "look into SHOP-311", or hands over a bug report or
+  ticket. Not for building the fix (implement-plan, ship-fix), for a
+  failing test or lint error during development, or for features
   (design-code).
 metadata:
     author: Jan Suthacheeva
@@ -20,7 +21,8 @@ names a symptom, and a reporter's guess at the cause is often wrong; only a
 reproduction and an experiment tell them apart. The result is a fix plan
 another session can build without this conversation.
 
-Change no code and commit nothing. Copy this checklist and tick it off as
+Change no project code beyond temporary instrumentation you remove again,
+and commit nothing. Copy this checklist and tick it off as
 you go:
 
 ```
@@ -34,8 +36,9 @@ you go:
 
 ## 1. Read the report
 
-If the report names a ticket and a tool can read it, read it: the ticket
-is the report. Pull out what the user expected, what happened instead, the
+If the report names a ticket and you can reach the ticket system (a CLI,
+an MCP server, an API), read it: the ticket is the report. If you cannot
+and the report is too thin to reproduce from, ask the user to paste it. Pull out what the user expected, what happened instead, the
 steps they took and their environment (version, data, platform).
 
 Keep the reporter's guess at the cause apart from what they saw. "List is
@@ -54,6 +57,10 @@ not a unit test written from a guess. A unit test only exercises the path
 you already suspect; the end-to-end run shows the path the user takes.
 Read [references/reproduce.md](references/reproduce.md) for how to do this
 per kind of surface and for intermittent bugs.
+
+If reproducing would touch production data, send real messages or
+payments, or needs credentials you do not have, use a copy or a local
+stand-in and say so in the plan, or stop and ask.
 
 Record the exact steps, the input and the output you observed, and how
 often it fails. Keep anything you create for it - scratch data, files,
@@ -76,8 +83,8 @@ that does the wrong thing with correct input.
   experiment proves it.
 - The cause must explain every symptom in the report, including the ones
   the reporter did not connect. If one is left over, keep looking.
-- Find when it came in, with `git log -S <code>` or `git blame` on the
-  lines: the commit's intent often shows what the code was meant to do,
+- Find when it came in, if the history is there, with `git log -S
+  <code>` or `git blame` on the lines: the commit's intent often shows what the code was meant to do,
   and whether other places were changed the same way.
 
 Remove every temporary log and scratch test before going on.
@@ -91,13 +98,14 @@ wrong state in place for the next reader of it.
   commit or copied from the same pattern.
 - Look at the data: if the bug has already written wrong data, the fix
   stops new damage but does not repair the old. Always list it.
-- Sort every choice by what it costs to reverse once shipped. Assume the
-  cheap ones - an internal name, a helper, the shape of the test - and
-  list them. Ask about the expensive ones: what is stored and in what
-  format, a repair of data already damaged, the public surface (commands,
-  flags, endpoints, payloads), and user-visible behaviour beyond what the
-  report expects. They become open questions in the plan, each with your
-  recommendation.
+- Sort every choice by what it costs to reverse once shipped:
+  - **Assume** the cheap ones - an internal name, a helper, the shape of
+    the test - and list them as assumptions.
+  - **Ask** about the expensive ones: what is stored and in what format, a
+    repair of data already damaged, the public surface (commands, flags,
+    endpoints, payloads), and user-visible behaviour beyond what the
+    report expects. They become open questions in the plan, each with
+    your recommendation.
 
 ## 5. Write the fix plan
 
@@ -115,8 +123,9 @@ count every checkbox in the file.
 
 ## 6. Hand over
 
-Leave the working tree as you found it, except for the plan. Do not
-commit, branch or start the fix unless the user asks.
+Leave the working tree as you found it, except for the plan, and check
+it with the version control status. Do not commit, branch or start the
+fix unless the user asks.
 
 Tell the user in a few lines:
 

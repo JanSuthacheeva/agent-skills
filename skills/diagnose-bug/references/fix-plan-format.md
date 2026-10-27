@@ -29,8 +29,9 @@ experiment that proves it, and the commit that introduced it>
 
 ## Fix
 
-<what changes in which unit, and why there and not where the symptom
-shows; any changed signatures>
+<each unit that changes, by its name in the code, what changes in it and
+why there and not where the symptom shows; every added or changed
+signature, written out>
 
 ## Also affected
 
@@ -52,10 +53,11 @@ if you looked and found none.>
 - [ ] End-to-end: run the reproduction again and see <expected output>
 ```
 
-Leave out `## Open questions` when there are none. Use checkboxes only
-under `## Tasks`.
+Leave out `## Open questions` when there are none.
 
 ## Example
+
+An illustration of the level of detail; the stack is incidental.
 
 ```markdown
 # Fix: invoice total is one cent off the PDF

@@ -1,16 +1,6 @@
 # Reproducing a bug end to end
 
-Read this in step 2. The goal is a reproduction someone else can rerun:
-the exact steps, the input and the output, against the application as a
-user runs it.
-
-## Contents
-
-- By kind of surface: command line, HTTP API, browser page, background
-  job or queue
-- Data-dependent bugs
-- Intermittent bugs
-- Recording the reproduction
+Read this in step 2, for a reproduction someone else can rerun.
 
 ## By kind of surface
 
