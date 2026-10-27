@@ -112,7 +112,9 @@ wrong state in place for the next reader of it.
 Write the plan where the project keeps its plans (`docs/plans/`,
 `.claude/plans/` or wherever earlier plans live), otherwise in
 `docs/plans/<YYYY-MM-DD>-fix-<slug>.md`. Follow the format in
-[references/fix-plan-format.md](references/fix-plan-format.md).
+[references/fix-plan-format.md](references/fix-plan-format.md). If a fix
+plan for the report already exists, rewrite it in place, its boxes open,
+and say in `## Root cause` which earlier cause was disproved and how.
 
 The first task adds the regression test and fixes the cause in one step,
 naming the message the test fails with today; whoever builds it sees the

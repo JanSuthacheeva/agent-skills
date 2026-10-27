@@ -3,14 +3,14 @@ name: ship-fix
 description: >-
   Takes a bug from report or ticket to an open merge request by running
   diagnose-bug, implement-plan, review-changes and write-merge-request in
-  order - the build in this conversation after a compaction, the review in
-  a fresh agent - stopping only where a decision belongs to the user, and
-  resuming from what the repository shows after an interruption. Use when
-  the user asks to fix a bug or ticket all the way through, says "fix
-  SHOP-311", "ship this fix", "take this bug to an MR" or "continue
-  fixing", or wants a half-built fix plan carried on to a merge request.
-  Not for features (ship-feature) or for a single step on its own -
-  diagnosis, build, review or MR - which the step's own skill handles.
+  order, stopping only where a decision belongs to the user and resuming
+  from what the repository shows after an interruption. Use when the user
+  asks to fix a bug or ticket all the way through, says "fix SHOP-311",
+  "ship this fix", "take this bug to an MR" or "continue fixing", or wants
+  a half-built fix plan carried on to a merge request. Not for features
+  (ship-feature), for only diagnosing a bug (diagnose-bug), or for any
+  other single step - build, review or MR - which the step's own skill
+  handles.
 metadata:
     author: Jan Suthacheeva
     version: "0.1"
@@ -38,8 +38,10 @@ resumes correctly in a new session:
 | A merge request is open | Done: give its URL |
 
 The plan is the one the user names, else the plan the current branch adds
-or ticks off. If the request names a ticket and a tool can read it, read
-it: it is the report. Check that the commits agree with the ticked boxes;
+or ticks off, else an uncommitted fix plan for the same report - which is
+not approved yet. If the request names a ticket and a tool can read it,
+read it: it is the report, and the fix branch is named after its
+identifier. Check that the commits agree with the ticked boxes;
 if they do not, say so before going on. Tell the user in one line where
 the flow stands and what comes next.
 
@@ -76,15 +78,18 @@ something filled in from the diagnosis or a summary of it.
 The first task's regression test must fail for the reason the plan names
 before the fix is written. If it passes, or fails for another reason, the
 diagnosis is wrong: stop, show what the test did, and recommend
-diagnosing again rather than adjusting the test until it fails.
+diagnosing again rather than adjusting the test until it fails. If the
+user agrees, use diagnose-bug again to rewrite the plan in place, its
+boxes open and the disproved cause noted, commit it, and return to the
+approval stop.
 
 If the build stops:
 
 - **Blocked** on an expensive deviation: put the finding and your
   recommendation to the user, write the decision into the plan, commit
   it, and go on building.
-- **Red base** - tests that failed before the build began: ask the user
-  whether to build on it.
+- **Red base** - tests other than the plan's regression test that failed
+  before the build began: ask the user whether to build on it.
 
 When the build goes back to work after a review, tell implement-plan the
 commit at which the review's checks last passed, so it does not run the
@@ -107,7 +112,8 @@ Then read the `## Review` section it wrote into the plan:
 - **Open is empty**: go on.
 - **Open has items**: put them to the user with the reviewer's
   recommendations. Write what the user decides into the plan as new tasks
-  under `## Tasks`, commit, and go back to Build. A second review then
+  under `## Tasks`, before the end-to-end task, untick that task so the
+  reproduction runs again, commit, and go back to Build. A second review then
   covers the new commits.
 
 ## 5. Merge request - in this conversation
@@ -120,7 +126,7 @@ already exists, offer to update its description instead.
 
 The flow waits for the user at exactly these points: a report that does
 not reproduce or whose expected behaviour is unclear, approval of the fix
-plan and the compaction after it, a regression test that disproves the
+plan (including its open questions) and the compaction after it, a regression test that disproves the
 diagnosis, a blocked build or red base, open review items, and the push.
 Everywhere else it goes on without asking.
 
@@ -128,4 +134,4 @@ At a stop, say in a few lines what was found, the options and your
 recommendation, and ask the user directly.
 
 When the merge request is open, end with its URL, the commits per step,
-and the review's "Where to look".
+the reproduction's result after the fix, and the review's "Where to look".
