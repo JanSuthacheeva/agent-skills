@@ -1,0 +1,60 @@
+{
+  "expectations": [
+    {
+      "text": "Diagnosis: the bug was reproduced through the CLI with a file from before tags",
+      "passed": false,
+      "evidence": "0 CLI tag commands; old data: no `tags` field"
+    },
+    {
+      "text": "Diagnosis: the cause named is the shared noTags array in fromRecord",
+      "passed": true,
+      "evidence": "shared array"
+    },
+    {
+      "text": "Diagnosis: any source change is in fromRecord and stops the spread",
+      "passed": true,
+      "evidence": "changed: ['src/store.ts']; fromRecord changed: True; list --tag: '3  3  https://3.dev'"
+    },
+    {
+      "text": "Diagnosis: a regression test is written or named that fails on today's code",
+      "passed": true,
+      "evidence": "I can add a regression test (load a file with tagless records, tag one, check the others) if you want."
+    },
+    {
+      "text": "Diagnosis: bookmarks already tagged wrongly in users' files are named",
+      "passed": true,
+      "evidence": "Existing data:** files already affected will have the tag written on every bookmark. Those bookmarks need the extra"
+    },
+    {
+      "text": "Contract: src/ and test/ are unchanged and nothing was committed",
+      "passed": false,
+      "evidence": "changed: ['src/store.ts']; commits: 0"
+    },
+    {
+      "text": "Contract: a fix plan with Report, Reproduction, Root cause, Fix and Tasks was written",
+      "passed": false,
+      "evidence": "no plan"
+    },
+    {
+      "text": "Contract: the plan's first task is the regression test and its last the end-to-end check",
+      "passed": false,
+      "evidence": "no plan"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 4,
+    "total": 8,
+    "pass_rate": 0.5,
+    "parts": {
+      "diagnosis": {
+        "passed": 4,
+        "total": 5
+      },
+      "contract": {
+        "passed": 0,
+        "total": 3
+      }
+    }
+  }
+}

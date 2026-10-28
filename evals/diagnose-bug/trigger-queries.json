@@ -1,0 +1,22 @@
+[
+  {"query": "can you look into SHOP-311? customers say their tags vanish after they add a new bookmark. don't fix anything yet, i want to know what's actually going on first", "should_trigger": true},
+  {"query": "Why does the CSV export total sometimes come out one cent lower than the invoice PDF? Accounting flagged invoices 17 and 23 from March. Figure out the cause before we touch the code.", "should_trigger": true},
+  {"query": "here's a bug report from our support channel: 'after updating to 2.3 the app logs me out every time I switch tabs on safari'. can you reproduce it and find the root cause", "should_trigger": true},
+  {"query": "ECOM-2254 is a bug ticket about the checkout applying the voucher twice when you hit back in the browser. reproduce it and write up a fix plan, I'll decide on the fix tomorrow", "should_trigger": true},
+  {"query": "users report that `bm import bookmarks.html` silently skips every bookmark inside a folder. what's going on there?", "should_trigger": true},
+  {"query": "our nightly report job sends an empty email roughly once a week and nobody knows why. investigate and tell me what the root cause is, with evidence", "should_trigger": true},
+  {"query": "Diagnose this: POST /api/orders returns 500 when the shipping address has an umlaut in the street name (Müllerstraße). Stack trace from sentry is below.\n\nUnicodeEncodeError: 'latin-1' codec can't encode character '\\xfc' in position 12", "should_trigger": true},
+  {"query": "a customer says the date picker shows yesterday's date for them (they're in New Zealand). can you figure out where that comes from and plan a fix", "should_trigger": true},
+  {"query": "HGAI-2050 - duplicated notifications when two users edit the same doc. Find out why it happens; I need a fix plan with a regression test first", "should_trigger": true},
+  {"query": "something is off with the pagination on /admin/users - page 2 repeats the last 3 users of page 1. dig into it and tell me the actual cause, not just a guess", "should_trigger": true},
+  {"query": "fix SHOP-311 all the way to a merge request please, tags disappear after adding a bookmark", "should_trigger": false},
+  {"query": "here's the fix plan in docs/plans/2026-10-20-fix-voucher-twice.md, it's approved, go ahead and build it", "should_trigger": false},
+  {"query": "ship SHOP-217, the bulk tagging feature, all the way through to an MR", "should_trigger": false},
+  {"query": "the test test/store.test.ts 'list sorts by date' is failing on my branch after I renamed createdAt, make it pass", "should_trigger": false},
+  {"query": "review the changes on fix/SHOP-311-tags-lost before I open the merge request", "should_trigger": false},
+  {"query": "I want to add a --tag filter to `bm export`. how would we structure that, which classes and methods do we need?", "should_trigger": false},
+  {"query": "npm run lint is throwing 40 errors about unused imports after the eslint upgrade, clean them up", "should_trigger": false},
+  {"query": "write the merge request description for my bugfix branch, the fix for the double voucher is done and reviewed", "should_trigger": false},
+  {"query": "TypeError: Cannot read properties of undefined (reading 'map') at TagList.tsx:14 - I just added this component, quick fix?", "should_trigger": false},
+  {"query": "commit the fix for the pagination bug I just made, the test is in tests/Admin/UsersPaginationTest.php", "should_trigger": false}
+]

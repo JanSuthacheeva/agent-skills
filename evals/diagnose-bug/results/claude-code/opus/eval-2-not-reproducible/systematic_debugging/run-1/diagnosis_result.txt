@@ -1,0 +1,9 @@
+status:
+
+CLI commands:
+cd "$PWD"; ls; cat src/store.ts; git log --oneline | head; T=$(mktemp -d); export BM_FILE=$T/b.json; npm run -s bm -- add https://example.com 'The "best" tools'; echo "exit $?"; cat $BM_FILE; echo; npm run -s bm -- list; echo "exit $?"
+cd "$PWD"; git log -p --follow -- src/store.ts | grep -nE '^[+-].*(stringify|write|`|replace|quote)' ; git status --short; T=$(mktemp -d); export BM_FILE=$T/b.json; npm run -s bm -- add https://example.com 'The "best" tools'; npm run -s bm -- tag 1 'a"b'; echo "exit $?"; npm run -s bm -- add https://x.org "it's \"x\" \\ y"; echo "exit $?"; cat $BM_FILE; npm run -s bm -- list; echo "exit $?"; npm test 2>&1 | tail -5
+cd "$PWD"; T=$(mktemp -d); export BM_FILE=$T/b.json; npm run -s bm -- add https://a.com A; npm run -s bm -- tag 1 work; npm run -s bm -- list --tag work 2>/dev/null || grep -n "tag" src/cli.ts | head; npm run -s bm -- add https://b.com B; cat $BM_FILE
+
+plans:
+

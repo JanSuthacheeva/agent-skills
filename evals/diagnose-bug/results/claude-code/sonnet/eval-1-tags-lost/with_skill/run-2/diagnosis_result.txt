@@ -1,0 +1,122 @@
+status:
+?? docs/
+
+CLI commands:
+export BM_FILE=/tmp/bm311.json; rm -f $BM_FILE
+bm(){ npm run -s bm -- "$@"; echo "exit $?"; }
+bm add https://a.com A; bm add https://b.com B; bm tag 1 work; bm tag 2 work; bm list --tag work; cat $BM_FILE | tr -d ' \n'; echo
+bm add https://c.com C; bm list --tag work; cat $BM_FILE | tr -d ' \n'; echo
+git log -S'toRecord' --oneline; git status --short; rm -f $BM_FILE
+mkdir -p docs/plans; cat > docs/plans/2026-10-27-fix-tags-lost-on-add.md <<'EOF'
+# Fix: tags disappear after adding a bookmark
+
+Report: SHOP-311 "Tags disappear": "I tagged bookmarks, added a new one, and `bm list --tag work` shows nothing. I think list --tag is broken."
+
+## Report
+
+Expected: `bm list --tag work` still lists the tagged bookmarks after a new bookmark is added.
+Actual: it lists nothing.
+Steps and environment: tag bookmarks, `bm add` another, `bm list --tag work`.
+The reporter guessed `list --tag` is broken; it is not, the tags are gone from the file.
+
+## Reproduction
+
+    export BM_FILE=/tmp/bm311.json; rm -f $BM_FILE
+    npm run -s bm -- add https://a.com A      # added 1
+    npm run -s bm -- add https://b.com B      # added 2
+    npm run -s bm -- tag 1 work               # tagged 1 work
+    npm run -s bm -- tag 2 work               # tagged 2 work
+    npm run -s bm -- list --tag work
+    # 1  A  https://a.com
+    # 2  B  https://b.com
+    npm run -s bm -- add https://c.com C      # added 3
+    npm run -s bm -- list --tag work
+    # (no output, exit 0)
+    cat $BM_FILE
+    # no "tags" key on any of the 3 records
+
+Fails every run.
+
+## Root cause
+
+`src/store.ts:25` `toRecord()` builds a record without `tags`. `save()` (line 59) maps every bookmark through it, and `add()` (line 66) calls `save()` with all bookmarks, so each add rewrites the file and drops every tag. `tag()` avoids this only by re-adding `tags` by hand at line 85. Proven by the file contents: tags present after the `tag` commands, absent on all records after `add`. `list --tag` correctly reads the empty tags. Introduced in 0b70eb5 "bm: tag bookmarks and list by tag", which added `tags` to the record and `tag()` but did not update `toRecord()`.
+
+## Fix
+
+`toRecord(bookmark: Bookmark): BookmarkRecord` includes `tags: bookmark.tags`. This is where the data first goes wrong and fixes every caller of `save()`. Then drop the `{ ...toRecord(one), tags: one.tags }` workaround in `tag()` and write `all.map(toRecord)`.
+
+## Also affected
+
+Any future caller of `save()` would lose tags too. Data: every bookmark file where a `bm add` ran after tagging has lost the tags of all existing bookmarks. They are not recoverable from the file (no backup, no history), so those must be re-tagged by hand.
+
+## Assumptions
+
+- The regression test goes in `test/store.tags.test.ts`, with a CLI-level one in `test/cli.tags.test.ts`.
+
+## Open questions
+
+1. Repair already-lost tags? - recommended: no, they cannot be recovered; mention it in the release note so users re-tag.
+
+## Tasks
+
+- [ ] Add "add keeps existing tags" in `test/store.tags.test.ts` (add, tag 1 `work`, add again, expect `list()[0].tags` to equal `['work']`; fails today with `Expected values to be strictly deep-equal: [] !== ['work']`), then fix `toRecord()` and simplify `tag()`
+- [ ] End-to-end: run the reproduction again and see the last `list --tag work` print bookmarks 1 and 2 and the file keep `"tags":["work"]`
+EOF
+git status --short
+
+plans:
+== docs/plans/2026-10-27-fix-tags-lost-on-add.md
+# Fix: tags disappear after adding a bookmark
+
+Report: SHOP-311 "Tags disappear": "I tagged bookmarks, added a new one, and `bm list --tag work` shows nothing. I think list --tag is broken."
+
+## Report
+
+Expected: `bm list --tag work` still lists the tagged bookmarks after a new bookmark is added.
+Actual: it lists nothing.
+Steps and environment: tag bookmarks, `bm add` another, `bm list --tag work`.
+The reporter guessed `list --tag` is broken; it is not, the tags are gone from the file.
+
+## Reproduction
+
+    export BM_FILE=/tmp/bm311.json; rm -f $BM_FILE
+    npm run -s bm -- add https://a.com A      # added 1
+    npm run -s bm -- add https://b.com B      # added 2
+    npm run -s bm -- tag 1 work               # tagged 1 work
+    npm run -s bm -- tag 2 work               # tagged 2 work
+    npm run -s bm -- list --tag work
+    # 1  A  https://a.com
+    # 2  B  https://b.com
+    npm run -s bm -- add https://c.com C      # added 3
+    npm run -s bm -- list --tag work
+    # (no output, exit 0)
+    cat $BM_FILE
+    # no "tags" key on any of the 3 records
+
+Fails every run.
+
+## Root cause
+
+`src/store.ts:25` `toRecord()` builds a record without `tags`. `save()` (line 59) maps every bookmark through it, and `add()` (line 66) calls `save()` with all bookmarks, so each add rewrites the file and drops every tag. `tag()` avoids this only by re-adding `tags` by hand at line 85. Proven by the file contents: tags present after the `tag` commands, absent on all records after `add`. `list --tag` correctly reads the empty tags. Introduced in 0b70eb5 "bm: tag bookmarks and list by tag", which added `tags` to the record and `tag()` but did not update `toRecord()`.
+
+## Fix
+
+`toRecord(bookmark: Bookmark): BookmarkRecord` includes `tags: bookmark.tags`. This is where the data first goes wrong and fixes every caller of `save()`. Then drop the `{ ...toRecord(one), tags: one.tags }` workaround in `tag()` and write `all.map(toRecord)`.
+
+## Also affected
+
+Any future caller of `save()` would lose tags too. Data: every bookmark file where a `bm add` ran after tagging has lost the tags of all existing bookmarks. They are not recoverable from the file (no backup, no history), so those must be re-tagged by hand.
+
+## Assumptions
+
+- The regression test goes in `test/store.tags.test.ts`, with a CLI-level one in `test/cli.tags.test.ts`.
+
+## Open questions
+
+1. Repair already-lost tags? - recommended: no, they cannot be recovered; mention it in the release note so users re-tag.
+
+## Tasks
+
+- [ ] Add "add keeps existing tags" in `test/store.tags.test.ts` (add, tag 1 `work`, add again, expect `list()[0].tags` to equal `['work']`; fails today with `Expected values to be strictly deep-equal: [] !== ['work']`), then fix `toRecord()` and simplify `tag()`
+- [ ] End-to-end: run the reproduction again and see the last `list --tag work` print bookmarks 1 and 2 and the file keep `"tags":["work"]`
+

@@ -1,0 +1,8 @@
+status:
+
+CLI commands:
+export BM_FILE=/tmp/bmtest.json; rm -f $BM_FILE; npm run bm -- add https://example.com 'The "best" tools'; echo "exit $?"; cat $BM_FILE; npm run bm -- list; echo "exit $?"; git status --short
+export BM_FILE=/tmp/bmtest.json; npm run bm -- tag 1 'a"b' 2>&1 | tail -2; npm run bm -- list 2>&1 | tail -2; npm test 2>&1 | grep -E "^# (pass|fail)"; rm -f $BM_FILE
+
+plans:
+

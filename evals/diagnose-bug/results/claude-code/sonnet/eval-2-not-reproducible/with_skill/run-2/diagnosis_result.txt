@@ -1,0 +1,9 @@
+status:
+
+CLI commands:
+cd <tmp> export BM_FILE=/tmp/bm-repro.json; rm -f $BM_FILE; npm run -s bm -- add https://example.com 'The "best" tools'; echo "exit $?"; cat $BM_FILE; echo; npm run -s bm -- list; echo "exit $?"; git status --short; ls; cat src/store.ts
+cd <tmp> export BM_FILE=/tmp/bm-repro.json; cat src/cli.ts | head -80; 
+npm run -s bm -- add https://b.com 'say "hi" \ back'; npm run -s bm -- tag 1 'a"b'; npm run -s bm -- tag 2 work; npm run -s bm -- list; echo "exit $?"; npm run -s bm -- list --tag work; npm run -s bm -- add https://c.com '"'; npm run -s bm -- list; cat $BM_FILE | head -30; rm -f $BM_FILE; git status --short; git log --oneline | head
+
+plans:
+

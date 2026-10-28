@@ -1,0 +1,130 @@
+status:
+?? docs/
+
+CLI commands:
+S=$(mktemp -d); mkdir $S/old; git archive 8dd82b9 | tar -x -C $S/old
+export BM_FILE=$S/bookmarks.json
+for u in a b c; do node $S/old/src/main.ts add https://$u.dev $u; done
+echo "--- file from old version:"; cat $BM_FILE
+echo "--- current:"; npm run -s bm -- tag 2 recipes; echo "exit $?"
+npm run -s bm -- list --tag recipes; echo "exit $?"
+echo "--- file after:"; cat $BM_FILE
+echo "=== control: bookmarks created by current version"
+export BM_FILE=$S/fresh.json
+for u in a b c; do npm run -s bm -- add https://$u.dev $u; done
+npm run -s bm -- tag 2 recipes; npm run -s bm -- list --tag recipes
+echo $S
+S=<tmp> mkdir $S/old2; cp $S/old/src/*.ts $S/old2/ 2>/dev/null; rm -rf $S/old2; 
+node $S/old/src/main.ts >/dev/null 2>&1; BM_FILE=$S/legacy.json; for u in a b; do BM_FILE=$S/legacy.json node $S/old/src/main.ts add https://$u.dev $u >/dev/null; done
+cat > $S/probe.ts <<EOF
+import { BookmarkStore } from '$PWD/src/store.ts'
+const [a, b] = new BookmarkStore('$S/legacy.json').load()
+console.log('a.tags === b.tags:', a!.tags === b!.tags)
+a!.tags.push('x'); console.log('b.tags after pushing to a:', b!.tags)
+const [c] = new BookmarkStore('$S/legacy.json').load()
+console.log('fresh load tags:', c!.tags)
+EOF
+node $S/probe.ts; git log -S noTags --oneline
+
+plans:
+== docs/plans/2026-10-27-fix-tag-applies-to-all.md
+# Fix: tagging one bookmark tags every bookmark saved before tags existed
+
+Report: SHOP-313 "Tagging one bookmark tags all of them"
+
+## Report
+
+Expected: `bm tag 3 recipes` tags bookmark 3 only.
+Actual: `bm list --tag recipes` lists all 40 of the reporter's bookmarks.
+Steps and environment: reporter's existing bookmarks file, after updating bm
+to the version with tags (058b645). Reporter's guess, "the tag command
+ignores the id", is wrong: see below.
+
+## Reproduction
+
+Bookmarks written by the pre-tags version (8dd82b9), then tagged with the
+current one. The scratch file must be outside the repo.
+
+    S=$(mktemp -d); mkdir $S/old; git archive 8dd82b9 | tar -x -C $S/old
+    export BM_FILE=$S/bookmarks.json
+    for u in a b c; do node $S/old/src/main.ts add https://$u.dev $u; done
+    # file has three records with no "tags" key
+    npm run -s bm -- tag 2 recipes
+    # tagged 2 recipes            (exit 0)
+    npm run -s bm -- list --tag recipes
+    # 1  a  https://a.dev
+    # 2  b  https://b.dev
+    # 3  c  https://c.dev
+
+After the tag, all three records in the file have `"tags": ["recipes"]`.
+Fails every run. Control: the same steps with bookmarks added by the
+current version list only `2  b  https://b.dev`.
+
+## Root cause
+
+`src/store.ts:39` `fromRecord()` gives every record without a `tags` key the
+same module-level array `noTags` (`src/store.ts:18`). `BookmarkStore.tag()`
+(`src/store.ts:76`) then `push`es into the found bookmark's array, which is
+that one shared array, so every legacy bookmark gains the tag, and
+`save()` writes it into every record.
+
+Proven with a scratch script on a legacy file of two records: after `load()`,
+`a.tags === b.tags` is `true`; pushing `'x'` onto `a.tags` makes `b.tags`
+`['x']`, and a fresh `load()` in the same process also returns `['x']`
+(the module-level array itself is polluted).
+
+Introduced in 058b645 "bm: tag bookmarks and list by tag", which added
+`noTags` and `tag()`. Its test "bookmarks saved before tags load with no
+tags" does not cover this: it creates the bookmark with the current
+`add()`, which writes `tags: []`, so no legacy record is ever loaded.
+
+## Fix
+
+`fromRecord()` returns a fresh array per bookmark: `tags: record.tags ?? []`
+(copying with `[...(record.tags ?? [])]` is also fine). Remove `noTags`. The
+fix belongs in `fromRecord()`, not in `tag()`: any code that mutates a
+loaded bookmark's tags would otherwise hit the same aliasing. No signature
+changes.
+
+## Also affected
+
+- Data already damaged: for every user who tagged after updating, the first
+  tag they applied was written to every bookmark that predated the update
+  (that save also wrote a `tags` key into every record, so later tags only
+  hit the intended bookmark). Bookmarks added after the update are not
+  affected. The fix does not repair this.
+- No other sibling found: `add()` uses a fresh `[]` literal; nothing else
+  shares a mutable default.
+
+## Assumptions
+
+- The regression test goes in `test/store.tags.test.ts` and writes a legacy
+  record (no `tags` key) to the file directly, since the current `add()`
+  can no longer produce one.
+- The existing "bookmarks saved before tags load with no tags" test is
+  rewritten to write a real legacy record too.
+
+## Open questions
+
+1. Repair already-damaged files? There is no record of which tags were
+   applied by the bug, so any repair is a guess (e.g. a tag present on
+   every bookmark that has a `createdAt` before the update). Recommended:
+   no automatic repair; note in the release/README that a tag may have been
+   applied to all older bookmarks, and let users remove it. That needs a
+   `bm untag <id> <tag>` command, which does not exist yet; decide whether
+   to add it as a separate ticket.
+
+## Tasks
+
+- [ ] Add "tagging a bookmark saved before tags leaves the others untagged"
+  in `test/store.tags.test.ts`: write two records without `tags` to the
+  file, `tag(1, 'work')`, assert `listTagged('work')` titles equal `['A']`
+  (fails today with `expected [ 'A' ], got [ 'A', 'B' ]`-style deepEqual
+  diff). Then fix `fromRecord()` in `src/store.ts` and remove `noTags`
+- [ ] Rewrite "bookmarks saved before tags load with no tags" to load a
+  record written without a `tags` key
+- [ ] `npm test` passes
+- [ ] End-to-end: run the reproduction again and see only
+  `2  b  https://b.dev` from `bm list --tag recipes`, and only record 2
+  with `"tags": ["recipes"]` in the file
+

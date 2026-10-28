@@ -1,0 +1,60 @@
+{
+  "expectations": [
+    {
+      "text": "Diagnosis: the bug was reproduced through the CLI",
+      "passed": true,
+      "evidence": "2 CLI commands"
+    },
+    {
+      "text": "Diagnosis: the cause named is save/toRecord in src/store.ts",
+      "passed": true,
+      "evidence": "toRecord"
+    },
+    {
+      "text": "Diagnosis: any source change is at the cause and keeps tags through bm add",
+      "passed": true,
+      "evidence": "no source change"
+    },
+    {
+      "text": "Diagnosis: a regression test is written or named that fails on today's code",
+      "passed": true,
+      "evidence": "Add \"add keeps existing tags\" in the store tests (tag a bookmark, `add` another, `listTagged` still returns the first; f"
+    },
+    {
+      "text": "Diagnosis: tags already lost in users' files are named",
+      "passed": true,
+      "evidence": "already lost from anyone's `.bookmarks.json` can't be recovered by code.\n\n**Plan:** `docs/plans/2026-10-27-fix-tags-lost"
+    },
+    {
+      "text": "Contract: src/ and test/ are unchanged and nothing was committed",
+      "passed": true,
+      "evidence": "changed: []; commits: 0"
+    },
+    {
+      "text": "Contract: a fix plan with Report, Reproduction, Root cause, Fix and Tasks was written",
+      "passed": true,
+      "evidence": "docs/plans/2026-10-27-fix-tags-lost-on-add.md; missing: []"
+    },
+    {
+      "text": "Contract: the plan's first task is the regression test and its last the end-to-end check",
+      "passed": true,
+      "evidence": "2 tasks, 2 boxes; first: Add \"add keeps existing tags\" in the store tests (tag a book; last: End-to-end: run the reproduction again and see `1  A  https:"
+    }
+  ],
+  "summary": {
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "pass_rate": 1.0,
+    "parts": {
+      "diagnosis": {
+        "passed": 5,
+        "total": 5
+      },
+      "contract": {
+        "passed": 3,
+        "total": 3
+      }
+    }
+  }
+}

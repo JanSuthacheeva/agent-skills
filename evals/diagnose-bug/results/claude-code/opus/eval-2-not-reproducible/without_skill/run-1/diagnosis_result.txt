@@ -1,0 +1,7 @@
+status:
+
+CLI commands:
+cd "$PWD"; export BM_FILE=$(mktemp -d)/b.json; npm run -s bm -- add https://example.com 'The "best" tools'; npm run -s bm -- add https://x.com 'He said "hi" \ back'; npm run -s bm -- tag 1 dev; npm run -s bm -- list; cat $BM_FILE; npm run -s bm -- add https://y.com y; npm run -s bm -- list --tag dev; echo "exit $?"; cat $BM_FILE; cat src/main.ts
+
+plans:
+

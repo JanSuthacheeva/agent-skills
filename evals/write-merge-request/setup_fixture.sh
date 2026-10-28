@@ -9,41 +9,9 @@ set -euo pipefail
 name=$1; dest=$2
 here=$(cd "$(dirname "$0")" && pwd)
 
-stubs() {
-  mkdir -p "$dest/bin"
-  cat > "$dest/bin/clickup-axi" <<P
-#!/usr/bin/env bash
-python3 -c 'import json, sys; print(json.dumps(sys.argv[1:]))' clickup-axi "\$@" >> "$dest/calls.jsonl"
-if [ "\$1 \$2" = "tasks SHOP-217" ]; then
-  printf 'task:\n  id: SHOP-217\n  title: Invoices: Export as CSV\n  status: in progress\n'
-else
-  echo "error: task \$2 not found" >&2; exit 1
-fi
-P
-  cat > "$dest/bin/glab" <<P
-#!/usr/bin/env bash
-python3 -c 'import json, sys; print(json.dumps(sys.argv[1:]))' glab "\$@" >> "$dest/calls.jsonl"
-case "\$1 \$2" in
-  "mr list") echo "No open merge requests match your search in shop/shop." ;;
-  "mr create") echo "https://gitlab.com/shop/shop/-/merge_requests/57" ;;
-  *) echo "glab stub: \$*" ;;
-esac
-P
-  cat > "$dest/bin/gh" <<P
-#!/usr/bin/env bash
-python3 -c 'import json, sys; print(json.dumps(sys.argv[1:]))' gh "\$@" >> "$dest/calls.jsonl"
-echo "gh: this repository is not on GitHub" >&2; exit 1
-P
-  chmod +x "$dest/bin/"*
-  touch "$dest/calls.jsonl"
-}
-
-remote() {
-  git init -q --bare "$dest/origin.git"
-  git remote add origin git@gitlab.com:shop/shop.git
-  git config remote.origin.pushurl "$dest/origin.git"
-  git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'
-}
+. "$here/../shared/forge_stubs.sh"
+stubs() { forge_stubs "$dest" "$here/tickets.json"; }
+remote() { forge_remote "$dest"; }
 
 rm -rf "$dest"
 if [ "$name" = review-guide ]; then

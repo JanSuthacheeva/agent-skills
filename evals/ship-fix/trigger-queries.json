@@ -1,0 +1,22 @@
+[
+  {"query": "fix SHOP-311 all the way to a merge request please, tags disappear after adding a bookmark", "should_trigger": true},
+  {"query": "can you take ECOM-2254 (voucher gets applied twice when you hit back in checkout) from start to MR? I'll approve the plan when you have one", "should_trigger": true},
+  {"query": "continue fixing", "should_trigger": true},
+  {"query": "here's a bug from support: users in NZ see yesterday's date in the date picker. find out why, fix it properly with a test, get it reviewed and open the MR", "should_trigger": true},
+  {"query": "ship this fix: the nightly report job sends an empty email about once a week. whole flow please, diagnose -> fix -> review -> MR", "should_trigger": true},
+  {"query": "HGAI-2050 duplicated notifications bug - do the whole thing, I only want to be asked when it matters", "should_trigger": true},
+  {"query": "the fix plan in docs/plans/2026-10-20-fix-voucher-twice.md is approved, carry it on to a merge request", "should_trigger": true},
+  {"query": "pagination on /admin/users repeats the last 3 users of page 1 on page 2. please fix it end to end and open a PR when you're done", "should_trigger": true},
+  {"query": "we got a crash report: POST /api/orders 500s on umlauts in the street name. take it all the way through, ticket is SHOP-402", "should_trigger": true},
+  {"query": "bug SHOP-415 - CSV export drops the last row. fix it and get it to review, the usual flow", "should_trigger": true},
+  {"query": "look into SHOP-311 - tags vanish after adding a bookmark. don't fix anything yet, I want to know the cause first", "should_trigger": false},
+  {"query": "why does the CSV export total come out one cent lower than the invoice PDF sometimes? just find the cause", "should_trigger": false},
+  {"query": "ship SHOP-217, the bulk tagging feature, all the way through to an MR", "should_trigger": false},
+  {"query": "continue shipping", "should_trigger": false},
+  {"query": "here's the approved plan docs/plans/2026-10-14-bookmark-tags.md, build it task by task", "should_trigger": false},
+  {"query": "review the changes on fix/SHOP-311-tags-lost before I open the merge request", "should_trigger": false},
+  {"query": "write the MR description for my bugfix branch, the double voucher fix is done and reviewed", "should_trigger": false},
+  {"query": "test/store.test.ts 'list sorts by date' fails after I renamed createdAt, make it pass", "should_trigger": false},
+  {"query": "TypeError: Cannot read properties of undefined (reading 'map') at TagList.tsx:14 - quick fix?", "should_trigger": false},
+  {"query": "commit the fix for the pagination bug I just made", "should_trigger": false}
+]

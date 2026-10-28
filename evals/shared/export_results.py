@@ -15,6 +15,9 @@ records. `render` rebuilds README.md from an existing export, e.g. after
 editing the template.
 
 Configs found in the runs are compared against the first one, with_skill.
+A grader may split its checks into named parts (summary.parts, e.g.
+diagnosis and contract); each part then gets its own success counts and
+results table, a trial succeeding in a part when all its checks pass.
 """
 import argparse, json, math, re, shutil, statistics as st
 from collections import Counter
@@ -25,9 +28,10 @@ from pathlib import Path
 from skill_usage import skills_invoked  # pyright: ignore[reportMissingImports]
 
 ROOT = Path(__file__).resolve().parent.parent.parent
-ORDER = ("with_skill", "without_skill", "code_review")
-LABELS = {"with_skill": "Skill", "without_skill": "Baseline", "code_review": "`/code-review`"}
-KEYS = {"with_skill": "skill", "without_skill": "base", "code_review": "cr"}
+ORDER = ("with_skill", "without_skill", "code_review", "systematic_debugging")
+LABELS = {"with_skill": "Skill", "without_skill": "Baseline", "code_review": "`/code-review`",
+          "systematic_debugging": "`systematic-debugging`"}
+KEYS = {"with_skill": "skill", "without_skill": "base", "code_review": "cr", "systematic_debugging": "sd"}
 CRITERIA = ("accuracy", "risk", "decisions", "readability")
 MEASURES = [("Cost (USD)", "cost_usd", "{:.3f}"), ("Output tokens", "output_tokens", "{:.0f}"),
             ("Agent turns", "num_turns", "{:.1f}"), ("Duration (s)", "total_duration_seconds", "{:.1f}")]
@@ -140,6 +144,10 @@ def model_stats(root):
             grades[c] += g
             timings[c] += [json.loads((r / "timing.json").read_text()) for r in sorted((e / c).glob("run-*"))]
             row[c] = (sum(x["summary"]["failed"] == 0 for x in g), len(g))
+            for x in g:
+                for part, p in x["summary"].get("parts", {}).items():
+                    ok, n = row.setdefault("parts", {}).setdefault(part, {}).get(c, (0, 0))
+                    row["parts"][part][c] = (ok + (p["passed"] == p["total"]), n + 1)
         per_eval.append(row)
     judge = {}
     for verdict in sorted(root.glob("judge/run-*/*.json")):
@@ -211,6 +219,35 @@ def render(suite, out):
             values.update({f"{k}_fisher_p": pvalue(fisher_two_sided(a_s, n_s - a_s, a_b, n_b - a_b)),
                            f"{k}_wins": wins, f"{k}_losses": losses, f"{k}_ties": len(per_eval) - wins - losses,
                            f"{k}_sign_p": f"{sign_test(wins, losses):.4f}"})
+    parts = sorted({p for m in models for r in stats[m][1] for p in r.get("parts", {})})
+    for part in parts:
+        rows = []
+        for i, r in enumerate(first[1]):
+            cells = []
+            for m, c in columns:
+                ok, n = stats[m][1][i].get("parts", {}).get(part, {}).get(c, (0, 0))
+                cells.append(f"{ok}/{n}" if n else "n/a")
+            rows.append((r["id"], f"`{r['name']}`", *cells))
+        totals = []
+        for m, c in columns:
+            ok = sum(row.get("parts", {}).get(part, {}).get(c, (0, 0))[0] for row in stats[m][1])
+            n = sum(row.get("parts", {}).get(part, {}).get(c, (0, 0))[1] for row in stats[m][1])
+            totals.append(f"**{ok}/{n}**")
+            k = f"{m}_{KEYS[c]}_{part}"
+            values.update({f"{k}_pass": ok, f"{k}_n": n, f"{k}_rate": pct(ok / n) if n else "n/a"})
+            if n:
+                lo, hi = wilson(ok, n)
+                values[f"{k}_ci"] = f"{pct(lo)}-{pct(hi)}"
+        rows.append(("", "**Total**", *totals))
+        values[f"table_results_{part}"] = table(["#", "Scenario", *head], rows)
+        for m in models:
+            per_eval = stats[m][1]
+            for c in stats[m][0][1:]:
+                get = lambda row, cfg: row.get("parts", {}).get(part, {}).get(cfg, (0, 0))
+                a_s, n_s = sum(get(r, "with_skill")[0] for r in per_eval), sum(get(r, "with_skill")[1] for r in per_eval)
+                a_b, n_b = sum(get(r, c)[0] for r in per_eval), sum(get(r, c)[1] for r in per_eval)
+                if n_s and n_b:
+                    values[f"{m}_vs_{KEYS[c]}_{part}_fisher_p"] = pvalue(fisher_two_sided(a_s, n_s - a_s, a_b, n_b - a_b))
     for i, r in enumerate(first[1]):
         cells = [f"{stats[m][1][i][c][0]}/{stats[m][1][i][c][1]}" for m, c in columns]
         result_rows.append((r["id"], f"`{r['name']}`", *cells))

@@ -1,0 +1,16 @@
+status:
+ M src/store.ts
+ M test/store.tags.test.ts
+
+CLI commands:
+d=$(mktemp -d); cat > $d/b.json <<'E'
+[{"id":1,"url":"https://a","title":"a","createdAt":"2026-01-01T00:00:00.000Z"},
+ {"id":2,"url":"https://b","title":"b","createdAt":"2026-01-01T00:00:00.000Z"},
+ {"id":3,"url":"https://c","title":"c","createdAt":"2026-01-01T00:00:00.000Z"}]
+E
+BM_FILE=$d/b.json npm run -s bm -- tag 3 recipes; BM_FILE=$d/b.json npm run -s bm -- list --tag recipes; echo ---; BM_FILE=$d/b.json npm run -s bm -- add https://d d; BM_FILE=$d/b.json npm run -s bm -- tag 4 x; BM_FILE=$d/b.json npm run -s bm -- list --tag x
+npm test 2>&1 | grep -E "^# (pass|fail)|not ok"; d=$(mktemp -d); echo '[{"id":1,"url":"https://a","title":"a","createdAt":"2026-01-01T00:00:00.000Z"},{"id":3,"url":"https://c","title":"c","createdAt":"2026-01-01T00:00:00.000Z"}]' > $d/b.json; BM_FILE=$d/b.json npm run -s bm -- tag 3 recipes; BM_FILE=$d/b.json npm run -s bm -- list --tag recipes
+npm test 2>&1 | grep -E "^# (pass|fail)|not ok"; d=$(mktemp -d); echo '[{"id":1,"url":"https://a","title":"a","createdAt":"2026-01-01T00:00:00.000Z"},{"id":3,"url":"https://c","title":"c","createdAt":"2026-01-01T00:00:00.000Z"}]' > $d/b.json; BM_FILE=$d/b.json npm run -s bm -- tag 3 recipes; BM_FILE=$d/b.json npm run -s bm -- list --tag recipes
+
+plans:
+

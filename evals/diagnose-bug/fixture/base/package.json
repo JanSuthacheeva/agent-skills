@@ -1,0 +1,9 @@
+{
+  "name": "bm",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test \"test/**/*.test.ts\"",
+    "bm": "node src/main.ts"
+  }
+}

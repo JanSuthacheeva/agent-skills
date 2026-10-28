@@ -1,0 +1,122 @@
+status:
+?? docs/
+
+CLI commands:
+set -x; S=$(mktemp -d); git worktree add -q $S/old 6978043 2>&1; export BM_FILE=$S/bookmarks.json
+for i in 1 2 3 4 5; do (cd $S/old && node src/main.ts add https://e.com/$i site$i); done
+cat $BM_FILE | head -8
+npm run -s bm -- tag 3 recipes; echo "exit $?"
+npm run -s bm -- list --tag recipes; echo "exit $?"
+cat $BM_FILE
+echo "--- fresh file (new version only)"; export BM_FILE=$S/fresh.json
+for i in 1 2 3; do npm run -s bm -- add https://e.com/$i s$i; done
+npm run -s bm -- tag 2 recipes; npm run -s bm -- list --tag recipes
+git worktree remove --force $S/old; echo $S
+
+plans:
+== docs/plans/2026-10-27-fix-tag-spreads-to-all-bookmarks.md
+# Fix: tagging one bookmark tags every bookmark saved before the update
+
+Report: SHOP-313 "Tagging one bookmark tags all of them"
+
+## Report
+
+Expected: `bm tag 3 recipes` tags only bookmark 3, so `bm list --tag recipes`
+shows only bookmark 3.
+Actual: `bm list --tag recipes` shows all 40 of the reporter's bookmarks.
+Steps and environment: the reporter updated bm and then ran `bm tag 3 recipes`
+on an existing bookmarks file. They guess that the tag command ignores the id,
+but the reproduction shows it doesn't (see Root cause).
+
+## Reproduction
+
+Create the bookmarks file with the version before tags (6978043), the way the
+reporter's file was created. Then tag it with the current version:
+
+    S=$(mktemp -d); git worktree add -q $S/old 6978043
+    export BM_FILE=$S/bookmarks.json
+    for i in 1 2 3 4 5; do (cd $S/old && node src/main.ts add https://e.com/$i site$i); done
+    # records have no "tags" field
+    npm run -s bm -- tag 3 recipes
+    # tagged 3 recipes            (exit 0)
+    npm run -s bm -- list --tag recipes
+    # 1  site1  https://e.com/1
+    # 2  site2  https://e.com/2
+    # 3  site3  https://e.com/3
+    # 4  site4  https://e.com/4
+    # 5  site5  https://e.com/5
+    # the file now has "tags": ["recipes"] on all five records
+    git worktree remove --force $S/old
+
+It fails on every run. With a file created only by the current version
+(`add` x3, `tag 2 recipes`), the list correctly shows only bookmark 2. So the
+bug needs records without a `tags` field.
+
+## Root cause
+
+`src/store.ts:38`: `fromRecord()` fills in a missing `tags` with
+`record.tags ?? noTags`. `noTags` is one module-level array
+(`src/store.ts:18`), so every pre-update bookmark loaded by `load()` gets the
+same array object. `tag()` (`src/store.ts:75`) then does
+`bookmark.tags.push(normalized)`. That push changes the shared array, so the
+tag shows up on every tagless bookmark, and `save(all)` writes it to each of
+their records. `tag()` does find the right bookmark by id; the reporter's
+guess is wrong.
+
+Proof: a scratch script loaded a file with two tagless records and one record
+with `"tags": []`. Records 1 and 2 had the same tags array
+(`all[0].tags === all[1].tags` → `true`); records 1 and 3 did not (`false`).
+
+Introduced in ad2332a "bm: tag bookmarks and list by tag" (`git blame` on
+lines 18 and 38). Its test "bookmarks saved before tags load with no tags"
+(`test/store.tags.test.ts`) uses `store.add()`, which already writes
+`tags: []`. So no test ever loaded a record without `tags`.
+
+## Fix
+
+In `fromRecord()`, give each bookmark its own array:
+`tags: record.tags ?? []`. Delete `noTags`. The fix belongs where records are
+loaded, not in `tag()`, because that is where the shared state is created.
+Any other code that changes `bookmark.tags` would have the same bug. No
+signatures change.
+
+## Also affected
+
+- No other code changes tags today. `add()` already uses a fresh `[]`.
+- **Damaged data:** every user who ran `bm tag` on a pre-update file now has
+  that tag (and every later tag) on all of their old bookmarks, and it is
+  saved in the file. After the fix, new tags stop spreading, but the wrong
+  tags stay. The file can't tell a real tag from a spread one, but there is a
+  pattern: all spread records have exactly the same `tags` list, in the same
+  order.
+
+## Assumptions
+
+- The regression test goes in `test/store.tags.test.ts`. It writes a raw JSON
+  file with records that have no `tags`, instead of using `add()`.
+- The misleading test "bookmarks saved before tags load with no tags" gets
+  rewritten to write a tagless record directly.
+
+## Open questions
+
+1. Repair the tags already written wrong? - recommended: no automatic repair,
+   because we can't tell which tags the user really set. Instead, tell the
+   reporter (and the release notes) to remove the wrong tags by hand.
+   Note: there is no `untag` command yet.
+2. Add a `bm untag <id> <tag>` command so users can clean up? This adds a new
+   public command. - recommended: yes, as a separate ticket, not in this fix.
+
+## Tasks
+
+- [ ] Add "tagging one pre-tags bookmark leaves the others untagged" in
+  `test/store.tags.test.ts`: write two records without `tags`, `tag(1, 'work')`,
+  and assert that `list()[1].tags` is `[]`. Today it fails with
+  `Expected values to be strictly deep-equal: + ['work'] - []`. Then fix
+  `fromRecord()` in `src/store.ts` to use `record.tags ?? []` and delete
+  `noTags`.
+- [ ] Rewrite "bookmarks saved before tags load with no tags" to load a
+  record written without `tags`.
+- [ ] Run `npm test`; all tests pass.
+- [ ] End-to-end: run the reproduction again and see only
+  `3  site3  https://e.com/3` from `bm list --tag recipes`.
+

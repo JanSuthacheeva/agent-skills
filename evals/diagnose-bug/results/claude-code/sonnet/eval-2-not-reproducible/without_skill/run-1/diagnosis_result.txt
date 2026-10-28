@@ -1,0 +1,8 @@
+status:
+
+CLI commands:
+cat src/store.ts; ls src test* 2>/dev/null; export BM_FILE=/tmp/bm-test.json; rm -f $BM_FILE; npm run bm -- add https://example.com 'The "best" tools'; cat $BM_FILE; npm run bm -- list
+export BM_FILE=/tmp/bm-test2.json; rm -f $BM_FILE; node src/main.ts add https://example.com 'The "best" tools'; node src/main.ts tag 1 foo; node src/main.ts add https://b.com 'x'; cat $BM_FILE; node src/main.ts list; git log --oneline | head
+
+plans:
+

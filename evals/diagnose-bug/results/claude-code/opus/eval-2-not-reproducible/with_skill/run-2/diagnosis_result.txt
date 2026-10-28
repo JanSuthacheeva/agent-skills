@@ -1,0 +1,17 @@
+status:
+
+CLI commands:
+D=$(mktemp -d); export BM_FILE=$D/b.json; cat src/main.ts; echo ---
+node src/main.ts add https://example.com 'The "best" tools'; echo "exit $?"; cat $BM_FILE
+node src/main.ts list; echo "exit $?"
+node src/main.ts tag 1 tools; echo "exit $?"
+node src/main.ts add https://b.com "It's \"quoted\" \\ back"; echo "exit $?"
+node src/main.ts list; echo "exit $?"; node src/main.ts list --tag tools; echo "exit $?"; cat $BM_FILE
+npm run bm -- add https://c.com 'The "best" tools'; echo "exit $?"; npm run bm -- list; echo "exit $?"; node -e "JSON.parse(require('fs').readFileSync('$BM_FILE','utf8'));console.log('valid json')"
+D=$(mktemp -d); export BM_FILE=$D/b.json
+node src/main.ts add https://a.com plain; node src/main.ts tag 1 tools; node src/main.ts list --tag tools; echo "-- add another"; node src/main.ts add https://b.com other; node src/main.ts list --tag tools; echo "exit $?"; cat $BM_FILE
+echo "== variations"; node src/main.ts add 'https://x.com/?q="a"' '“curly” "mixed" '"'"'single'"'"; node src/main.ts tag 3 '"quoted"'; echo "exit $?"; node src/main.ts list; echo "exit $?"
+git log -S'toRecord(one), tags' --oneline; rm -rf $D; git status --short
+
+plans:
+

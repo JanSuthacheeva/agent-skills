@@ -1,0 +1,124 @@
+status:
+?? docs/
+
+CLI commands:
+export BM_FILE=/tmp/bm313.json; rm -f $BM_FILE
+cat > $BM_FILE <<'E'
+[{"id":1,"url":"http://a","title":"a","createdAt":"2026-01-01T00:00:00.000Z"},{"id":2,"url":"http://b","title":"b","createdAt":"2026-01-01T00:00:00.000Z"},{"id":3,"url":"http://c","title":"c","createdAt":"2026-01-01T00:00:00.000Z"}]
+E
+npm run -s bm -- tag 3 recipes; echo "exit $?"; npm run -s bm -- list --tag recipes; cat $BM_FILE | grep -c recipes
+rm -f $BM_FILE; npm run -s bm -- add http://a; npm run -s bm -- add http://b; npm run -s bm -- tag 2 x; npm run -s bm -- list --tag x
+git log --format=%h -S'noTags' ; git status --short
+mkdir -p docs/plans; cat > docs/plans/2026-10-27-fix-tag-applies-to-all-bookmarks.md <<'E'
+# Fix: tagging one bookmark tags all of them
+
+Report: SHOP-313 "Tagging one bookmark tags all of them"
+
+## Report
+
+Expected: `bm tag 3 recipes` tags only bookmark 3.
+Actual: `bm list --tag recipes` then shows every bookmark (40 of 40).
+Steps and environment: after updating bm; the reporter guessed the tag command ignores the id (it does not).
+
+## Reproduction
+
+Bookmarks file as written before tags existed (records without a `tags` key):
+
+    export BM_FILE=/tmp/bm313.json
+    cat > $BM_FILE <<'X'
+    [{"id":1,"url":"http://a","title":"a","createdAt":"2026-01-01T00:00:00.000Z"},{"id":2,"url":"http://b","title":"b","createdAt":"2026-01-01T00:00:00.000Z"},{"id":3,"url":"http://c","title":"c","createdAt":"2026-01-01T00:00:00.000Z"}]
+    X
+    npm run -s bm -- tag 3 recipes
+    # tagged 3 recipes
+    npm run -s bm -- list --tag recipes
+    # 1  a  http://a
+    # 2  b  http://b
+    # 3  c  http://c
+    grep -c recipes $BM_FILE   # 3
+
+Fails every run. Control: bookmarks created with `bm add` on the current version, then `bm tag 2 x`, list only bookmark 2, so only records lacking `tags` are affected.
+
+## Root cause
+
+`src/store.ts:20` declares one module-level `const noTags: string[] = []`, and `fromRecord` (`src/store.ts:33`) uses it as `record.tags ?? noTags` for every record without a `tags` key. All such bookmarks share that single array. `BookmarkStore.tag` (`src/store.ts:76`) does `bookmark.tags.push(normalized)`, which mutates the shared array, so every legacy bookmark gets the tag and `save` writes it to all of them. Proven by the reproduction: legacy records all get the tag, freshly added ones do not. Introduced in 431d4f7 "bm: tag bookmarks and list by tag".
+
+## Fix
+
+In `fromRecord`, give each bookmark its own array: `tags: record.tags ?? []`, and delete the `noTags` constant. The mistake is the shared default, not `tag()` or the CLI, so it is fixed where the bookmark is built. Signatures do not change.
+
+## Also affected
+
+- Sibling: none found. `add` creates a fresh `tags: []` per bookmark, and `listTagged` only reads.
+- Data: any bookmarks file where `bm tag` ran on a record without a `tags` key now has the tag on every such record. The fix stops new damage but does not repair these files, and the wrongly tagged records cannot be told from correct ones.
+
+## Assumptions
+
+- The regression test goes in `test/store.tags.test.ts`, using its `tempStore` helper and writing a legacy file by hand (the only way to get records without `tags`).
+
+## Open questions
+
+1. Repair already-damaged files? - recommended: no. The right tags are unknowable; tell the reporter to remove the wrong tag by editing `.bookmarks.json`, or add a `bm untag` command later as a separate ticket.
+
+## Tasks
+
+- [ ] Add "tagging a legacy bookmark leaves the others untagged" in `test/store.tags.test.ts` (write a file with three records lacking `tags`, tag id 3, assert `listTagged` returns only id 3; fails today with a deepEqual diff showing ids 1, 2 and 3), then fix `fromRecord` in `src/store.ts` and remove `noTags`
+- [ ] End-to-end: run the reproduction again and see only `3  c  http://c` from `list --tag recipes` and `grep -c recipes` print 1
+E
+git status --short; rm -f /tmp/bm313.json
+
+plans:
+== docs/plans/2026-10-27-fix-tag-applies-to-all-bookmarks.md
+# Fix: tagging one bookmark tags all of them
+
+Report: SHOP-313 "Tagging one bookmark tags all of them"
+
+## Report
+
+Expected: `bm tag 3 recipes` tags only bookmark 3.
+Actual: `bm list --tag recipes` then shows every bookmark (40 of 40).
+Steps and environment: after updating bm; the reporter guessed the tag command ignores the id (it does not).
+
+## Reproduction
+
+Bookmarks file as written before tags existed (records without a `tags` key):
+
+    export BM_FILE=/tmp/bm313.json
+    cat > $BM_FILE <<'X'
+    [{"id":1,"url":"http://a","title":"a","createdAt":"2026-01-01T00:00:00.000Z"},{"id":2,"url":"http://b","title":"b","createdAt":"2026-01-01T00:00:00.000Z"},{"id":3,"url":"http://c","title":"c","createdAt":"2026-01-01T00:00:00.000Z"}]
+    X
+    npm run -s bm -- tag 3 recipes
+    # tagged 3 recipes
+    npm run -s bm -- list --tag recipes
+    # 1  a  http://a
+    # 2  b  http://b
+    # 3  c  http://c
+    grep -c recipes $BM_FILE   # 3
+
+Fails every run. Control: bookmarks created with `bm add` on the current version, then `bm tag 2 x`, list only bookmark 2, so only records lacking `tags` are affected.
+
+## Root cause
+
+`src/store.ts:20` declares one module-level `const noTags: string[] = []`, and `fromRecord` (`src/store.ts:33`) uses it as `record.tags ?? noTags` for every record without a `tags` key. All such bookmarks share that single array. `BookmarkStore.tag` (`src/store.ts:76`) does `bookmark.tags.push(normalized)`, which mutates the shared array, so every legacy bookmark gets the tag and `save` writes it to all of them. Proven by the reproduction: legacy records all get the tag, freshly added ones do not. Introduced in 431d4f7 "bm: tag bookmarks and list by tag".
+
+## Fix
+
+In `fromRecord`, give each bookmark its own array: `tags: record.tags ?? []`, and delete the `noTags` constant. The mistake is the shared default, not `tag()` or the CLI, so it is fixed where the bookmark is built. Signatures do not change.
+
+## Also affected
+
+- Sibling: none found. `add` creates a fresh `tags: []` per bookmark, and `listTagged` only reads.
+- Data: any bookmarks file where `bm tag` ran on a record without a `tags` key now has the tag on every such record. The fix stops new damage but does not repair these files, and the wrongly tagged records cannot be told from correct ones.
+
+## Assumptions
+
+- The regression test goes in `test/store.tags.test.ts`, using its `tempStore` helper and writing a legacy file by hand (the only way to get records without `tags`).
+
+## Open questions
+
+1. Repair already-damaged files? - recommended: no. The right tags are unknowable; tell the reporter to remove the wrong tag by editing `.bookmarks.json`, or add a `bm untag` command later as a separate ticket.
+
+## Tasks
+
+- [ ] Add "tagging a legacy bookmark leaves the others untagged" in `test/store.tags.test.ts` (write a file with three records lacking `tags`, tag id 3, assert `listTagged` returns only id 3; fails today with a deepEqual diff showing ids 1, 2 and 3), then fix `fromRecord` in `src/store.ts` and remove `noTags`
+- [ ] End-to-end: run the reproduction again and see only `3  c  http://c` from `list --tag recipes` and `grep -c recipes` print 1
+

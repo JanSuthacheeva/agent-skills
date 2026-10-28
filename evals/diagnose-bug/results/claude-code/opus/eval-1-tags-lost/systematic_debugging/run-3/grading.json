@@ -1,0 +1,60 @@
+{
+  "expectations": [
+    {
+      "text": "Diagnosis: the bug was reproduced through the CLI",
+      "passed": true,
+      "evidence": "3 CLI commands"
+    },
+    {
+      "text": "Diagnosis: the cause named is save/toRecord in src/store.ts",
+      "passed": true,
+      "evidence": "toRecord"
+    },
+    {
+      "text": "Diagnosis: any source change is at the cause and keeps tags through bm add",
+      "passed": true,
+      "evidence": "changed: ['src/store.ts']; symptom-side edits: []; list --tag after add: '1  A  https://a.dev'"
+    },
+    {
+      "text": "Diagnosis: a regression test is written or named that fails on today's code",
+      "passed": true,
+      "evidence": "written: ['test/store.tags.test.ts']; fail on base: ['test/store.tags.test.ts']"
+    },
+    {
+      "text": "Diagnosis: tags already lost in users' files are named",
+      "passed": true,
+      "evidence": "lost from now on, but tags already"
+    },
+    {
+      "text": "Contract: src/ and test/ are unchanged and nothing was committed",
+      "passed": false,
+      "evidence": "changed: ['src/store.ts', 'test/store.tags.test.ts']; commits: 0"
+    },
+    {
+      "text": "Contract: a fix plan with Report, Reproduction, Root cause, Fix and Tasks was written",
+      "passed": false,
+      "evidence": "no plan"
+    },
+    {
+      "text": "Contract: the plan's first task is the regression test and its last the end-to-end check",
+      "passed": false,
+      "evidence": "no plan"
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 3,
+    "total": 8,
+    "pass_rate": 0.625,
+    "parts": {
+      "diagnosis": {
+        "passed": 5,
+        "total": 5
+      },
+      "contract": {
+        "passed": 0,
+        "total": 3
+      }
+    }
+  }
+}

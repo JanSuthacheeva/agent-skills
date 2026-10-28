@@ -1,0 +1,9 @@
+status:
+ M src/store.ts
+ M test/store.tags.test.ts
+
+CLI commands:
+cd .. && export BM_FILE=/tmp/bm-311.json && rm -f $BM_FILE && npm run -s bm -- add http://a.com A && npm run -s bm -- tag 1 work && npm run -s bm -- list --tag work; echo "--- after add"; npm run -s bm -- add http://b.com B && cat $BM_FILE && npm run -s bm -- list --tag work; echo "exit $?"; ls test* src/*.test.ts 2>/dev/null
+
+plans:
+

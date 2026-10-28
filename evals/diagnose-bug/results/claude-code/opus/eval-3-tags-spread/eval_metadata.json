@@ -1,0 +1,15 @@
+{
+  "eval_id": 3,
+  "eval_name": "tags-spread",
+  "prompt": "Look into SHOP-313.",
+  "assertions": [
+    "Diagnosis: the bug was reproduced through the CLI with a file from before tags",
+    "Diagnosis: the cause named is the shared noTags array in fromRecord",
+    "Diagnosis: any source change is in fromRecord and stops the spread",
+    "Diagnosis: a regression test is written or named that fails on today's code",
+    "Diagnosis: bookmarks already tagged wrongly in users' files are named",
+    "Contract: src/ and test/ are unchanged and nothing was committed",
+    "Contract: a fix plan with Report, Reproduction, Root cause, Fix and Tasks was written",
+    "Contract: the plan's first task is the regression test and its last the end-to-end check"
+  ]
+}

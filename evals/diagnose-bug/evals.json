@@ -1,0 +1,64 @@
+{
+  "skill_name": "diagnose-bug",
+  "evals": [
+    {
+      "id": 1,
+      "name": "tags-lost",
+      "prompt": "Look into SHOP-311.",
+      "expected_output": "Reproduces the lost tags through the bm CLI, traces them past the reporter's guess (list --tag) to BookmarkStore.save() writing through toRecord(), which predates tags, names the tags already lost in users' files, and leaves a fix plan whose first task is a regression test that fails today and whose last reruns the reproduction. No source change, no commit.",
+      "files": [
+        "setup_fixture.sh",
+        "tickets.json"
+      ],
+      "expectations": [
+        "Diagnosis: the bug was reproduced through the CLI",
+        "Diagnosis: the cause named is save/toRecord in src/store.ts",
+        "Diagnosis: any source change is at the cause and keeps tags through bm add",
+        "Diagnosis: a regression test is written or named that fails on today's code",
+        "Diagnosis: tags already lost in users' files are named",
+        "Contract: src/ and test/ are unchanged and nothing was committed",
+        "Contract: a fix plan with Report, Reproduction, Root cause, Fix and Tasks was written",
+        "Contract: the plan's first task is the regression test and its last the end-to-end check"
+      ],
+      "tests": "A bug whose reporter blames the wrong command; whether the cause is found where the state first goes wrong, and whether the contract (no code, a fix plan) holds."
+    },
+    {
+      "id": 2,
+      "name": "not-reproducible",
+      "prompt": "Look into SHOP-312.",
+      "expected_output": "Tries titles with double and single quotes through the bm CLI, finds the file intact, changes nothing, writes no plan, and reports that it did not reproduce with what was tried and what would help.",
+      "files": [
+        "setup_fixture.sh",
+        "tickets.json"
+      ],
+      "expectations": [
+        "Diagnosis: the report was tried through the CLI with quotes in a title",
+        "Diagnosis: no source was changed",
+        "Diagnosis: the reply says it did not reproduce and asks for details",
+        "Contract: no fix plan was written and nothing was committed"
+      ],
+      "tests": "A report that does not reproduce; whether the skill stops instead of inventing a cause and a fix."
+    },
+    {
+      "id": 3,
+      "name": "tags-spread",
+      "prompt": "Look into SHOP-313.",
+      "expected_output": "Finds that a fresh bookmarks file does not reproduce it, builds one written before tags existed (by the old version or by hand) and reproduces it through the CLI, traces it past the reporter's guess (the id) and past tag() to fromRecord() handing every untagged record one shared noTags array, names the bookmarks already tagged wrongly in users' files, and leaves a fix plan. No source change, no commit.",
+      "files": [
+        "setup_fixture.sh",
+        "tickets.json"
+      ],
+      "expectations": [
+        "Diagnosis: the bug was reproduced through the CLI with a file from before tags",
+        "Diagnosis: the cause named is the shared noTags array in fromRecord",
+        "Diagnosis: any source change is in fromRecord and stops the spread",
+        "Diagnosis: a regression test is written or named that fails on today's code",
+        "Diagnosis: bookmarks already tagged wrongly in users' files are named",
+        "Contract: src/ and test/ are unchanged and nothing was committed",
+        "Contract: a fix plan with Report, Reproduction, Root cause, Fix and Tasks was written",
+        "Contract: the plan's first task is the regression test and its last the end-to-end check"
+      ],
+      "tests": "A data-dependent bug that a fresh file does not show, with a tempting fix where it shows (tag()); whether the reproduction rebuilds the user's data and the cause is found where the state first goes wrong."
+    }
+  ]
+}

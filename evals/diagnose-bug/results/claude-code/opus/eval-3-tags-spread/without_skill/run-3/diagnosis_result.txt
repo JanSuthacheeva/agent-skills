@@ -1,0 +1,10 @@
+status:
+ M src/store.ts
+ M test/store.tags.test.ts
+
+CLI commands:
+cat test/store.tags.test.ts; d=$(mktemp -d); printf '[{"id":1,"url":"a","title":"a","createdAt":"2026-01-01T00:00:00.000Z"},{"id":2,"url":"b","title":"b","createdAt":"2026-01-01T00:00:00.000Z"},{"id":3,"url":"c","title":"c","createdAt":"2026-01-01T00:00:00.000Z"}]' > $d/b.json; BM_FILE=$d/b.json npm run -s bm -- tag 3 recipes; BM_FILE=$d/b.json npm run -s bm -- list --tag recipes
+cd <tmp> && cat test/store.tags.test.ts; d=$(mktemp -d); printf '[{"id":1,"url":"a","title":"a","createdAt":"2026-01-01T00:00:00.000Z"},{"id":2,"url":"b","title":"b","createdAt":"2026-01-01T00:00:00.000Z"},{"id":3,"url":"c","title":"c","createdAt":"2026-01-01T00:00:00.000Z"}]' > $d/b.json; BM_FILE=$d/b.json npm run -s bm -- tag 3 recipes; BM_FILE=$d/b.json npm run -s bm -- list --tag recipes
+
+plans:
+

@@ -1,0 +1,9 @@
+new commits:
+ac135c2 HEAD -> fix/SHOP-311-tags-lost docs: tick the SHOP-311 end-to-end check
+7b27af6  store: save tags through save() like add()
+bb8ee7c  store: keep tags when saving bookmarks
+
+status:
+
+agents:
+

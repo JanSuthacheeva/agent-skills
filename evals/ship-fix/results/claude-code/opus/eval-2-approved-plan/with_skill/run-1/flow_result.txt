@@ -1,0 +1,11 @@
+new commits:
+c8e0372 HEAD -> fix/SHOP-311-tags-lost docs: review the SHOP-311 fix
+f59970b  test: load a real pre-tags record in the legacy tags test
+f06f525  docs: check the SHOP-311 fix end to end
+023d7eb  store: write tagged bookmarks through save()
+867fcbb  store: keep tags when saving bookmarks
+
+status:
+
+agents:
+- Isolated review of SHOP-311 branch: 844 chars

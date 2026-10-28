@@ -10,6 +10,7 @@ import json, os, re, subprocess, sys, tempfile
 from pathlib import Path
 
 PLAN = "docs/plans/2026-10-14-bookmark-tags.md"
+BUILD_REPORT = re.compile(r"deviation|I (built|implemented)|has been (built|implemented)|tasks? \d+ (to|-) \d+ (are|were) (done|built)", re.I)
 
 
 def sh(cwd, *args, env=None):

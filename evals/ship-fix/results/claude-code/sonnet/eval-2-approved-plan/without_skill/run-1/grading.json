@@ -1,0 +1,60 @@
+{
+  "expectations": [
+    {
+      "text": "All plan boxes are ticked",
+      "passed": true,
+      "evidence": "xxx"
+    },
+    {
+      "text": "The build ran in this session, not in an agent",
+      "passed": true,
+      "evidence": "build agents: 0"
+    },
+    {
+      "text": "A regression test fails on the pre-fix source",
+      "passed": true,
+      "evidence": "changed tests: ['test/store.tags.test.ts']; fail before the fix: ['test/store.tags.test.ts']"
+    },
+    {
+      "text": "Tags survive bm add through the CLI",
+      "passed": true,
+      "evidence": "list --tag work after add: '1  A  https://a.dev'"
+    },
+    {
+      "text": "The review ran in a separate fresh agent",
+      "passed": false,
+      "evidence": "review agents: 0"
+    },
+    {
+      "text": "The review agent's prompt holds no build report",
+      "passed": false,
+      "evidence": "no review agent"
+    },
+    {
+      "text": "The plan has a ## Review section",
+      "passed": false,
+      "evidence": "absent"
+    },
+    {
+      "text": "npm test passes",
+      "passed": true,
+      "evidence": "# duration_ms 73.319084"
+    },
+    {
+      "text": "Nothing was pushed and no MR was created",
+      "passed": true,
+      "evidence": "remote heads: ['main']; mr create: False"
+    },
+    {
+      "text": "Response drafts the MR or puts open review items to the user",
+      "passed": false,
+      "evidence": "MR draft: False; open items put: None"
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 4,
+    "total": 10,
+    "pass_rate": 0.6
+  }
+}

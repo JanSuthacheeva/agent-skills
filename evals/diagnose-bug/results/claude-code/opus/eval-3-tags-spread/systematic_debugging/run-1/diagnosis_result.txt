@@ -1,0 +1,20 @@
+status:
+ M src/store.ts
+ M test/store.tags.test.ts
+
+CLI commands:
+d=$(mktemp -d) && cat > $d/b.json <<'EOF'
+[{"id":1,"url":"https://a","title":"a","createdAt":"2026-01-01T00:00:00.000Z"},
+ {"id":2,"url":"https://b","title":"b","createdAt":"2026-01-01T00:00:00.000Z"},
+ {"id":3,"url":"https://c","title":"c","createdAt":"2026-01-01T00:00:00.000Z"}]
+EOF
+BM_FILE=$d/b.json npm run -s bm -- tag 3 recipes; BM_FILE=$d/b.json npm run -s bm -- list --tag recipes; cat $d/b.json; cat test/store.tags.test.ts | head -40
+cd <tmp> && d=$(mktemp -d) && cat > $d/b.json <<'EOF'
+[{"id":1,"url":"https://a","title":"a","createdAt":"2026-01-01T00:00:00.000Z"},
+ {"id":2,"url":"https://b","title":"b","createdAt":"2026-01-01T00:00:00.000Z"},
+ {"id":3,"url":"https://c","title":"c","createdAt":"2026-01-01T00:00:00.000Z"}]
+EOF
+BM_FILE=$d/b.json npm run -s bm -- tag 3 recipes; BM_FILE=$d/b.json npm run -s bm -- list --tag recipes; cat $d/b.json; cat test/store.tags.test.ts | head -40
+
+plans:
+
