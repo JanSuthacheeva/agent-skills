@@ -54,8 +54,9 @@ Code's command always diffs against `origin/HEAD`; when the target is
 another branch, or `origin/HEAD` is not set, tell the agent to review
 `git diff <target>...HEAD` in place of the diff the command shows, or
 it reviews the whole stack or nothing. If you cannot start an agent,
-run it yourself after your own pass. Its findings are yours: prove, fix
-or leave them open like any other.
+run it yourself after your own pass. Wait for its findings before you
+fix anything; they are yours: prove, fix or leave them open like any
+other.
 
 Read every changed line. Go through these in order, most costly to miss
 first:

@@ -45,7 +45,7 @@ Verified facts:
 - [x] review-changes: start the harness's security review in parallel on the branch's
       range, treat its findings as the reviewer's own, add the Security checklist item and
       the summary line, bump to 0.8
-- [ ] review-changes: wait for the security agent's findings before
+- [x] review-changes: wait for the security agent's findings before
       fixing (decided after review: a finding lost to a summary written
       first is the costly case)
 
