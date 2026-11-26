@@ -205,7 +205,8 @@
       "tests": "A subtle security defect: the escaping exists and its tests pass, but it misses quotes, and the title is also written into an attribute. Untrusted titles come from shared files imported on main.",
       "planted": [
         "escapeHtml escapes & < > but not quotes, and renderPage writes the title into title=\"...\", so a title from a shared file such as `x\" onmouseover=\"alert(1)` adds an event handler to the exported page - stored XSS (src/export.ts)",
-        "No test covers a quote in a title"
+        "No test covers a quote in a title",
+        "Not planted but present: renderPage writes the URL into href unescaped, and `bm add` stores any URL, so `bm add 'x\" onmouseover=\"alert(1)'` breaks out too. A reviewer may fairly fix it; the grader does not check it"
       ]
     }
   ]

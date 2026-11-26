@@ -28,7 +28,7 @@ branch owner. A blind judge scored the skill's report at
 with `{{sonnet_model}}` the scores were {{sonnet_skill_judge}},
 {{sonnet_base_judge}} and {{sonnet_cr_judge}}. The skill was the most
 expensive condition. Version 0.8, which adds the harness's security
-review, matched version 0.7 on eight scenarios including five with
+review, matched version 0.7 in detection on eight scenarios including five with
 security defects, with the same detection and judged report quality at
 64% more cost per trial (section 6).
 
@@ -226,7 +226,7 @@ are in [`v0.7-vs-v0.8/`](v0.7-vs-v0.8/), produced by
 | stacked-base | `bm remove`, stacked on the unmerged security-diff branch and reviewed against it | Unknown id exits 0; no test for it. The injection lies only in the lower branch and must not be fixed |
 | no-origin-head | security-diff with `origin/HEAD` unset, as after adding a remote by hand | As security-diff |
 | clean-branch | The sharing feature implemented correctly | Nothing in `src/opener.ts` and `src/urls.ts`; a change there is a false positive |
-| subtle-xss | An HTML export on top of the merged, correct sharing feature | The escaping covers `& < >` but not quotes, and the title is also written into an attribute: stored XSS from a shared title |
+| subtle-xss | An HTML export on top of the merged, correct sharing feature | The escaping covers `& < >` but not quotes, and the title is also written into an attribute: stored XSS from a shared title. Not planted but present: `href` is unescaped too, reachable through `bm add`, which takes any URL |
 
 **Table 7.** Successful trials (all checks passed), and v0.8 trials in
 which a subagent invoked `/security-review`.
@@ -287,15 +287,15 @@ found both defects.
 The only failed check is a deliberate one: in all three stacked trials,
 the security agent noted the lower branch's command injection as
 outside the diff it reviewed, and v0.8 reported it as an open item to
-fix on that branch, without touching it; v0.7 never mentioned it. The judge scored this in
-v0.8's favour (34.7 against 31.7), reasoning that an owner about to
+fix on that branch, without touching it; v0.7 never mentioned it. The
+judge scored this in v0.8's favour (34.7 against 31.7), reasoning that an owner about to
 merge the stack should know.
 
 Report quality did not differ beyond noise: 34.0 against 33.6 of 40,
 v0.8 first in 10 of 24 comparisons (two-sided sign test, p = 0.54).
-Cost rose by 64% per trial, from three subagents in place of one: the
-security agent and the command's own vulnerability and false-positive
-agents. Median duration rose by 8%, because the security review runs
+Cost rose by 64% per trial, from 2.8 subagents on average in place of
+one: the security agent and the command's own vulnerability and
+false-positive agents. Median duration rose by 8%, because the security review runs
 in parallel with the reviewer's own pass. The mean is dominated by one
 trial in which the background agent's completion notice reached the
 headless session 18 minutes after the review had ended and caused an
