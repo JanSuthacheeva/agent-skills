@@ -6,19 +6,22 @@
 #   no config sees how the branch was written. with_skill copies the skill
 #   into the fixture's project skills; a config with a directory of that
 #   name under $SKILL_VERSIONS copies that copy of the skill instead, to
-#   compare versions; code_review replaces the prompt with Claude Code's
-#   built-in `/code-review medium --fix`.
+#   compare versions, and any other config fails; code_review replaces
+#   the prompt with Claude Code's built-in `/code-review medium --fix`.
 set -euo pipefail
 name=$1; prompt=$2; cfg=$3; run=$4; fixtures=$5
 here=$(cd "$(dirname "$0")" && pwd)
+case $cfg in
+  with_skill) skill="$here/../../skills/review-changes" ;;
+  without_skill|code_review) skill="" ;;
+  *) skill="${SKILL_VERSIONS:-}/$cfg"
+     [ -n "${SKILL_VERSIONS:-}" ] && [ -d "$skill" ] || { echo "no skill version $cfg under SKILL_VERSIONS" >&2; exit 1; } ;;
+esac
 fx="$fixtures/$(echo "$run" | tr / _)"
 "$here/setup_fixture.sh" "$name" "$fx" >/dev/null
 mkdir -p "$run/outputs"
 ln -sfn "$fx/repo" "$run/repo"; cp "$fx/base_sha" "$fx/branch_sha" "$run/"
 [ -f "$fx/lower_sha" ] && cp "$fx/lower_sha" "$run/"
-skill=""
-[ "$cfg" = with_skill ] && skill="$here/../../skills/review-changes"
-[ -n "${SKILL_VERSIONS:-}" ] && [ -d "$SKILL_VERSIONS/$cfg" ] && skill="$SKILL_VERSIONS/$cfg"
 if [ -n "$skill" ] && [ -d "$skill" ]; then
   mkdir -p "$fx/repo/.claude/skills/review-changes"
   cp -R "$skill/." "$fx/repo/.claude/skills/review-changes/"
