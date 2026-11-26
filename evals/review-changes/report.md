@@ -279,27 +279,27 @@ that only a security-focused pass finds.
 The mechanism worked as specified. With `origin/HEAD` set, every v0.8
 trial had a subagent invoke `/security-review`, and on the stacked
 branch every one of them reviewed `git diff <target>...HEAD` in place of
-the command's diff against `origin/HEAD` and found no vulnerability
-in it, which is correct. Without `origin/HEAD` the command fails while loading; in the
-final runs the reviewer skipped it and said so, and its own pass still
-found both defects.
+the command's diff against `origin/HEAD` and found no vulnerability in
+it, which is correct. Without `origin/HEAD` the command fails while
+loading; in the final runs the reviewer skipped it and said so, and its
+own pass still found both defects.
 
 The only failed check is a deliberate one: in all three stacked trials,
-the security agent noted the lower branch's command injection as
-outside the diff it reviewed, and v0.8 reported it as an open item to
-fix on that branch, without touching it; v0.7 never mentioned it. The
-judge scored this in v0.8's favour (34.7 against 31.7), reasoning that an owner about to
-merge the stack should know.
+the security agent noted the lower branch's command injection as outside
+the diff it reviewed, and v0.8 reported it as an open item to fix on
+that branch, without touching it; v0.7 never mentioned it. The judge
+scored this in v0.8's favour (34.7 against 31.7), reasoning that an
+owner about to merge the stack should know.
 
 Report quality did not differ beyond noise: 34.0 against 33.6 of 40,
-v0.8 first in 10 of 24 comparisons (two-sided sign test, p = 0.54).
-Cost rose by 64% per trial, from 2.8 subagents on average in place of
-one: the security agent and the command's own vulnerability and
-false-positive agents. Median duration rose by 8%, because the security review runs
-in parallel with the reviewer's own pass. The mean is dominated by one
-trial in which the background agent's completion notice reached the
-headless session 18 minutes after the review had ended and caused an
-extra turn.
+v0.8 first in 10 of 24 comparisons (two-sided sign test, p = 0.54). Cost
+rose by 64% per trial, from 2.8 subagents on average in place of one:
+the security agent and the command's own vulnerability and
+false-positive agents. Median duration rose by 8%, because the security
+review runs in parallel with the reviewer's own pass. The mean is
+dominated by one trial in which the background agent's completion notice
+reached the headless session 18 minutes after the review had ended and
+caused an extra turn.
 
 Two changes to the skill came out of earlier runs of this comparison.
 First, a reviewer told only to "start" the security review briefed its
