@@ -5,13 +5,14 @@ description: >-
   conversation that wrote them - against the plan and the project's rules,
   proves each finding, fixes the ones that are cheap to reverse, reviews
   the production-code fixes again, and leaves a short summary of the
-  risks and where a human should look. Use when the user asks to review a branch, an
-  implementation or the current changes before a merge request, or after
+  risks and where a human should look. Use when the user asks to review a
+  branch, an implementation or the current changes before a merge
+  request, or after
   implement-plan has finished, even if they just say "review this". Not
   for commenting on someone else's merge request or for lint-only passes.
 metadata:
     author: Jan Suthacheeva
-    version: "0.7"
+    version: "0.8"
 ---
 
 An agent reviewing code it just wrote tends to confirm its own choices, so
@@ -45,22 +46,35 @@ it judges the code by what is in the repository, not by what was meant.
 
 ## 3. Review
 
+If your harness has a security review for changes - Claude Code's
+`/security-review`, or the `codex-security:security-diff-scan` skill
+where the Codex Security plugin is installed - start it now in a
+parallel agent on `<target>...HEAD`, and review while it runs. Claude
+Code's command always diffs against `origin/HEAD`; when the target is
+another branch, tell the agent to review `git diff <target>...HEAD` in
+place of the diff the command shows, or it reviews the whole stack. If
+you cannot start an agent, run it yourself after your own pass. Its
+findings are yours: prove, fix or leave them open like any other.
+
 Read every changed line. Go through these in order, most costly to miss
 first:
 
 1. **Data** - what is stored and in what format, migrations, and what
    happens to stored data when something fails: a read error that turns
    into an empty result and is then saved over the file loses it.
-2. **Boundaries** - each unit does the job the plan and the rules give it.
+2. **Security** - untrusted input reaching queries, shells, file paths
+   or templates; missing authentication or authorization checks; secrets
+   in code or logs.
+3. **Boundaries** - each unit does the job the plan and the rules give it.
    Look for logic in the wrong layer, a unit bypassed and reimplemented
    by its caller, and code left dead by that.
-3. **Behaviour against the plan** - every call chain, error path, exit
+4. **Behaviour against the plan** - every call chain, error path, exit
    code, message, name and signature the plan states.
-4. **Errors** - swallowed, widened or mismapped errors, and failures that
+5. **Errors** - swallowed, widened or mismapped errors, and failures that
    pass silently.
-5. **Tests** - every behaviour and error path in the plan has a test that
+6. **Tests** - every behaviour and error path in the plan has a test that
    fails without the code.
-6. **Conventions** - the project's rules and the patterns of the code
+7. **Conventions** - the project's rules and the patterns of the code
    around it.
 
 Then go over the diff once more for what the list does not name: inputs
@@ -114,7 +128,7 @@ Keep it short and plain - the user reads this instead of every line:
   "`src/store.ts` `load()` to `save()`: what happens to a corrupt file".
   Say what is routine and can be skimmed.
 - **Checks** - the commit at which the tests, lint and type checks last
-  passed, or what is red.
+  passed, or what is red, and whether a security review tool ran.
 
 If the branch has a plan, also write the summary into it as a
 `## Review` section at the end, replacing an earlier one, and commit it.

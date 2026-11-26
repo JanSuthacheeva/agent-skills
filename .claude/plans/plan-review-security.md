@@ -42,6 +42,6 @@ Verified facts:
 
 ## Tasks
 
-- [ ] review-changes: start the harness's security review in parallel on the branch's
+- [x] review-changes: start the harness's security review in parallel on the branch's
       range, treat its findings as the reviewer's own, add the Security checklist item and
       the summary line, bump to 0.8
