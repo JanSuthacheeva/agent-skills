@@ -29,8 +29,8 @@ Verified facts:
   `/security-review`, Codex's `codex-security:security-diff-scan` when the plugin is
   installed), start it in a parallel agent on `<target>...HEAD` while you review. Claude
   Code's command always diffs against `origin/HEAD`: when the target is another branch,
-  tell the agent to review `git diff <target>...HEAD` in place of the diff the command
-  shows. Without a parallel agent, run it yourself after your own pass.
+  or `origin/HEAD` is not set (a remote added by hand, not cloned), tell the agent to
+  review `git diff <target>...HEAD` in place of the diff the command shows. Without a parallel agent, run it yourself after your own pass.
 - Its findings are the reviewer's own: prove each, fix the cheap ones, unproven ones go to
   Open as questions.
 - New checklist item 2, **Security**: untrusted input reaching queries, shells, paths or
