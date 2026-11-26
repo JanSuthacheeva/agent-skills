@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # Run one review-changes eval trial headlessly with `claude -p`.
 # Usage: run_trial.sh <eval-name> <prompt> <config> <run-dir> <fixture-root>
-#   config: with_skill | without_skill | code_review. Every run is a fresh
-#   headless session isolated from user and plugin settings, so no config
-#   sees how the branch was written. with_skill copies the skill into the
-#   fixture's project skills; code_review replaces the prompt with Claude
-#   Code's built-in `/code-review medium --fix`.
+#   config: with_skill | without_skill | code_review | <version>. Every run
+#   is a fresh headless session isolated from user and plugin settings, so
+#   no config sees how the branch was written. with_skill copies the skill
+#   into the fixture's project skills; a config with a directory of that
+#   name under $SKILL_VERSIONS copies that copy of the skill instead, to
+#   compare versions; code_review replaces the prompt with Claude Code's
+#   built-in `/code-review medium --fix`.
 set -euo pipefail
 name=$1; prompt=$2; cfg=$3; run=$4; fixtures=$5
 here=$(cd "$(dirname "$0")" && pwd)
@@ -13,9 +15,13 @@ fx="$fixtures/$(echo "$run" | tr / _)"
 "$here/setup_fixture.sh" "$name" "$fx" >/dev/null
 mkdir -p "$run/outputs"
 ln -sfn "$fx/repo" "$run/repo"; cp "$fx/base_sha" "$fx/branch_sha" "$run/"
-if [ "$cfg" = with_skill ] && [ -d "$here/../../skills/review-changes" ]; then
-  mkdir -p "$fx/repo/.claude/skills"
-  cp -R "$here/../../skills/review-changes" "$fx/repo/.claude/skills/"
+[ -f "$fx/lower_sha" ] && cp "$fx/lower_sha" "$run/"
+skill=""
+[ "$cfg" = with_skill ] && skill="$here/../../skills/review-changes"
+[ -n "${SKILL_VERSIONS:-}" ] && [ -d "$SKILL_VERSIONS/$cfg" ] && skill="$SKILL_VERSIONS/$cfg"
+if [ -n "$skill" ] && [ -d "$skill" ]; then
+  mkdir -p "$fx/repo/.claude/skills/review-changes"
+  cp -R "$skill/." "$fx/repo/.claude/skills/review-changes/"
   echo ".claude/" >> "$fx/repo/.git/info/exclude"
 fi
 [ "$cfg" = code_review ] && prompt="/code-review medium --fix"
