@@ -24,6 +24,14 @@ if [ -n "$skill" ] && [ -d "$skill" ]; then
   cp -R "$skill/." "$fx/repo/.claude/skills/review-changes/"
   echo ".claude/" >> "$fx/repo/.git/info/exclude"
 fi
+# Nothing a trial runs may reach the desktop: `bm open` and anything else
+# that opens a URL hit recording stubs instead of the browser.
+stubs="$fx/stubs"; mkdir -p "$stubs"
+for cmd in open xdg-open; do
+  printf '#!/bin/sh\necho "%s $*" >> "%s/opened.log"\n' "$cmd" "$fx" > "$stubs/$cmd"
+  chmod +x "$stubs/$cmd"
+done
+export PATH="$stubs:$PATH" BM_OPENER="$stubs/open"
 [ "$cfg" = code_review ] && prompt="/code-review medium --fix"
 args=(-p "$prompt" --output-format json --model "${MODEL:-claude-opus-5-5}" --effort "${EFFORT:-medium}"
       --setting-sources project,local --strict-mcp-config --mcp-config '{"mcpServers": {}}'
