@@ -30,9 +30,10 @@ Verified facts:
   installed), start it in a parallel agent on `<target>...HEAD` while you review. Claude
   Code's command always diffs against `origin/HEAD`: when the target is another branch,
   or `origin/HEAD` is not set (a remote added by hand, not cloned), tell the agent to
-  review `git diff <target>...HEAD` in place of the diff the command shows. Without a parallel agent, run it yourself after your own pass.
-- Its findings are the reviewer's own: prove each, fix the cheap ones, unproven ones go to
-  Open as questions.
+  review `git diff <target>...HEAD` in place of the diff the command shows. Without a
+  parallel agent, run it yourself after your own pass.
+- Wait for its findings before fixing anything. They are the reviewer's own: prove each,
+  fix the cheap ones, unproven ones go to Open as questions.
 - New checklist item 2, **Security**: untrusted input reaching queries, shells, paths or
   templates; missing auth or authorization checks; secrets in code or logs. Kept even when
   the tool runs - it is the fallback in any harness without one and a second look in
