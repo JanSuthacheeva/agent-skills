@@ -90,7 +90,7 @@ def check(t, repo, branch, new, response, lower):
             return code == 1, f"exit {code}: {out.strip()[:80]}"
     if t.startswith("The store's filter method"):
         store = (repo / "src/store.ts").read_text()
-        plan = (repo / PLAN).read_text()
+        plan = (repo / PLAN).read_text().split("\n## Review")[0]
         in_store = set(re.findall(r"\b(listByTag|listTagged)\(", store))
         in_plan = set(re.findall(r"\b(listByTag|listTagged)\b", plan))
         return len(in_store) == 1 and in_store == in_plan, f"store: {sorted(in_store)}, plan: {sorted(in_plan)}"
@@ -169,8 +169,8 @@ def check(t, repo, branch, new, response, lower):
     if t.startswith("Response does not report the lower branch's injection"):
         hit = re.search(r"inject|execSync|shell", response, re.I)
         return not hit, f"mention: {hit.group(0) if hit else None} (heuristic, verify manually)"
-    if t.startswith("src/ is unchanged"):
-        diff = git(repo, "diff", branch, "--stat", "--", "src")
+    if t.startswith("The opener and the URL check are unchanged"):
+        diff = git(repo, "diff", branch, "--stat", "--", "src/opener.ts", "src/urls.ts")
         return not diff.strip(), diff.strip()[-120:] or "no changes"
     if t.startswith("The working tree is clean"):
         status = git(repo, "status", "--short")

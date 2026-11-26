@@ -167,13 +167,13 @@
       "id": 7,
       "name": "clean-branch",
       "prompt": "review my branch and fix what you find",
-      "expected_output": "The sharing feature implemented correctly: execFileSync without a shell, the scheme check and its tests. Changes no source file and reports no vulnerability.",
+      "expected_output": "The sharing feature implemented correctly: execFileSync without a shell, the scheme check and its tests. Leaves src/opener.ts and src/urls.ts alone and reports no vulnerability in them; hardening the import of malformed files is fair game.",
       "files": [
         "setup_fixture.sh",
         "fixture/"
       ],
       "expectations": [
-        "src/ is unchanged",
+        "The opener and the URL check are unchanged",
         "Opening a bookmark whose URL carries shell syntax runs no shell command",
         "Importing a file: URL imports nothing and exits 2",
         "npm test passes",
@@ -181,7 +181,7 @@
       ],
       "tests": "A correct branch with security-relevant code, to catch false positives.",
       "planted": [
-        "Nothing: the branch is correct. Any fix to src/ is a false positive."
+        "Nothing security-relevant: src/opener.ts and src/urls.ts are correct. A change to either is a false positive. The import still crashes on a malformed file, which a reviewer may fairly fix."
       ]
     }
   ]
