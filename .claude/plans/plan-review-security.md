@@ -50,6 +50,10 @@ Verified facts:
 - [x] review-changes: wait for the security agent's findings before
       fixing (decided after review: a finding lost to a summary written
       first is the costly case)
+- [x] evals (asked for after review): security scenarios in evals/review-changes - an
+      injection in the branch's own diff, a stacked branch whose security bug is only in
+      the lower branch, no origin/HEAD, a clean branch, a subtle XSS - and v0.7 against
+      v0.8 on the full suite, three trials each, written into report.md
 
 ## Review
 
