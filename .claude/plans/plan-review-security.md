@@ -52,46 +52,43 @@ Verified facts:
 
 ## Review
 
-Reviewed in an isolated agent against this plan. The change matches the
-plan: the parallel security review on `<target>...HEAD`, the
-`origin/HEAD` caveat, findings treated as the reviewer's own, the new
-**Security** item at 2, the Checks line and the bump to 0.8.
+Reviewed in an isolated agent: the commits since the earlier review at
+0cd6830 (aeaba7c, 8c0bc0e), with the whole branch as context. The new
+sentence in step 3 closes the open item that review left: the reviewer
+now waits for the security agent before fixing, so its findings reach
+step 4 and the summary. It is consistent with the no-agent path (run it
+after your own pass, which is still before fixing). The whole branch
+still matches the plan; the earlier fixes (730ebbd, 1e450a8, 6d91b68)
+stand.
 
 **Fixed**
 
-- The description rewrap left `request, or after` alone on a line, then
-  ran on at the old width (730ebbd).
-- `/security-review` runs `git diff origin/HEAD...`; in a repository
-  whose remote was added by hand, not cloned, `origin/HEAD` is unset and
-  git fails with "ambiguous argument 'origin/HEAD...'" (shown in a
-  scratch repo). The skill now also passes the range in that case
-  (1e450a8, plan updated).
-- The eval report template still described the step-3 order without
-  security, so the next run would have described 0.8 wrongly (6d91b68).
+- The plan's Units section still described the step-3 paragraph without
+  the wait the new task added, and had one line run on past the wrap
+  (ec73479).
 
-The fixes are text only and were re-read in a separate pass, not by an
+The fix is plan text only and was re-read in a separate pass, not by an
 independent agent.
 
 **Open**
 
-- Nothing tells the reviewer to wait for the parallel security agent
-  before step 4 or the summary. "Its findings are yours" implies it;
-  recommend leaving it unless a flow run shows a summary written before
-  the agent returned.
 - The two-tool claims (Claude Code 2.1.332's fixed `origin/HEAD` base,
-  Codex's `security-diff-scan`) are tied to current versions. The
-  `origin/HEAD` base was confirmed in the 2.1.332 binary; the Codex side
-  was not checked here.
+  Codex's `security-diff-scan`) are tied to current versions; the Codex
+  side was not checked. Recommend re-checking when either tool updates.
+- The README's review-changes eval numbers were measured on an earlier
+  version without the security step. Recommend re-running the eval
+  before quoting them for 0.8.
 
 **Where to look**
 
 - `skills/review-changes/SKILL.md` step 3, the opening paragraph: the
-  only real behaviour change, and the base-branch caveat that decides
-  whether a stacked branch gets reviewed correctly.
-- Checklist item 2 and the renumbering: routine, skim.
+  only behaviour change on the branch - the parallel security review,
+  the `origin/HEAD` caveat and the wait before fixing.
+- Checklist item 2 and the renumbering, the description rewrap and the
+  eval report template: routine, skim.
 
 **Checks**
 
 No tests, lint or type checks exist for skill text. YAML frontmatter
-parses (checked with Ruby) at 6d91b68. No security review tool was run:
-the diff is Markdown only.
+parses (checked with Ruby) at 8c0bc0e; the changed lines are within 74
+columns. No security review tool was run: the diff is Markdown only.
