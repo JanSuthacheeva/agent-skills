@@ -58,42 +58,65 @@ Verified facts:
 ## Review
 
 Reviewed in an isolated agent: the commits since the earlier review at
-0cd6830 (aeaba7c, 8c0bc0e), with the whole branch as context. The new
-sentence in step 3 closes the open item that review left: the reviewer
-now waits for the security agent before fixing, so its findings reach
-step 4 and the summary. It is consistent with the no-agent path (run it
-after your own pass, which is still before fixing). The whole branch
-still matches the plan; the earlier fixes (730ebbd, 1e450a8, 6d91b68)
-stand.
+cbdb2bb (da6111b..2c92892), with the whole branch as context. The
+step-3 change (invoke the command by name, skip it without
+`origin/HEAD`) matches the plan's Units section. All eight scenarios
+build with `setup_fixture.sh` and pass `npm test`; graded against the
+unfixed fixtures, every planted-defect check fails and clean-branch
+passes 5/5, so the checks discriminate. `compare_versions.py` on the
+graded trials reproduces the committed `comparison.md` byte for byte.
 
 **Fixed**
 
-- The plan's Units section still described the step-3 paragraph without
-  the wait the new task added, and had one line run on past the wrap
-  (ec73479).
+- `run_trial.sh` ran a version config silently without the skill when
+  its directory was missing under `SKILL_VERSIONS` (or the config was
+  mistyped), and graded it under that version's name; shown by running
+  the selection lines with a missing directory. It now fails (3bd15b7).
+- `SKILL.md` step 3 had a line at 77 columns (0bc865e).
+- `report.md` and the rendered README said v0.8's own pass, "not the
+  security agent", reported the lower branch's injection; the
+  transcripts show the security agent noted it in all three stacked
+  trials. Cost rise was 65% from rounded means, 64% unrounded
+  (c9fe114).
 
-The fix is plan text only and was re-read in a separate pass, not by an
-independent agent.
+The `run_trial.sh` fix was re-checked in a separate pass (every config
+case run in isolation), not by an independent agent; trials were not
+re-run.
 
 **Open**
 
-- The two-tool claims (Claude Code 2.1.332's fixed `origin/HEAD` base,
-  Codex's `security-diff-scan`) are tied to current versions; the Codex
-  side was not checked. Recommend re-checking when either tool updates.
-- The README's review-changes eval numbers were measured on an earlier
-  version without the security step. Recommend re-running the eval
-  before quoting them for 0.8.
+- The Codex side of the two-tool claim is still unchecked. Recommend
+  re-checking when either tool updates.
+- subtle-xss: `href` is written unescaped too, and `bm add` (on main)
+  stores any URL, so `bm add 'x" onmouseover="alert(1)'` also breaks out
+  of the exported page. Not planted; a reviewer fixing it is not
+  penalised by the grader. Recommend naming it in the scenario's
+  `planted` notes, or validating `add`, before the next run.
+- The abstract says v0.8 "matched" v0.7 on all eight scenarios while
+  Table 7 shows stacked-base 0/3 (the deliberate heuristic failure
+  section 6 explains). Recommend leaving as is or saying "matched in
+  detection".
+- "Three subagents in place of one" is approximate (v0.8 mean 2.8,
+  range 1-5).
 
 **Where to look**
 
 - `skills/review-changes/SKILL.md` step 3, the opening paragraph: the
-  only behaviour change on the branch - the parallel security review,
-  the `origin/HEAD` caveat and the wait before fixing.
-- Checklist item 2 and the renumbering, the description rewrap and the
-  eval report template: routine, skim.
+  only behaviour change since the last review.
+- `evals/review-changes/setup_fixture.sh` the `case $variant` block:
+  how each security scenario's base, origin and `origin/HEAD` are set.
+- `evals/review-changes/report.md` section 6: the claims drawn from the
+  trials.
+- Routine, skim: the per-run result files, `grade.py` checks (verified
+  against the unfixed fixtures), the `splitlines` to `split("\n")`
+  change in the other evals scripts (so U+2028 inside JSON strings does
+  not split a transcript line).
 
 **Checks**
 
-No tests, lint or type checks exist for skill text. YAML frontmatter
-parses (checked with Ruby) at 8c0bc0e; the changed lines are within 74
-columns. No security review tool was run: the diff is Markdown only.
+At c9fe114: `py_compile` on every changed Python file, `bash -n` on the
+review-changes shell scripts, `setup_fixture.sh` plus `npm test` for
+all eight scenarios - all green. No lint or type checks exist for the
+skill text. No security review tool was run: the changes are eval
+tooling and Markdown run locally, with no untrusted input beyond the
+fixtures.
