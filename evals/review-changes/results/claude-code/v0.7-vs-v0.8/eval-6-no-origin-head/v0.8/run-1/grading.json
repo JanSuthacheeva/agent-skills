@@ -28,7 +28,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": " - a url with another scheme is rejected\n  ---\n  duration_ms: 0.104833\n  type: 'test'\n  ...\n1..17\n# tests 17\n# suites 0\n# pass 17\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1113.812667\n"
+      "evidence": " 17 - a url with another scheme is rejected\n  ---\n  duration_ms: 0.069\n  type: 'test'\n  ...\n1..17\n# tests 17\n# suites 0\n# pass 17\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1038.436667\n"
     },
     {
       "text": "The fixes are committed and the working tree is clean",

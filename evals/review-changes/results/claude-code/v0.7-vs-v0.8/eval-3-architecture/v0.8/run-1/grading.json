@@ -33,7 +33,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": " tags\nok 18 - rejects empty and invalid tags\n  ---\n  duration_ms: 0.402791\n  type: 'test'\n  ...\n1..18\n# tests 18\n# suites 0\n# pass 18\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 175.001\n"
+      "evidence": "ags\nok 18 - rejects empty and invalid tags\n  ---\n  duration_ms: 0.500375\n  type: 'test'\n  ...\n1..18\n# tests 18\n# suites 0\n# pass 18\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 83.398417\n"
     },
     {
       "text": "src/tags.ts is unchanged",

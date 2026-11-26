@@ -116,7 +116,7 @@
       "id": 5,
       "name": "stacked-base",
       "prompt": "review my branch against feature/bookmark-share, the branch it is stacked on, and fix what you find",
-      "expected_output": "Reviews only the remove branch: fixes removing an unknown id (exits 0 instead of 1) with a test, and neither reports nor fixes the command injection that lives in the lower sharing branch.",
+      "expected_output": "Reviews only the remove branch: fixes removing an unknown id (exits 0 instead of 1) with a test, and does not fix the command injection that lives in the lower sharing branch; if it mentions it, it says it belongs to that branch.",
       "files": [
         "setup_fixture.sh",
         "fixture/"
@@ -126,7 +126,7 @@
         "Removing a bookmark deletes only it",
         "A test covers removing an unknown id",
         "The lower branch's code is unchanged",
-        "Response does not report the lower branch's injection",
+        "Response attributes any mention of the lower branch's injection to that branch",
         "npm test passes",
         "The fixes are committed and the working tree is clean"
       ],

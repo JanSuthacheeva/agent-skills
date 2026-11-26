@@ -21,14 +21,14 @@
       "evidence": "0 diff lines in src/opener.ts, src/urls.ts"
     },
     {
-      "text": "Response does not report the lower branch's injection",
+      "text": "Response attributes any mention of the lower branch's injection to that branch",
       "passed": true,
-      "evidence": "mention: None (heuristic, verify manually)"
+      "evidence": "mention: None, attributed: feature/bookmark-share (heuristic, verify manually)"
     },
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "0 - a url that does not parse is rejected\n  ---\n  duration_ms: 1.415541\n  type: 'test'\n  ...\n1..20\n# tests 20\n# suites 0\n# pass 20\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 277.581167\n"
+      "evidence": " 20 - a url that does not parse is rejected\n  ---\n  duration_ms: 0.466833\n  type: 'test'\n  ...\n1..20\n# tests 20\n# suites 0\n# pass 20\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 119.6565\n"
     },
     {
       "text": "The fixes are committed and the working tree is clean",

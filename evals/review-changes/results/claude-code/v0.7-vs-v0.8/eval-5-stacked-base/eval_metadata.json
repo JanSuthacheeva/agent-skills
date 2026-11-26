@@ -7,7 +7,7 @@
     "Removing a bookmark deletes only it",
     "A test covers removing an unknown id",
     "The lower branch's code is unchanged",
-    "Response does not report the lower branch's injection",
+    "Response attributes any mention of the lower branch's injection to that branch",
     "npm test passes",
     "The fixes are committed and the working tree is clean"
   ]

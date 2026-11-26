@@ -28,7 +28,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "url that is not http or https is rejected\n  ---\n  duration_ms: 0.420541\n  type: 'test'\n  ...\n1..16\n# tests 16\n# suites 0\n# pass 16\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 169.351417\n"
+      "evidence": "a url that is not http or https is rejected\n  ---\n  duration_ms: 0.07525\n  type: 'test'\n  ...\n1..16\n# tests 16\n# suites 0\n# pass 16\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 142.32725\n"
     },
     {
       "text": "The fixes are committed and the working tree is clean",

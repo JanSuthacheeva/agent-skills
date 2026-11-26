@@ -240,7 +240,7 @@ are in [`v0.7-vs-v0.8/`](v0.7-vs-v0.8/), produced by
 | Scenario | Branch | Planted |
 |---|---|---|
 | security-diff | Import of shared bookmark files and `bm open` | Command injection: the URL reaches a shell inside double quotes; any URL scheme accepted; no test of a rejected scheme |
-| stacked-base | `bm remove`, stacked on the unmerged security-diff branch and reviewed against it | Unknown id exits 0; no test for it. The injection lies only in the lower branch and must not be fixed |
+| stacked-base | `bm remove`, stacked on the unmerged security-diff branch and reviewed against it | Unknown id exits 0; no test for it. The injection lies only in the lower branch: it must not be fixed, and a mention must attribute it to that branch |
 | no-origin-head | security-diff with `origin/HEAD` unset, as after adding a remote by hand | As security-diff |
 | clean-branch | The sharing feature implemented correctly | Nothing in `src/opener.ts` and `src/urls.ts`; a change there is a false positive |
 | subtle-xss | An HTML export on top of the merged, correct sharing feature | The escaping covers `& < >` but not quotes, and the title is also written into an attribute: stored XSS from a shared title. Not planted but present: `href` is unescaped too, reachable through `bm add`, which takes any URL |
@@ -254,7 +254,7 @@ which a subagent invoked `/security-review`.
 | vague-prompt | 3/3 | 3/3 | 3/3 |
 | architecture | 3/3 | 3/3 | 3/3 |
 | security-diff | 3/3 | 3/3 | 3/3 |
-| stacked-base | 3/3 | 0/3 | 3/3 |
+| stacked-base | 3/3 | 3/3 | 3/3 |
 | no-origin-head | 3/3 | 3/3 | 0/3 |
 | clean-branch | 3/3 | 3/3 | 3/3 |
 | subtle-xss | 3/3 | 3/3 | 3/3 |
@@ -301,12 +301,16 @@ it, which is correct. Without `origin/HEAD` the command fails while
 loading; in the final runs the reviewer skipped it and said so, and its
 own pass still found both defects.
 
-The only failed check is a deliberate one: in all three stacked trials,
-the security agent noted the lower branch's command injection as outside
-the diff it reviewed, and v0.8 reported it as an open item to fix on
-that branch, without touching it; v0.7 never mentioned it. The judge
-scored this in v0.8's favour (34.7 against 31.7), reasoning that an
-owner about to merge the stack should know.
+On the stacked branch, neither version touched the lower branch's code.
+In all three v0.8 trials the security agent noted the lower branch's
+command injection as outside the diff it reviewed, and the reviewer
+reported it as an open item to fix on that branch; v0.7 never mentioned
+it. The check was first written as "does not mention the injection",
+which failed all three v0.8 trials; it was relaxed after the run to "a
+mention attributes it to the lower branch" and the same trials were
+graded again. The judge scored the mention in v0.8's favour (34.7
+against 31.7), reasoning that an owner about to merge the stack should
+know.
 
 Report quality did not differ beyond noise: 34.0 against 33.6 of 40,
 v0.8 first in 10 of 24 comparisons (two-sided sign test, p = 0.54). Cost

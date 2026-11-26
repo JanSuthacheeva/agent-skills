@@ -23,7 +23,7 @@
     {
       "text": "npm test passes",
       "passed": true,
-      "evidence": "jected\nok 23 - other schemes are rejected\n  ---\n  duration_ms: 0.111791\n  type: 'test'\n  ...\n1..23\n# tests 23\n# suites 0\n# pass 23\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 587.717708\n"
+      "evidence": "jected\nok 23 - other schemes are rejected\n  ---\n  duration_ms: 0.066333\n  type: 'test'\n  ...\n1..23\n# tests 23\n# suites 0\n# pass 23\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 566.966417\n"
     },
     {
       "text": "The fixes are committed and the working tree is clean",

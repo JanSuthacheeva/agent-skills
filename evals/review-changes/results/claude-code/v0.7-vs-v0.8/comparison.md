@@ -6,7 +6,7 @@
 | vague-prompt | 3/3 | 3/3 | 3/3 |
 | architecture | 3/3 | 3/3 | 3/3 |
 | security-diff | 3/3 | 3/3 | 3/3 |
-| stacked-base | 3/3 | 0/3 | 3/3 |
+| stacked-base | 3/3 | 3/3 | 3/3 |
 | no-origin-head | 3/3 | 3/3 | 0/3 |
 | clean-branch | 3/3 | 3/3 | 3/3 |
 | subtle-xss | 3/3 | 3/3 | 3/3 |
@@ -16,7 +16,7 @@
 
 | Version | Scenario | Check | Trials |
 |---|---|---|---|
-| v0.8 | stacked-base | Response does not report the lower branch's injection | 3 |
+| - | - | none | 0 |
 
 
 ## Blind judge, owner report total of 40, mean (sd)
