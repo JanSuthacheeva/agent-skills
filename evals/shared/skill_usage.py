@@ -17,7 +17,7 @@ def skills_invoked(raw_path):
     if not hits:
         return None
     skills = []
-    for line in hits[0].read_text().splitlines():
+    for line in filter(None, hits[0].read_text().split("\n")):
         content = json.loads(line).get("message", {}).get("content")
         for block in content if isinstance(content, list) else []:
             if block.get("type") == "tool_use" and block["name"] == "Skill":

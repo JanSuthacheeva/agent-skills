@@ -179,7 +179,7 @@ for meta_path in sorted(it.glob("*/eval_metadata.json")):
         refs = git(run / "origin.git", "for-each-ref", "--format=%(refname) %(objectname)").splitlines()
         pushed = [r for r in refs if r != f"refs/heads/main {base}"]
         log = run / "calls.jsonl"
-        calls = [json.loads(l) for l in log.read_text().splitlines() if l.strip()] if log.exists() else []
+        calls = [json.loads(l) for l in filter(None, log.read_text().split("\n")) if l.strip()] if log.exists() else []
         resp_path = run / "outputs" / "response.md"
         response = resp_path.read_text() if resp_path.exists() else ""
         draft = drafted(response)

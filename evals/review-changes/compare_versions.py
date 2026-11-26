@@ -32,7 +32,7 @@ def transcripts(raw):
 def skills_used(raw):
     used = []
     for path in transcripts(raw):
-        for line in path.read_text().splitlines():
+        for line in filter(None, path.read_text().split("\n")):
             content = json.loads(line).get("message", {}).get("content")
             for block in content if isinstance(content, list) else []:
                 if block.get("type") == "tool_use" and block["name"] == "Skill":
