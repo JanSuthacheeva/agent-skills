@@ -1,0 +1,55 @@
+New commits: 5
+
+aec452f docs: add review to bookmark tags plan
+
+
+ docs/plans/2026-10-14-bookmark-tags.md | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+
+e62d11a bm: treat an empty tag id and a bare list --tag as usage errors
+Number('') is 0, so bm tag '' work reported 'no bookmark 0' with exit 1
+instead of the usage error. bm list --tag with no tag silently listed
+every bookmark. Both now print usage and exit 2; the plan lists them.
+
+
+ docs/plans/2026-10-14-bookmark-tags.md |  3 ++-
+ src/cli.ts                             | 16 +++++++++++++---
+ test/cli.tags.test.ts                  | 16 ++++++++++++++++
+ 3 files changed, 31 insertions(+), 4 deletions(-)
+
+10a6817 bm: reject an invalid list --tag on an empty store
+listByTag normalized the tag inside the filter callback, so with no
+bookmarks it never ran: bm list --tag 'to do' exited 0 instead of 2.
+Normalize once, before loading.
+
+
+ src/store.ts            | 3 ++-
+ test/cli.tags.test.ts   | 6 ++++++
+ test/store.tags.test.ts | 4 ++++
+ 3 files changed, 12 insertions(+), 1 deletion(-)
+
+30189c9 bm: route bm tag through BookmarkStore::tag
+The CLI reimplemented tagging with list() and save(), leaving
+BookmarkStore::tag unused, against the plan and AGENTS.md (the store owns
+the file). The store also printed a warning for a duplicate tag; the plan
+makes that a silent no-op and printing belongs to the CLI. Adds the
+missing tests for a duplicate tag and an unknown id.
+
+
+ src/cli.ts              |  6 +-----
+ src/store.ts            |  5 +----
+ test/cli.tags.test.ts   | 15 +++++++++++++++
+ test/store.tags.test.ts | 15 +++++++++++++++
+ 4 files changed, 32 insertions(+), 9 deletions(-)
+
+cdd546b bm: do not read a corrupt store file as empty
+load() turned a JSON parse error into an empty list, so the next add or
+tag saved over the file and lost every bookmark.
+
+
+ src/store.ts            |  7 +------
+ test/store.tags.test.ts | 14 ++++++++++++--
+ 2 files changed, 13 insertions(+), 8 deletions(-)
+
+--- git status --short ---
+

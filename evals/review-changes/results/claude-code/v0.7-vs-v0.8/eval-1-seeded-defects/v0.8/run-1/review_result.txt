@@ -1,0 +1,46 @@
+New commits: 6
+
+5624eab docs: record review of bookmark tags
+
+
+ docs/plans/2026-10-14-bookmark-tags.md | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
+
+621d85a bm: treat an empty or non-digit id in tag as a usage error
+
+
+ src/cli.ts            | 4 ++--
+ test/cli.tags.test.ts | 8 ++++++++
+ 2 files changed, 10 insertions(+), 2 deletions(-)
+
+d53d369 bm: name the store's tag filter listByTag, as planned
+
+
+ src/cli.ts              | 2 +-
+ src/store.ts            | 2 +-
+ test/store.tags.test.ts | 4 ++--
+ 3 files changed, 4 insertions(+), 4 deletions(-)
+
+63dbfd6 bm: normalize the tag in list --tag
+
+
+ src/cli.ts            |  2 +-
+ test/cli.tags.test.ts | 14 ++++++++++++++
+ 2 files changed, 15 insertions(+), 1 deletion(-)
+
+d0f46ca bm: exit 1 when tagging an unknown bookmark
+
+
+ src/cli.ts            | 2 +-
+ test/cli.tags.test.ts | 6 ++++++
+ 2 files changed, 7 insertions(+), 1 deletion(-)
+
+fd8478d bm: make tagging with an existing tag a no-op
+
+
+ src/store.ts            |  3 ++-
+ test/store.tags.test.ts | 15 ++++++++++++++-
+ 2 files changed, 16 insertions(+), 2 deletions(-)
+
+--- git status --short ---
+

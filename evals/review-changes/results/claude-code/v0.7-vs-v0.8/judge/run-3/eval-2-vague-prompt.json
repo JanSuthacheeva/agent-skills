@@ -1,0 +1,24 @@
+{
+  "scores": {
+    "v0.8": {
+      "accuracy": 9,
+      "risk": 7,
+      "decisions": 6,
+      "readability": 7,
+      "note": "All five planted problems are fixed, and I confirmed the claims: 18/18 tests pass, tag 99 exits 1, list --tag Work matches, and a duplicate tag is stored once. But it mixes them with three unplanned CLI changes and decided user-visible behaviour itself (stricter ids, `list --tag` with no value is now an error, the plan was edited) instead of asking first, and its security-review line is confusing."
+    },
+    "v0.7": {
+      "accuracy": 9,
+      "risk": 9,
+      "decisions": 9,
+      "readability": 9,
+      "note": "All five planted problems are fixed and I confirmed them: 15/15 tests pass, tag 99 exits 1, list --tag Work matches, a duplicate tag is a no-op, and the new tests cover an unknown id. Its two open items, which I confirmed by running the CLI, are left as clearly labelled CLI-behaviour decisions with a recommendation, and the where-to-look list maps directly onto the risky code."
+    }
+  },
+  "ranking": [
+    "v0.7",
+    "v0.8"
+  ],
+  "reason": "Both reports are accurate and fix every planted problem. Y fixed only what the plan required and put the user-visible CLI changes to the owner with a recommendation. X made those choices itself and listed them among the planted fixes, which leaves the owner more to review and less to decide. Y is also tighter and easier to take in quickly.",
+  "judge_cost_usd": 0.1731568
+}

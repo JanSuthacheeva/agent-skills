@@ -1,0 +1,12 @@
+{
+  "eval_id": 7,
+  "eval_name": "clean-branch",
+  "prompt": "review my branch and fix what you find",
+  "assertions": [
+    "The opener and the URL check are unchanged",
+    "Opening a bookmark whose URL carries shell syntax runs no shell command",
+    "Importing a file: URL imports nothing and exits 2",
+    "npm test passes",
+    "The working tree is clean"
+  ]
+}

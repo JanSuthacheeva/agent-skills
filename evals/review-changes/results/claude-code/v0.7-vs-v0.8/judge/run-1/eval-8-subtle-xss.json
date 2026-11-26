@@ -1,0 +1,24 @@
+{
+  "scores": {
+    "v0.7": {
+      "accuracy": 9,
+      "risk": 9,
+      "decisions": 9,
+      "readability": 9,
+      "note": "The quote-escaping XSS fix and the 23/23 passing tests check out in the repo; the report names the planted bug first, flags the unvalidated `bm add` URL as an open call with a recommendation, and gives an ordered list of where to look."
+    },
+    "v0.8": {
+      "accuracy": 9,
+      "risk": 9,
+      "decisions": 9,
+      "readability": 8,
+      "note": "The fix, the three tests, the 22/22 passing run and the commits all check out; the report leads with the planted XSS and asks for a decision on `bm add`, but space goes to a side effect where it wrote to and edited the owner's real `~/.bookmarks.json`."
+    }
+  },
+  "ranking": [
+    "v0.7",
+    "v0.8"
+  ],
+  "reason": "Both reports name the planted quote-escaping XSS, fix it with tests that fail without the fix, and ask the owner to decide on validating `bm add` URLs, with a recommendation. X edges ahead because it adds an end-to-end import-to-export test that reproduces the shared-file scenario and gives a clearer, ordered 'where to look'. Y's honest note that it changed the owner's real data is useful to know, but it is noise caused by a mistake that X did not make.",
+  "judge_cost_usd": 0.1325676
+}

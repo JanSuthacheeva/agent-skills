@@ -1,0 +1,40 @@
+New commits: 4
+
+0f880c4 docs: add review to bookmark tags plan
+
+
+ docs/plans/2026-10-14-bookmark-tags.md | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
+
+607388d bm: tag through BookmarkStore::tag and reject empty ids
+The CLI reimplemented tagging with list() and save(), leaving
+BookmarkStore::tag unused, and Number('') let an empty id through as 0
+(exit 1 instead of the usage error). Adds CLI tests for duplicate tags,
+unknown and non-numeric ids and an invalid --tag filter.
+
+
+ src/cli.ts            | 10 +++-------
+ test/cli.tags.test.ts | 40 +++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 42 insertions(+), 8 deletions(-)
+
+9865f7a bm: make duplicate tags a silent no-op and validate the --tag filter up front
+The store printed to the console on a duplicate tag, and listByTag only
+validated the tag inside filter, so an invalid tag passed on an empty
+store. Adds store tests for duplicate tags and unknown ids.
+
+
+ src/store.ts            |  8 +++-----
+ test/store.tags.test.ts | 20 +++++++++++++++++++-
+ 2 files changed, 22 insertions(+), 6 deletions(-)
+
+1e54526 bm: do not read a corrupt store file as empty
+load() turned a JSON parse error into [], so the next add or tag saved
+over the file and lost every bookmark.
+
+
+ src/store.ts            |  7 +------
+ test/store.tags.test.ts | 10 +++++++++-
+ 2 files changed, 10 insertions(+), 7 deletions(-)
+
+--- git status --short ---
+

@@ -1,0 +1,16 @@
+{
+  "eval_id": 3,
+  "eval_name": "architecture",
+  "prompt": "review my branch and fix what you find",
+  "assertions": [
+    "The CLI tags through BookmarkStore::tag instead of saving itself",
+    "A corrupt store file is not overwritten",
+    "src/store.ts prints nothing",
+    "Tagging a bookmark twice keeps the tag once",
+    "list --tag Work finds the bookmark tagged work",
+    "Tagging an unknown id exits 1",
+    "npm test passes",
+    "src/tags.ts is unchanged",
+    "The fixes are committed and the working tree is clean"
+  ]
+}

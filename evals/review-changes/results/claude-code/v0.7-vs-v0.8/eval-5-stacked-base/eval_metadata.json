@@ -1,0 +1,14 @@
+{
+  "eval_id": 5,
+  "eval_name": "stacked-base",
+  "prompt": "review my branch against feature/bookmark-share, the branch it is stacked on, and fix what you find",
+  "assertions": [
+    "Removing an unknown id exits 1 and keeps the file",
+    "Removing a bookmark deletes only it",
+    "A test covers removing an unknown id",
+    "The lower branch's code is unchanged",
+    "Response does not report the lower branch's injection",
+    "npm test passes",
+    "The fixes are committed and the working tree is clean"
+  ]
+}

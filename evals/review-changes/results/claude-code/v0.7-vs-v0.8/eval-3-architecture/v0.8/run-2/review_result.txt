@@ -1,0 +1,43 @@
+New commits: 5
+
+8aa8c11 docs: record review of bookmark tags
+
+
+ docs/plans/2026-10-14-bookmark-tags.md | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+
+de14890 bm: test that a duplicate tag prints nothing
+
+
+ test/store.tags.test.ts | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+c04dee2 bm: tag through BookmarkStore::tag and reject empty or non-numeric ids
+The CLI reimplemented tagging with list() and save(), bypassing the store,
+and Number('') read an empty id as 0, so 'bm tag "" work' printed
+'no bookmark 0' (exit 1) instead of the usage error (exit 2).
+
+
+ src/cli.ts            | 10 +++-------
+ test/cli.tags.test.ts | 23 +++++++++++++++++++++++
+ 2 files changed, 26 insertions(+), 7 deletions(-)
+
+d7fc59b bm: test duplicate tag and unknown id in BookmarkStore::tag; drop its console.warn
+The plan makes a duplicate tag a silent no-op, and the store does not print.
+
+
+ src/store.ts            |  5 +----
+ test/store.tags.test.ts | 13 +++++++++++++
+ 2 files changed, 14 insertions(+), 4 deletions(-)
+
+41dc0e1 bm: don't overwrite a corrupt store file with an empty list
+load() swallowed JSON parse errors and returned [], so the next add or
+tag saved over the file and lost every bookmark.
+
+
+ src/store.ts            |  7 +------
+ test/store.tags.test.ts | 12 ++++++++++--
+ 2 files changed, 11 insertions(+), 8 deletions(-)
+
+--- git status --short ---
+

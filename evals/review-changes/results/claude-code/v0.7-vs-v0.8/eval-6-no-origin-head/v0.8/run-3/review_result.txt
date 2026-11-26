@@ -1,0 +1,30 @@
+New commits: 4
+
+53e6035 docs: correct test count in review
+
+
+ docs/plans/2026-11-20-bookmark-share.md | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+41d81f6 docs: record review of bookmark sharing
+
+
+ docs/plans/2026-11-20-bookmark-share.md | 25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
+
+5ead330 bm: run the opener without a shell
+
+
+ src/opener.ts       |  4 ++--
+ test/opener.test.ts | 19 +++++++++++++++++++
+ 2 files changed, 21 insertions(+), 2 deletions(-)
+
+8901d90 bm: reject urls that are not http or https
+
+
+ src/urls.ts       | 5 ++++-
+ test/urls.test.ts | 6 ++++++
+ 2 files changed, 10 insertions(+), 1 deletion(-)
+
+--- git status --short ---
+

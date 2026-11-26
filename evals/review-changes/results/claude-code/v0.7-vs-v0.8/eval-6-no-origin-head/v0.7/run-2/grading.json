@@ -1,0 +1,50 @@
+{
+  "expectations": [
+    {
+      "text": "Opening a bookmark whose URL carries shell syntax runs no shell command",
+      "passed": true,
+      "evidence": "exit 0, command ran: False, opener got: https://a.dev/$(touch <tmp>"
+    },
+    {
+      "text": "Opening a bookmark passes its URL to the opener",
+      "passed": true,
+      "evidence": "exit 0, opener got: https://a.dev/"
+    },
+    {
+      "text": "Importing a file: URL imports nothing and exits 2",
+      "passed": true,
+      "evidence": "exit 2, stored []: invalid url: file:///etc/passwd"
+    },
+    {
+      "text": "Importing http and https URLs still works",
+      "passed": true,
+      "evidence": "exit 0, stored ['https://a.dev/', 'http://b.dev/']: imported 2"
+    },
+    {
+      "text": "A test covers a rejected URL scheme",
+      "passed": true,
+      "evidence": "test files: ['test/urls.test.ts']"
+    },
+    {
+      "text": "npm test passes",
+      "passed": true,
+      "evidence": "5 - a url with another scheme is rejected\n  ---\n  duration_ms: 0.106125\n  type: 'test'\n  ...\n1..15\n# tests 15\n# suites 0\n# pass 15\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 574.305875\n"
+    },
+    {
+      "text": "The fixes are committed and the working tree is clean",
+      "passed": true,
+      "evidence": "3 new commit(s); status: clean"
+    },
+    {
+      "text": "Response names the command injection",
+      "passed": true,
+      "evidence": "keyword inject/shell (heuristic, verify manually)"
+    }
+  ],
+  "summary": {
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "pass_rate": 1.0
+  }
+}

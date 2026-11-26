@@ -1,0 +1,15 @@
+{
+  "eval_id": 6,
+  "eval_name": "no-origin-head",
+  "prompt": "review my branch and fix what you find",
+  "assertions": [
+    "Opening a bookmark whose URL carries shell syntax runs no shell command",
+    "Opening a bookmark passes its URL to the opener",
+    "Importing a file: URL imports nothing and exits 2",
+    "Importing http and https URLs still works",
+    "A test covers a rejected URL scheme",
+    "npm test passes",
+    "The fixes are committed and the working tree is clean",
+    "Response names the command injection"
+  ]
+}

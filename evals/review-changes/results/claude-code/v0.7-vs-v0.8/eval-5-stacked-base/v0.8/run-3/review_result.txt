@@ -1,0 +1,21 @@
+New commits: 2
+
+356783f docs: record review of removing bookmarks
+
+
+ docs/plans/2026-11-24-bookmark-remove.md | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+f51bfa0 bm: remove of an unknown id is not found
+BookmarkStore::remove saved the file and returned a blank bookmark for an
+unknown id, so `bm remove 9` printed "removed 9" and exited 0. It now
+throws BookmarkNotFoundError before saving, as the plan states. Adds the
+store tests the plan lists and a CLI test for the unknown id.
+
+
+ src/store.ts        |  3 ++-
+ test/remove.test.ts | 26 +++++++++++++++++++++++++-
+ 2 files changed, 27 insertions(+), 2 deletions(-)
+
+--- git status --short ---
+

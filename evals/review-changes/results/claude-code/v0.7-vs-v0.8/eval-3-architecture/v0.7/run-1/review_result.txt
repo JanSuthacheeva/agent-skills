@@ -1,0 +1,42 @@
+New commits: 4
+
+3b5d264 docs: record review of bookmark tags
+
+
+ docs/plans/2026-10-14-bookmark-tags.md | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
+a43bf4f bm: reject malformed ids in tag and a missing value for list --tag
+Number() accepted '' (id 0, reported as not found), '0x1' and '1e0';
+'list --tag' with no value silently listed everything.
+
+
+ docs/plans/2026-10-14-bookmark-tags.md |  3 ++-
+ src/cli.ts                             | 10 +++++++---
+ test/cli.tags.test.ts                  | 18 ++++++++++++++++++
+ 3 files changed, 27 insertions(+), 4 deletions(-)
+
+af295bd bm: tag through BookmarkStore::tag, keep the store silent
+The tag command re-implemented tagging and saved the file itself,
+bypassing the store and leaving BookmarkStore::tag dead in production.
+The store also wrote a duplicate-tag warning to console, around Output.
+Adds the missing duplicate-tag and unknown-id tests.
+
+
+ src/cli.ts              |  6 +-----
+ src/store.ts            |  5 +----
+ test/cli.tags.test.ts   | 14 ++++++++++++++
+ test/store.tags.test.ts | 17 ++++++++++++++++-
+ 4 files changed, 32 insertions(+), 10 deletions(-)
+
+245c3b0 bm: do not overwrite a store file that fails to parse
+load() turned a JSON parse error into an empty list, so the next add()
+saved a one-bookmark file over the user's corrupt-but-recoverable data.
+
+
+ src/store.ts            | 7 +------
+ test/store.tags.test.ts | 9 ++++++++-
+ 2 files changed, 9 insertions(+), 7 deletions(-)
+
+--- git status --short ---
+

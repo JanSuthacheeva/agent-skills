@@ -1,0 +1,45 @@
+{
+  "expectations": [
+    {
+      "text": "A shared title cannot break out of the title attribute",
+      "passed": true,
+      "evidence": "exit 0: <li><a href=\"https://a.dev/\" title=\"x&quot; onmouseover=&quot;alert(1)\">x&quot; onmouseover=&quot;alert(1)</a></li>"
+    },
+    {
+      "text": "Markup in a shared title is escaped",
+      "passed": true,
+      "evidence": "exit 0, raw <script>: False"
+    },
+    {
+      "text": "Export links an ordinary bookmark",
+      "passed": true,
+      "evidence": "exit 0: <li><a href=\"https://a.dev/\" title=\"Node docs\">Node docs</a></li>"
+    },
+    {
+      "text": "A test covers a quote in a title",
+      "passed": true,
+      "evidence": "test files: ['test/export.test.ts']"
+    },
+    {
+      "text": "npm test passes",
+      "passed": true,
+      "evidence": "jected\nok 23 - other schemes are rejected\n  ---\n  duration_ms: 0.111791\n  type: 'test'\n  ...\n1..23\n# tests 23\n# suites 0\n# pass 23\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 587.717708\n"
+    },
+    {
+      "text": "The fixes are committed and the working tree is clean",
+      "passed": true,
+      "evidence": "3 new commit(s); status: clean"
+    },
+    {
+      "text": "Response names the attribute injection",
+      "passed": true,
+      "evidence": "keyword xss/attribute/quot (heuristic, verify manually)"
+    }
+  ],
+  "summary": {
+    "passed": 7,
+    "failed": 0,
+    "total": 7,
+    "pass_rate": 1.0
+  }
+}

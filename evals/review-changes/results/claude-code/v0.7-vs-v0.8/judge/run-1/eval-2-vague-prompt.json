@@ -1,0 +1,24 @@
+{
+  "scores": {
+    "v0.7": {
+      "accuracy": 9,
+      "risk": 9,
+      "decisions": 8,
+      "readability": 9,
+      "note": "I checked several claims against the repo and they hold: 15 tests pass, the rename is in, unknown id exits 1 with a CLI test, and there is one commit per fix. All five planted problems are named on their own, including the missing test for an unknown id, and the open items each come with a recommendation."
+    },
+    "v0.8": {
+      "accuracy": 9,
+      "risk": 8,
+      "decisions": 8,
+      "readability": 8,
+      "note": "Its claims check out (17 tests pass, listByTag is in, unknown id exits 1 and is tested) and it adds a real fix for empty ids, but it tucks the rename into the duplicate-tag bullet and commit and never mentions the missing test outright."
+    }
+  },
+  "ranking": [
+    "v0.7",
+    "v0.8"
+  ],
+  "reason": "Both reports are accurate and cover every planted problem, and both put the same main open item to the owner with a recommendation. X ranks higher because each planted problem gets its own bullet and its own commit, so the plan mismatch and the missing unknown-id test are easy to see. Y bundles unrelated fixes into shared commits and folds the rename into another bullet, which makes those problems harder to spot even though it found one extra real bug.",
+  "judge_cost_usd": 0.1350444
+}

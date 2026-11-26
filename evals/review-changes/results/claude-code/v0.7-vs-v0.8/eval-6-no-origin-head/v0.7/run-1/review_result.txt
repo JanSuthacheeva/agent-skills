@@ -1,0 +1,29 @@
+New commits: 3
+
+1699ed1 docs: record review of bookmark sharing
+
+
+ docs/plans/2026-11-20-bookmark-share.md | 34 +++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
+
+81eb0eb bm: open urls without a shell
+openUrl interpolated the url into a shell command, so a shared bookmark
+like https://a.dev/?$(touch${IFS}pwned) ran commands on bm open.
+
+
+ src/opener.ts       |  4 ++--
+ test/opener.test.ts | 20 ++++++++++++++++++++
+ 2 files changed, 22 insertions(+), 2 deletions(-)
+
+e3cfacc bm: accept only http and https urls
+parseWebUrl accepted any parseable URL, so a shared file could import
+javascript: or file: URLs, which the plan rules out.
+
+
+ src/urls.ts            | 7 ++++++-
+ test/cli.share.test.ts | 8 ++++++++
+ test/urls.test.ts      | 6 ++++++
+ 3 files changed, 20 insertions(+), 1 deletion(-)
+
+--- git status --short ---
+

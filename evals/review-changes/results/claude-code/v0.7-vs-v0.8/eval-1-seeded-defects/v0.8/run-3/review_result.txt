@@ -1,0 +1,39 @@
+New commits: 4
+
+96b4aaf docs: add review summary to bookmark tags plan
+
+
+ docs/plans/2026-10-14-bookmark-tags.md | 34 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
+
+b6dc010 bm: match the plan's CLI errors for tag and list --tag
+- An unknown id exits 1 (not found), not 2.
+- An empty id ('') became 0 and reported 'no bookmark 0'; ids must now be
+  digits, else the usage error.
+- list --tag normalizes its tag, so --tag Work finds 'work' and an invalid
+  tag is 'invalid tag: <raw>', exit 2, instead of an empty list.
+
+
+ src/cli.ts            |  8 ++++----
+ test/cli.tags.test.ts | 28 ++++++++++++++++++++++++++++
+ 2 files changed, 32 insertions(+), 4 deletions(-)
+
+6d113e0 bm: rename listTagged to listByTag as the plan names it
+
+
+ src/cli.ts              | 2 +-
+ src/store.ts            | 2 +-
+ test/store.tags.test.ts | 4 ++--
+ 3 files changed, 4 insertions(+), 4 deletions(-)
+
+e8e7297 bm: make tagging with an existing tag a no-op
+The store appended the tag again, so tags held duplicates, against the
+plan's 'without duplicates' and 'no-op' rules. Also tests an unknown id.
+
+
+ src/store.ts            |  4 +++-
+ test/store.tags.test.ts | 15 ++++++++++++++-
+ 2 files changed, 17 insertions(+), 2 deletions(-)
+
+--- git status --short ---
+

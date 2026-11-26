@@ -1,0 +1,26 @@
+New commits: 3
+
+55e5eb1 docs: record review of bookmark sharing
+
+
+ docs/plans/2026-11-20-bookmark-share.md | 42 +++++++++++++++++++++++++++++++++
+ 1 file changed, 42 insertions(+)
+
+19ec3e7 bm: treat an id that is not a run of digits as a usage error in open
+Number('') and Number(' ') are 0 and Number('-1') is an integer, so these
+reached the store and printed 'no bookmark 0' with exit 1 instead of the
+usage error with exit 2.
+
+
+ src/cli.ts             | 6 +++---
+ test/cli.share.test.ts | 8 ++++++++
+ 2 files changed, 11 insertions(+), 3 deletions(-)
+
+31a76b0 bm: test import of a rejected scheme and the import usage error
+
+
+ test/cli.share.test.ts | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+--- git status --short ---
+

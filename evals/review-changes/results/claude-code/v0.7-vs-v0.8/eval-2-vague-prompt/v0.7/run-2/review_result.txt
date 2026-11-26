@@ -1,0 +1,33 @@
+New commits: 4
+
+79f91ba docs: review of bookmark tags
+
+
+ docs/plans/2026-10-14-bookmark-tags.md | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
+
+0c7b907 bm: list --tag normalizes the tag; name it listByTag as planned
+
+
+ src/cli.ts              |  2 +-
+ src/store.ts            |  2 +-
+ test/cli.tags.test.ts   | 14 ++++++++++++++
+ test/store.tags.test.ts |  4 ++--
+ 4 files changed, 18 insertions(+), 4 deletions(-)
+
+91ac649 bm: an unknown id in tag exits 1
+
+
+ src/cli.ts            | 2 +-
+ test/cli.tags.test.ts | 6 ++++++
+ 2 files changed, 7 insertions(+), 1 deletion(-)
+
+7a7ab99 bm: tagging with an existing tag is a no-op
+
+
+ src/store.ts            |  4 +++-
+ test/store.tags.test.ts | 15 ++++++++++++++-
+ 2 files changed, 17 insertions(+), 2 deletions(-)
+
+--- git status --short ---
+

@@ -1,0 +1,30 @@
+New commits: 3
+
+41a69d0 docs: review of bookmark sharing
+
+
+ docs/plans/2026-11-20-bookmark-share.md | 31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
+
+8f8fdc6 bm: accept a null title in a shared file as no title
+
+
+ src/share.ts           | 4 ++--
+ test/cli.share.test.ts | 6 ++++++
+ 2 files changed, 8 insertions(+), 2 deletions(-)
+
+ab5ad73 bm: reject malformed shared files instead of crashing or storing them
+A shared file that was not JSON, not a list, or had a null entry crashed
+import with a stack trace and exit 1; a non-string title was saved into
+the store as-is. Validate the file in src/share.ts and map the error to
+exit 2.
+
+
+ docs/plans/2026-11-20-bookmark-share.md | 23 ++++++++++++++++++++---
+ src/cli.ts                              | 16 +++++++++++++---
+ src/share.ts                            | 31 +++++++++++++++++++++++++++++++
+ test/cli.share.test.ts                  | 27 +++++++++++++++++++++++++++
+ 4 files changed, 91 insertions(+), 6 deletions(-)
+
+--- git status --short ---
+

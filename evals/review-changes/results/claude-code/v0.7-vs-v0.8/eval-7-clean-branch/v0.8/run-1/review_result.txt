@@ -1,0 +1,29 @@
+New commits: 3
+
+0b63009 docs: record the review of bookmark sharing
+
+
+ docs/plans/2026-11-20-bookmark-share.md | 41 +++++++++++++++++++++++++++++++++
+ 1 file changed, 41 insertions(+)
+
+21428eb bm: treat an id that is not a whole number as a usage error in open
+Number('') is 0, so 'bm open ""' reported 'no bookmark 0' (exit 1)
+instead of the usage error (exit 2).
+
+
+ src/cli.ts             | 6 +++---
+ test/cli.share.test.ts | 8 ++++++++
+ 2 files changed, 11 insertions(+), 3 deletions(-)
+
+110c3d2 bm: reject shared files of the wrong shape before importing
+A non-string title from a shared file was stored as is, and a file that
+was not a list of objects crashed the CLI with a stack trace.
+
+
+ docs/plans/2026-11-20-bookmark-share.md |  4 ++++
+ src/cli.ts                              | 37 +++++++++++++++++++++++++++++++--
+ test/cli.share.test.ts                  | 31 +++++++++++++++++++++++++++
+ 3 files changed, 70 insertions(+), 2 deletions(-)
+
+--- git status --short ---
+

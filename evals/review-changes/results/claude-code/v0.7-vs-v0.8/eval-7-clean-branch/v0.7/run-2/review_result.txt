@@ -1,0 +1,18 @@
+New commits: 2
+
+f2da84a docs: review of bookmark sharing
+
+
+ docs/plans/2026-11-20-bookmark-share.md | 35 +++++++++++++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
+
+4e37977 bm: reject malformed shared files and keep escape sequences off the terminal
+
+
+ docs/plans/2026-11-20-bookmark-share.md |  5 ++++
+ src/cli.ts                              | 44 ++++++++++++++++++++++++++++++---
+ test/cli.share.test.ts                  | 25 +++++++++++++++++++
+ 3 files changed, 71 insertions(+), 3 deletions(-)
+
+--- git status --short ---
+

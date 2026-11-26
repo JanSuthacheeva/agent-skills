@@ -1,0 +1,24 @@
+{
+  "scores": {
+    "v0.7": {
+      "accuracy": 9,
+      "risk": 9,
+      "decisions": 8,
+      "readability": 9,
+      "note": "I confirmed that X fixed the import crash: malformed JSON now prints 'invalid file: not json' and exits 2, and 22 tests pass. It left opener.ts and urls.ts alone and said they are correct, though it still lists 'open launches any stored URL' as an open decision, which overstates a non-issue a little."
+    },
+    "v0.8": {
+      "accuracy": 8,
+      "risk": 7,
+      "decisions": 7,
+      "readability": 8,
+      "note": "Y's claims hold: 18 tests pass, the id-parsing fix is in, and add does go through importAll. It also correctly vouches for opener.ts and urls.ts. But it spent its fixes on minor id parsing and tests, and left the real import crash open as a recommendation."
+    }
+  },
+  "ranking": [
+    "v0.7",
+    "v0.8"
+  ],
+  "reason": "Both reports correctly cleared opener.ts and urls.ts and left them unchanged, and both surfaced the terminal-control-code and opener-crash decisions. X fixed the one real problem, the malformed-file crash in import, checked the fix, and put it first. Y fixed a minor id-parsing issue and left the import crash to the owner, so the owner gets less done for the same reading.",
+  "judge_cost_usd": 0.1389876
+}

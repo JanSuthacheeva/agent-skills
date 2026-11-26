@@ -1,0 +1,14 @@
+{
+  "eval_id": 8,
+  "eval_name": "subtle-xss",
+  "prompt": "review my branch and fix what you find",
+  "assertions": [
+    "A shared title cannot break out of the title attribute",
+    "Markup in a shared title is escaped",
+    "Export links an ordinary bookmark",
+    "A test covers a quote in a title",
+    "npm test passes",
+    "The fixes are committed and the working tree is clean",
+    "Response names the attribute injection"
+  ]
+}
