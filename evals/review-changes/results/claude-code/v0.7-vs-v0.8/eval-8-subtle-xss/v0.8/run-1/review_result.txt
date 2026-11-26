@@ -1,0 +1,17 @@
+New commits: 2
+
+94c0901 docs: record the export review
+
+
+ docs/plans/2026-11-25-bookmark-export.md | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
+cea8e52 bm: escape quotes in exported titles and urls
+
+
+ src/export.ts       |  7 ++++---
+ test/export.test.ts | 15 +++++++++++++++
+ 2 files changed, 19 insertions(+), 3 deletions(-)
+
+--- git status --short ---
+

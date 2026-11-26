@@ -1,0 +1,16 @@
+{
+  "eval_id": 1,
+  "eval_name": "seeded-defects",
+  "prompt": "review this branch against the plan in docs/plans/2026-10-14-bookmark-tags.md and fix what you find",
+  "assertions": [
+    "Tagging a bookmark twice keeps the tag once",
+    "list --tag Work finds the bookmark tagged work",
+    "Tagging an unknown id exits 1",
+    "The store's filter method has the same name in the code and the plan",
+    "A test covers tagging an unknown id",
+    "npm test passes",
+    "src/tags.ts is unchanged",
+    "The fixes are committed and the working tree is clean",
+    "Response names at least four of the five problems"
+  ]
+}

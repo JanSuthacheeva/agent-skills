@@ -1,0 +1,24 @@
+{
+  "scores": {
+    "v0.7": {
+      "accuracy": 9,
+      "risk": 9,
+      "decisions": 8,
+      "readability": 8,
+      "note": "The claims I checked hold up: the commits, the non-shell execFileSync fix, the http/https whitelist with javascript/file/ftp tests, add going through importAll, and 16 passing tests. It puts the shell injection first and ranks the `bm add` gap as the top open item, though it presents the BM_OPENER behaviour change as already decided and its five open items are slightly long."
+    },
+    "v0.8": {
+      "accuracy": 9,
+      "risk": 8,
+      "decisions": 9,
+      "readability": 8,
+      "note": "The claims I checked hold up: the commits, the identical fixes, the rejected-scheme tests in the urls and cli.share tests, and 17 passing tests. It also says openly that /security-review could not run, but it lists the scheme fix before the more serious shell injection and ends with a trivial `bm open \"\"` item."
+    }
+  },
+  "ranking": [
+    "v0.7",
+    "v0.8"
+  ],
+  "reason": "Both branches end up with the same code fixes and tests for both planted holes, so the reports differ only in how they present the work. X leads with the command injection, ranks the remaining `bm add`/`open` gap as most important and says which store changes can be skimmed, which gives a clearer risk order. Y does better at putting the BM_OPENER change to the owner as an open decision and says plainly that /security-review did not run, but that does not quite make up for its weaker ordering.",
+  "judge_cost_usd": 0.1395134
+}

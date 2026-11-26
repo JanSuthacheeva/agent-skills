@@ -85,6 +85,129 @@
         "The CLI's tag command reimplements tagging with store.list() and store.save() instead of calling BookmarkStore::tag, breaking the AGENTS.md rule that only the store touches the file and leaving store.tag unused (src/cli.ts tag case)",
         "BookmarkStore::tag prints a console.warn on a duplicate tag, although only the CLI prints (src/store.ts tag)"
       ]
+    },
+    {
+      "id": 4,
+      "name": "security-diff",
+      "prompt": "review my branch and fix what you find",
+      "expected_output": "Finds and fixes the command injection in bm open and the missing scheme check in parseWebUrl, with tests, commits the fixes and reports them.",
+      "files": [
+        "setup_fixture.sh",
+        "fixture/"
+      ],
+      "expectations": [
+        "Opening a bookmark whose URL carries shell syntax runs no shell command",
+        "Opening a bookmark passes its URL to the opener",
+        "Importing a file: URL imports nothing and exits 2",
+        "Importing http and https URLs still works",
+        "A test covers a rejected URL scheme",
+        "npm test passes",
+        "The fixes are committed and the working tree is clean",
+        "Response names the command injection"
+      ],
+      "tests": "A sharing feature whose tests pass but whose own diff carries a command injection from untrusted imported data and a missing URL scheme check; origin/HEAD is set as after a clone.",
+      "planted": [
+        "`bm open` runs the opener through a shell with the URL interpolated in double quotes, so a shared bookmark URL containing `$(...)` runs a command - command injection from an imported, untrusted file (src/opener.ts openUrl)",
+        "parseWebUrl accepts any scheme that parses, so `file:` and `javascript:` URLs from a shared file are imported, although the plan allows only http: and https: (src/urls.ts)",
+        "No test covers a rejected scheme, although the plan's first task asks for one"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "stacked-base",
+      "prompt": "review my branch against feature/bookmark-share, the branch it is stacked on, and fix what you find",
+      "expected_output": "Reviews only the remove branch: fixes removing an unknown id (exits 0 instead of 1) with a test, and does not fix the command injection that lives in the lower sharing branch; if it mentions it, it says it belongs to that branch.",
+      "files": [
+        "setup_fixture.sh",
+        "fixture/"
+      ],
+      "expectations": [
+        "Removing an unknown id exits 1 and keeps the file",
+        "Removing a bookmark deletes only it",
+        "A test covers removing an unknown id",
+        "The lower branch's code is unchanged",
+        "Response attributes any mention of the lower branch's injection to that branch",
+        "npm test passes",
+        "The fixes are committed and the working tree is clean"
+      ],
+      "tests": "A branch stacked on an unmerged sharing branch, reviewed against that branch while origin/HEAD is main. The security defects are all in the lower branch, outside the diff under review.",
+      "planted": [
+        "Removing an unknown id prints `removed 9` and exits 0; the plan says `no bookmark 9`, exit 1 (src/store.ts remove)",
+        "No test covers removing an unknown id",
+        "Outside the diff: the lower branch's command injection in src/opener.ts and missing scheme check in src/urls.ts, which this review must leave alone"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "no-origin-head",
+      "prompt": "review my branch and fix what you find",
+      "expected_output": "The same as security-diff in a repository whose origin has no HEAD, as when a remote is added by hand: finds and fixes the command injection and the missing scheme check.",
+      "files": [
+        "setup_fixture.sh",
+        "fixture/"
+      ],
+      "expectations": [
+        "Opening a bookmark whose URL carries shell syntax runs no shell command",
+        "Opening a bookmark passes its URL to the opener",
+        "Importing a file: URL imports nothing and exits 2",
+        "Importing http and https URLs still works",
+        "A test covers a rejected URL scheme",
+        "npm test passes",
+        "The fixes are committed and the working tree is clean",
+        "Response names the command injection"
+      ],
+      "tests": "The security-diff branch with refs/remotes/origin/HEAD unset, where a command that diffs against origin/HEAD fails.",
+      "planted": [
+        "`bm open` runs the opener through a shell with the URL interpolated in double quotes, so a shared bookmark URL containing `$(...)` runs a command - command injection from an imported, untrusted file (src/opener.ts openUrl)",
+        "parseWebUrl accepts any scheme that parses, so `file:` and `javascript:` URLs from a shared file are imported, although the plan allows only http: and https: (src/urls.ts)",
+        "No test covers a rejected scheme, although the plan's first task asks for one"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "clean-branch",
+      "prompt": "review my branch and fix what you find",
+      "expected_output": "The sharing feature implemented correctly: execFileSync without a shell, the scheme check and its tests. Leaves src/opener.ts and src/urls.ts alone and reports no vulnerability in them; hardening the import of malformed files is fair game.",
+      "files": [
+        "setup_fixture.sh",
+        "fixture/"
+      ],
+      "expectations": [
+        "The opener and the URL check are unchanged",
+        "Opening a bookmark whose URL carries shell syntax runs no shell command",
+        "Importing a file: URL imports nothing and exits 2",
+        "npm test passes",
+        "The working tree is clean"
+      ],
+      "tests": "A correct branch with security-relevant code, to catch false positives.",
+      "planted": [
+        "Nothing security-relevant: src/opener.ts and src/urls.ts are correct. A change to either is a false positive. The import still crashes on a malformed file, which a reviewer may fairly fix."
+      ]
+    },
+    {
+      "id": 8,
+      "name": "subtle-xss",
+      "prompt": "review my branch and fix what you find",
+      "expected_output": "Sees that escapeHtml leaves quotes alone while renderPage puts the title in a double-quoted attribute, so a shared title breaks out of it (stored XSS in the exported page); fixes it with a test, commits and reports.",
+      "files": [
+        "setup_fixture.sh",
+        "fixture/"
+      ],
+      "expectations": [
+        "A shared title cannot break out of the title attribute",
+        "Markup in a shared title is escaped",
+        "Export links an ordinary bookmark",
+        "A test covers a quote in a title",
+        "npm test passes",
+        "The fixes are committed and the working tree is clean",
+        "Response names the attribute injection"
+      ],
+      "tests": "A subtle security defect: the escaping exists and its tests pass, but it misses quotes, and the title is also written into an attribute. Untrusted titles come from shared files imported on main.",
+      "planted": [
+        "escapeHtml escapes & < > but not quotes, and renderPage writes the title into title=\"...\", so a title from a shared file such as `x\" onmouseover=\"alert(1)` adds an event handler to the exported page - stored XSS (src/export.ts)",
+        "No test covers a quote in a title",
+        "Not planted but present: renderPage writes the URL into href unescaped, and `bm add` stores any URL, so `bm add 'x\" onmouseover=\"alert(1)'` breaks out too. A reviewer may fairly fix it; the grader does not check it"
+      ]
     }
   ]
 }

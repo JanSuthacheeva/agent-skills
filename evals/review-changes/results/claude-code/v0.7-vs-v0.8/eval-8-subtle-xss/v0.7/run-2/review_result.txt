@@ -1,0 +1,26 @@
+New commits: 3
+
+c764fdf docs: record the export review
+
+
+ docs/plans/2026-11-25-bookmark-export.md | 31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
+
+73b814d test: cover bm export without a file
+
+
+ test/export.test.ts | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+969f6ad bm: escape quotes and the url in the exported page
+A title such as '" onmouseover="...' broke out of the title attribute,
+and a url stored by 'bm add' was written into href unescaped.
+
+
+ docs/plans/2026-11-25-bookmark-export.md |  4 +++-
+ src/export.ts                            |  8 +++++---
+ test/export.test.ts                      | 16 ++++++++++++++++
+ 3 files changed, 24 insertions(+), 4 deletions(-)
+
+--- git status --short ---
+

@@ -1,23 +1,40 @@
 #!/usr/bin/env bash
 # Run one review-changes eval trial headlessly with `claude -p`.
 # Usage: run_trial.sh <eval-name> <prompt> <config> <run-dir> <fixture-root>
-#   config: with_skill | without_skill | code_review. Every run is a fresh
-#   headless session isolated from user and plugin settings, so no config
-#   sees how the branch was written. with_skill copies the skill into the
-#   fixture's project skills; code_review replaces the prompt with Claude
-#   Code's built-in `/code-review medium --fix`.
+#   config: with_skill | without_skill | code_review | <version>. Every run
+#   is a fresh headless session isolated from user and plugin settings, so
+#   no config sees how the branch was written. with_skill copies the skill
+#   into the fixture's project skills; a config with a directory of that
+#   name under $SKILL_VERSIONS copies that copy of the skill instead, to
+#   compare versions, and any other config fails; code_review replaces
+#   the prompt with Claude Code's built-in `/code-review medium --fix`.
 set -euo pipefail
 name=$1; prompt=$2; cfg=$3; run=$4; fixtures=$5
 here=$(cd "$(dirname "$0")" && pwd)
+case $cfg in
+  with_skill) skill="$here/../../skills/review-changes" ;;
+  without_skill|code_review) skill="" ;;
+  *) skill="${SKILL_VERSIONS:-}/$cfg"
+     [ -n "${SKILL_VERSIONS:-}" ] && [ -d "$skill" ] || { echo "no skill version $cfg under SKILL_VERSIONS" >&2; exit 1; } ;;
+esac
 fx="$fixtures/$(echo "$run" | tr / _)"
 "$here/setup_fixture.sh" "$name" "$fx" >/dev/null
 mkdir -p "$run/outputs"
 ln -sfn "$fx/repo" "$run/repo"; cp "$fx/base_sha" "$fx/branch_sha" "$run/"
-if [ "$cfg" = with_skill ] && [ -d "$here/../../skills/review-changes" ]; then
-  mkdir -p "$fx/repo/.claude/skills"
-  cp -R "$here/../../skills/review-changes" "$fx/repo/.claude/skills/"
+[ -f "$fx/lower_sha" ] && cp "$fx/lower_sha" "$run/"
+if [ -n "$skill" ] && [ -d "$skill" ]; then
+  mkdir -p "$fx/repo/.claude/skills/review-changes"
+  cp -R "$skill/." "$fx/repo/.claude/skills/review-changes/"
   echo ".claude/" >> "$fx/repo/.git/info/exclude"
 fi
+# Nothing a trial runs may reach the desktop: `bm open` and anything else
+# that opens a URL hit recording stubs instead of the browser.
+stubs="$fx/stubs"; mkdir -p "$stubs"
+for cmd in open xdg-open; do
+  printf '#!/bin/sh\necho "%s $*" >> "%s/opened.log"\n' "$cmd" "$fx" > "$stubs/$cmd"
+  chmod +x "$stubs/$cmd"
+done
+export PATH="$stubs:$PATH" BM_OPENER="$stubs/open"
 [ "$cfg" = code_review ] && prompt="/code-review medium --fix"
 args=(-p "$prompt" --output-format json --model "${MODEL:-claude-opus-5-5}" --effort "${EFFORT:-medium}"
       --setting-sources project,local --strict-mcp-config --mcp-config '{"mcpServers": {}}'

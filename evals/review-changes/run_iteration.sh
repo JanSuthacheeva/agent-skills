@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Run every eval in evals.json for both configs, N trials each.
 # Usage: run_iteration.sh <iteration-dir> <fixture-root> [trials=3] [parallel=4]
-# CONFIGS="with_skill ..." limits which configs run (default: both).
+# CONFIGS="with_skill ..." limits which configs run (default: both),
+# EVALS="name ..." which scenarios (default: all).
 set -euo pipefail
 it=$1; fixtures=$2; trials=${3:-3}; par=${4:-4}
 here=$(cd "$(dirname "$0")" && pwd)
@@ -9,10 +10,12 @@ mkdir -p "$it"
 claude --version | head -1 > "$it/harness.txt"
 
 jobs() {  # jobs <config> -> NUL-separated args for run_trial.sh
-  python3 - "$here/evals.json" "$it" "$1" "$trials" "$fixtures" <<'P'
+  python3 - "$here/evals.json" "$it" "$1" "$trials" "$fixtures" "${EVALS:-}" <<'P'
 import json, os, sys
-evals, it, cfg, trials, fx = sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4]), sys.argv[5]
+evals, it, cfg, trials, fx, only = sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4]), sys.argv[5], sys.argv[6].split()
 for e in json.load(open(evals))["evals"]:
+    if only and e["name"] not in only:
+        continue
     d = f"{it}/eval-{e['id']}-{e['name']}"
     os.makedirs(d, exist_ok=True)
     json.dump({"eval_id": e["id"], "eval_name": e["name"], "prompt": e["prompt"],

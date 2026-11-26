@@ -1,0 +1,24 @@
+{
+  "scores": {
+    "v0.7": {
+      "accuracy": 9,
+      "risk": 8,
+      "decisions": 9,
+      "readability": 9,
+      "note": "I checked the shell-free opener, the http/https allowlist with its rejected-scheme test, the 15 passing tests and the commits, and they all match the report; its open items are real and each has a recommendation, but 'Where to look' starts with the unfixed import path instead of the two fixed risk points."
+    },
+    "v0.8": {
+      "accuracy": 9,
+      "risk": 9,
+      "decisions": 9,
+      "readability": 9,
+      "note": "The fixes and the 16 passing tests match the repo, and the report adds an import-level test proving rejected schemes are never stored; it also names the BM_OPENER behaviour change and the add-path gap with recommendations, and 'Where to look' starts with opener.ts and urls.ts, where the planted risk was."
+    }
+  },
+  "ranking": [
+    "v0.8",
+    "v0.7"
+  ],
+  "reason": "Both reports found, proved and fixed the command injection and the scheme allowlist, added the missing rejected-scheme test, and raised the same follow-up decisions with recommendations. Y edges ahead because its reading order sends the owner straight to the two fixed risk points, it tests the scheme fix at the import boundary as well, and it shows the tests passing before and after the fixes (13/13, then 16/16) and flags a crash that predates the branch. X is equally accurate but ranks the unfixed import code above the fixes in its reading order.",
+  "judge_cost_usd": 0.1476154
+}

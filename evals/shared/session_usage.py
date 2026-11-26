@@ -45,7 +45,7 @@ def main(run):
     files = transcripts(sid) if sid else []
     messages, stamps = {}, []
     for f in files:
-        for line in f.read_text().splitlines():
+        for line in filter(None, f.read_text().split("\n")):
             e = json.loads(line)
             if e.get("timestamp"):
                 stamps.append(datetime.fromisoformat(e["timestamp"].replace("Z", "+00:00")))
@@ -58,7 +58,7 @@ def main(run):
     cost = sum(weighted(u) * rate.get(model, fallback) for model, u in messages.values())
     ms = int((max(stamps) - min(stamps)).total_seconds() * 1000)
     timing.update({
-        "cost_usd_reported": timing.get("cost_usd", raw.get("total_cost_usd", 0)),
+        "cost_usd_reported": raw.get("total_cost_usd", timing.get("cost_usd", 0)),
         "cost_usd": round(cost, 4),
         "output_tokens": sum(u.get("output_tokens", 0) for _, u in messages.values()),
         "num_turns": len(messages),

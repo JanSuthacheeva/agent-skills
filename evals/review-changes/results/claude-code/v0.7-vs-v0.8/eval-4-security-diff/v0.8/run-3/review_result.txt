@@ -1,0 +1,30 @@
+New commits: 3
+
+cf33bdc docs: review bookmark sharing
+
+
+ docs/plans/2026-11-20-bookmark-share.md | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+
+c3e63e3 bm: open urls without a shell
+openUrl built a shell command around the url, so a shared bookmark like
+https://a.dev/?q=$(cmd) ran cmd on bm open. Pass the url as the
+opener's only argument with execFileSync, as the plan states.
+
+
+ src/opener.ts       |  4 ++--
+ test/opener.test.ts | 20 ++++++++++++++++++++
+ 2 files changed, 22 insertions(+), 2 deletions(-)
+
+c444612 bm: accept only http and https urls
+parseWebUrl accepted any scheme that parses, so a shared file could
+import file: or javascript: urls. The plan allows only http: and https:.
+
+
+ src/urls.ts            | 7 ++++++-
+ test/cli.share.test.ts | 8 ++++++++
+ test/urls.test.ts      | 6 ++++++
+ 3 files changed, 20 insertions(+), 1 deletion(-)
+
+--- git status --short ---
+

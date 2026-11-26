@@ -1,0 +1,45 @@
+New commits: 5
+
+a770ae8 docs: add review to the bookmark tags plan
+
+
+ docs/plans/2026-10-14-bookmark-tags.md | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
+
+2d5ea3e bm: reject non-numeric ids in tag
+Number() read '' as 0 and '0x1' as 1, so 'bm tag "" work' printed
+'no bookmark 0' and 'bm tag 0x1 work' tagged bookmark 1.
+
+
+ src/cli.ts            | 4 ++--
+ test/cli.tags.test.ts | 9 +++++++++
+ 2 files changed, 11 insertions(+), 2 deletions(-)
+
+79f5f96 bm: normalize the tag in list --tag and name the store method listByTag
+list --tag Work found nothing and list --tag 'to do' exited 0; the plan's
+call chain runs normalizeTag first and names the method listByTag.
+
+
+ src/cli.ts              |  2 +-
+ src/store.ts            |  2 +-
+ test/cli.tags.test.ts   | 14 ++++++++++++++
+ test/store.tags.test.ts |  4 ++--
+ 4 files changed, 18 insertions(+), 4 deletions(-)
+
+e6e6ec0 bm: exit 1 for an unknown bookmark id, as the plan and AGENTS.md state
+
+
+ src/cli.ts            | 2 +-
+ test/cli.tags.test.ts | 6 ++++++
+ 2 files changed, 7 insertions(+), 1 deletion(-)
+
+6a9508d bm: make tagging with an existing tag a no-op
+Adds store tests for a duplicate tag and an unknown id.
+
+
+ src/store.ts            |  4 +++-
+ test/store.tags.test.ts | 16 +++++++++++++++-
+ 2 files changed, 18 insertions(+), 2 deletions(-)
+
+--- git status --short ---
+

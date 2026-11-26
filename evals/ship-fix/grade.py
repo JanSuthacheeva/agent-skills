@@ -28,7 +28,7 @@ def agent_calls(sid):
     """Agent tool calls of the main session, in order: (prompt, description)."""
     hits = list(Path.home().glob(f".claude/projects/*/{sid}.jsonl")) if sid else []
     calls = []
-    for line in hits[0].read_text().splitlines() if hits else []:
+    for line in filter(None, hits[0].read_text().split("\n")) if hits else []:
         msg = json.loads(line).get("message", {})
         for part in msg.get("content", []) if isinstance(msg.get("content"), list) else []:
             if part.get("type") == "tool_use" and part.get("name") in ("Agent", "Task"):

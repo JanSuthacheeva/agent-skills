@@ -1,0 +1,24 @@
+{
+  "scores": {
+    "v0.8": {
+      "accuracy": 8,
+      "risk": 8,
+      "decisions": 8,
+      "readability": 8,
+      "note": "It finds, proves and fixes both planted bugs with tests (16/16 pass, commits verified), but it lists the injection second and its note on ~/.bookmarks.json is confusing ('now holds ids 2 and 3')."
+    },
+    "v0.7": {
+      "accuracy": 9,
+      "risk": 9,
+      "decisions": 9,
+      "readability": 8,
+      "note": "It leads with the command injection and states the attacker impact, fixes both planted bugs with tests at unit and CLI level (verified), and gives a concrete recommendation for each open item, including checking URLs again in `open`."
+    }
+  },
+  "ranking": [
+    "v0.7",
+    "v0.8"
+  ],
+  "reason": "Both reports fixed and verified the same two planted bugs, added tests for the rejected scheme, and accurately listed the same open items with recommendations. Y ranks slightly higher: it puts the most severe bug first and spells out its impact. It also names the remaining path for unchecked URLs (add, then the store, then open) and offers concrete options for BM_OPENER. X's warning about the user's real bookmarks file is worded ambiguously.",
+  "judge_cost_usd": 0.1170554
+}

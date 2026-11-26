@@ -166,7 +166,7 @@ def session_log(session: str | None) -> Path | None:
 def log_usage(log: Path) -> dict[str, dict[str, int]]:
     """Token usage per model in one transcript, counting each API message once."""
     messages = {}
-    for line in log.read_text().splitlines():
+    for line in filter(None, log.read_text().split("\n")):
         msg = json.loads(line).get("message") or {}
         if msg.get("usage"):
             messages[msg.get("id")] = (msg.get("model"), msg["usage"])
@@ -208,7 +208,7 @@ def skills_invoked(session: str | None) -> list[str] | None:
     if not log:
         return None
     calls, blocked = {}, set()
-    for line in log.read_text().splitlines():
+    for line in filter(None, log.read_text().split("\n")):
         content = json.loads(line).get("message", {}).get("content")
         for block in content if isinstance(content, list) else []:
             if block.get("type") == "tool_use" and block.get("name") == "Skill":

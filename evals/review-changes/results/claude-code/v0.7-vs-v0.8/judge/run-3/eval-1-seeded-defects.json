@@ -1,0 +1,24 @@
+{
+  "scores": {
+    "v0.7": {
+      "accuracy": 8,
+      "risk": 8,
+      "decisions": 6,
+      "readability": 8,
+      "note": "Every planted defect is reported as fixed, and I confirmed the claims in the code, git log and tests (16 pass). But it says 'four places' and then lists five, and it never mentions that ids are now strict digits, a change in behaviour users would notice."
+    },
+    "v0.8": {
+      "accuracy": 9,
+      "risk": 9,
+      "decisions": 9,
+      "readability": 8,
+      "note": "The code is identical to X's, and the claims check out against the code, commits and tests. Each planted defect gets its own bullet, and the stricter-id change and the store normalization inconsistency are both raised as decisions with a recommendation."
+    }
+  },
+  "ranking": [
+    "v0.8",
+    "v0.7"
+  ],
+  "reason": "Both methods fixed the same things and left identical code, so the reports differ only in what they tell the owner. Y openly raises the stricter id parsing (' 1' and '1.0' now give a usage error) as a decision, which X made silently. Y also adds a 'you can skim the rest' note and keeps its count of fixes consistent, while X says four and lists five.",
+  "judge_cost_usd": 0.1325348
+}

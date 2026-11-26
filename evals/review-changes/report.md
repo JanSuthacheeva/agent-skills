@@ -27,7 +27,10 @@ branch owner. A blind judge scored the skill's report at
 `/code-review`, and ranked it first in {{opus_skill_firsts}} comparisons;
 with `{{sonnet_model}}` the scores were {{sonnet_skill_judge}},
 {{sonnet_base_judge}} and {{sonnet_cr_judge}}. The skill was the most
-expensive condition.
+expensive condition. Version 0.8, which adds the harness's security
+review, matched version 0.7 in detection on eight scenarios including five with
+security defects, with the same detection and judged report quality at
+64% more cost per trial (section 6).
 
 ## 1 Question
 
@@ -59,6 +62,8 @@ proven findings that are cheap to reverse with a failing test first and
 one commit each, have production-code fixes reviewed again by a fresh
 agent on a smaller model, and report the fixed findings, the open ones
 with recommendations, and two to four places to look in reading order.
+Version 0.8 adds a security item to that order and runs the harness's
+own security review alongside; it is compared with 0.7 in section 6.
 
 ### 2.2 Scenarios
 
@@ -200,7 +205,114 @@ quality.
 - **Author's environment.** The author's global instruction file was
   loaded in all conditions.
 
-## 6 Reproducibility
+## 6 Version comparison: v0.7 and v0.8
+
+Version 0.8 added a parallel run of the harness's security review
+(Claude Code's `/security-review`) and a security item to the review
+checklist. It was compared with version 0.7 on the three scenarios above
+and five new ones, all on the same command line tool with a local
+`origin` whose `HEAD` is `main`, as after a clone (Table 6). Each
+version ran three trials per scenario with `claude-opus-5-5` at medium
+effort in Claude Code 2.1.332, on 2026-11-26; trials ran with `open`,
+`xdg-open` and the tool's opener replaced by recording stubs. Results
+are in [`v0.7-vs-v0.8/`](v0.7-vs-v0.8/), produced by
+[`compare_versions.py`](../../compare_versions.py).
+
+**Table 6.** Security scenarios.
+
+| Scenario | Branch | Planted |
+|---|---|---|
+| security-diff | Import of shared bookmark files and `bm open` | Command injection: the URL reaches a shell inside double quotes; any URL scheme accepted; no test of a rejected scheme |
+| stacked-base | `bm remove`, stacked on the unmerged security-diff branch and reviewed against it | Unknown id exits 0; no test for it. The injection lies only in the lower branch: it must not be fixed, and a mention must attribute it to that branch |
+| no-origin-head | security-diff with `origin/HEAD` unset, as after adding a remote by hand | As security-diff |
+| clean-branch | The sharing feature implemented correctly | Nothing in `src/opener.ts` and `src/urls.ts`; a change there is a false positive |
+| subtle-xss | An HTML export on top of the merged, correct sharing feature | The escaping covers `& < >` but not quotes, and the title is also written into an attribute: stored XSS from a shared title. Not planted but present: `href` is unescaped too, reachable through `bm add`, which takes any URL |
+
+**Table 7.** Successful trials (all checks passed), and v0.8 trials in
+which a subagent invoked `/security-review`.
+
+| Scenario | v0.7 | v0.8 | v0.8 invoked `/security-review` |
+|---|---|---|---|
+| seeded-defects | 3/3 | 3/3 | 3/3 |
+| vague-prompt | 3/3 | 3/3 | 3/3 |
+| architecture | 3/3 | 3/3 | 3/3 |
+| security-diff | 3/3 | 3/3 | 3/3 |
+| stacked-base | 3/3 | 3/3 | 3/3 |
+| no-origin-head | 3/3 | 3/3 | 0/3 |
+| clean-branch | 3/3 | 3/3 | 3/3 |
+| subtle-xss | 3/3 | 3/3 | 3/3 |
+
+**Table 8.** Blind judgment of the owner report, total of 40, mean (sd),
+and how often each version's report was ranked first of the two.
+
+| Scenario | v0.7 | v0.8 |
+|---|---|---|
+| seeded-defects | 33.0 (2.6) | 34.7 (0.6) |
+| vague-prompt | 35.0 (1.0) | 31.7 (2.3) |
+| architecture | 34.0 (0.0) | 35.7 (0.6) |
+| security-diff | 35.0 (0.0) | 32.3 (4.7) |
+| stacked-base | 31.7 (2.9) | 34.7 (0.6) |
+| no-origin-head | 34.7 (0.6) | 33.3 (1.2) |
+| clean-branch | 33.7 (1.5) | 32.3 (3.2) |
+| subtle-xss | 35.3 (1.2) | 34.3 (0.6) |
+| All | 34.0 (1.8) | 33.6 (2.3) |
+| Ranked first | 14 of 24 | 10 of 24 |
+
+**Table 9.** Resource use per trial, mean (sd); cost and duration
+include subagents.
+
+| Measure | v0.7 | v0.8 |
+|---|---|---|
+| Cost (USD) | 0.48 (0.11) | 0.79 (0.23) |
+| Duration (s), median | 103 | 111 |
+| Duration (s), mean | 112 (24) | 167 (241) |
+| Output tokens | 10533 (2439) | 15631 (6267) |
+| Subagents | 1.0 (0.0) | 2.8 (1.1) |
+
+Detection did not improve: version 0.7 found, proved and fixed the
+command injection, the scheme check and the subtle attribute injection
+in every trial, as version 0.8 did, and neither version changed the
+correct security code of the clean branch. The planted defects are
+visible to a careful general review; the scenarios cannot show defects
+that only a security-focused pass finds.
+
+The mechanism worked as specified. With `origin/HEAD` set, every v0.8
+trial had a subagent invoke `/security-review`, and on the stacked
+branch every one of them reviewed `git diff <target>...HEAD` in place of
+the command's diff against `origin/HEAD` and found no vulnerability in
+it, which is correct. Without `origin/HEAD` the command fails while
+loading; in the final runs the reviewer skipped it and said so, and its
+own pass still found both defects.
+
+On the stacked branch, neither version touched the lower branch's code.
+In all three v0.8 trials the security agent noted the lower branch's
+command injection as outside the diff it reviewed, and the reviewer
+reported it as an open item to fix on that branch; v0.7 never mentioned
+it. The check was first written as "does not mention the injection",
+which failed all three v0.8 trials; it was relaxed after the run to "a
+mention attributes it to the lower branch" and the same trials were
+graded again. The judge scored the mention in v0.8's favour (34.7
+against 31.7), reasoning that an owner about to merge the stack should
+know.
+
+Report quality did not differ beyond noise: 34.0 against 33.6 of 40,
+v0.8 first in 10 of 24 comparisons (two-sided sign test, p = 0.54). Cost
+rose by 64% per trial, from 2.8 subagents on average in place of one:
+the security agent and the command's own vulnerability and
+false-positive agents. Median duration rose by 8%, because the security
+review runs in parallel with the reviewer's own pass. The mean is
+dominated by one trial in which the background agent's completion notice
+reached the headless session 18 minutes after the review had ended and
+caused an extra turn.
+
+Two changes to the skill came out of earlier runs of this comparison.
+First, a reviewer told only to "start" the security review briefed its
+agent to review on its own, so the command never ran; the skill now says
+to invoke it by name. Second, the instruction to pass the range when
+`origin/HEAD` is unset could not work, since the command fails before
+reading it; the skill now skips the command there.
+
+## 7 Reproducibility
 
 Scenario definitions and planted problems are in
 [`evals.json`](../../evals.json), the fixture in [`fixture/`](../../fixture/)
@@ -218,6 +330,17 @@ CONFIGS="with_skill without_skill code_review" MODEL={{opus_model}} EFFORT={{eff
 evals/review-changes/grade.py <run-dir>
 evals/review-changes/judge.py <run-dir> 1,2,3
 evals/shared/export_results.py export evals/review-changes {{out_dir}} --version {{version}} --effort {{effort}} --run {{opus_model}}=<opus-run-dir> --run {{sonnet_model}}=<sonnet-run-dir>
+```
+
+The version comparison in section 6, with two copies of the skill in
+`<skills>/v0.7/` and `<skills>/v0.8/`:
+
+```sh
+CONFIGS="v0.7 v0.8" SKILL_VERSIONS=<skills> MODEL=claude-opus-5-5 evals/review-changes/run_iteration.sh <run-dir> <fixture-dir> 3 6
+evals/shared/session_usage.py <run-dir>/eval-*/*/run-*
+evals/review-changes/grade.py <run-dir>
+evals/review-changes/judge.py <run-dir> 1,2,3
+evals/review-changes/compare_versions.py <run-dir> evals/review-changes/results/claude-code/v0.7-vs-v0.8 v0.7 v0.8
 ```
 
 ## Sources

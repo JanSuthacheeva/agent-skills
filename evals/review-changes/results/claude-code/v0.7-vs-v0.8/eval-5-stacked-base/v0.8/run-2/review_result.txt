@@ -1,0 +1,17 @@
+New commits: 2
+
+c0fffd0 docs: review of removing bookmarks
+
+
+ docs/plans/2026-11-24-bookmark-remove.md | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+
+9dc92d7 bm: remove of an unknown id throws BookmarkNotFoundError and saves nothing
+
+
+ src/store.ts        |  3 ++-
+ test/remove.test.ts | 35 +++++++++++++++++++++++++++++++++--
+ 2 files changed, 35 insertions(+), 3 deletions(-)
+
+--- git status --short ---
+

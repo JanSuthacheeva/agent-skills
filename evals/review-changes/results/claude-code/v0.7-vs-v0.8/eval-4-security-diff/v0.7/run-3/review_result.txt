@@ -1,0 +1,24 @@
+New commits: 3
+
+e16447a docs: review bookmark sharing
+
+
+ docs/plans/2026-11-20-bookmark-share.md | 35 +++++++++++++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
+
+08658da bm: open urls without a shell
+
+
+ src/opener.ts       |  4 ++--
+ test/opener.test.ts | 20 ++++++++++++++++++++
+ 2 files changed, 22 insertions(+), 2 deletions(-)
+
+186f684 bm: reject urls that are not http or https
+
+
+ src/urls.ts       | 7 ++++++-
+ test/urls.test.ts | 6 ++++++
+ 2 files changed, 12 insertions(+), 1 deletion(-)
+
+--- git status --short ---
+

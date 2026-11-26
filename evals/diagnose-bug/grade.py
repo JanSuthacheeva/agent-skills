@@ -45,7 +45,7 @@ def commands(sid):
     files = list(PROJECTS.glob(f"*/{sid}.jsonl")) + list(PROJECTS.glob(f"*/{sid}/**/*.jsonl"))
     out = []
     for f in files:
-        for line in f.read_text().splitlines():
+        for line in filter(None, f.read_text().split("\n")):
             content = json.loads(line).get("message", {}).get("content")
             for part in content if isinstance(content, list) else []:
                 if part.get("type") == "tool_use" and part.get("name") == "Bash":

@@ -1,0 +1,24 @@
+New commits: 3
+
+e9d0028 docs: record the review of bookmark sharing
+
+
+ docs/plans/2026-11-20-bookmark-share.md | 31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
+
+9231597 bm: treat an empty or negative id in open as bad input
+
+
+ src/cli.ts             |  6 +++---
+ test/cli.share.test.ts | 10 ++++++++++
+ 2 files changed, 13 insertions(+), 3 deletions(-)
+
+ce2e800 bm: keep control characters and non-string titles from shared files out of the store and terminal
+
+
+ src/cli.ts             | 15 ++++++++++++---
+ test/cli.share.test.ts | 43 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 55 insertions(+), 3 deletions(-)
+
+--- git status --short ---
+

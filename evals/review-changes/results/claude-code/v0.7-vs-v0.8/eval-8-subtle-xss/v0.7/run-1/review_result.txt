@@ -1,0 +1,21 @@
+New commits: 2
+
+82dd5af docs: record review of the HTML export
+
+
+ docs/plans/2026-11-25-bookmark-export.md | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+dc770da bm: escape quotes in exported titles and urls
+A title from a shared file such as 'x" autofocus onfocus="alert(1)'
+broke out of the title attribute and ran script when the exported page
+was opened. URLs were written into href unescaped.
+
+
+ docs/plans/2026-11-25-bookmark-export.md |  3 ++-
+ src/export.ts                            |  8 +++++---
+ test/export.test.ts                      | 28 +++++++++++++++++++++++++++-
+ 3 files changed, 34 insertions(+), 5 deletions(-)
+
+--- git status --short ---
+

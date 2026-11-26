@@ -1,0 +1,24 @@
+{
+  "scores": {
+    "v0.8": {
+      "accuracy": 9,
+      "risk": 8,
+      "decisions": 7,
+      "readability": 9,
+      "note": "I checked the claims that the fixes landed in 6a222de and c73caae, that the code now uses listByTag, that the unknown-id tests exist and that 17 of 17 tests pass, and all held up. It also says plainly that it added the missing tests the plan asked for, but it calls the new exit 2 for an invalid `list --tag` value just a test, not the user-visible change it is."
+    },
+    "v0.7": {
+      "accuracy": 9,
+      "risk": 8,
+      "decisions": 8,
+      "readability": 9,
+      "note": "I checked the claims about commits 7a7ab99, 91ac649 and 0c7b907, the listByTag rename, the exit 1 for an unknown id and the 15 of 15 passing tests, and all held up. It states the user-visible change that an invalid `list --tag` value now exits 2, and it raises two open choices, each with a recommendation."
+    }
+  },
+  "ranking": [
+    "v0.7",
+    "v0.8"
+  ],
+  "reason": "Both reports found and fixed all four code problems, added a test for an unknown id, and give a clear, ordered list of where to look, so they are close. Y edges ahead because it names the behaviour change it made (an invalid `list --tag` value now prints an error and exits 2) and puts one more open choice to the owner with a recommendation. X is slightly better at saying it filled the plan's missing tests.",
+  "judge_cost_usd": 0.1369902
+}

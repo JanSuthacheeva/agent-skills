@@ -1,0 +1,31 @@
+New commits: 3
+
+75796c9 docs: review of bookmark sharing
+
+
+ docs/plans/2026-11-20-bookmark-share.md | 44 +++++++++++++++++++++++++++++++++
+ 1 file changed, 44 insertions(+)
+
+0b4b3f4 bm: check the url of an untitled import for control characters
+An untitled entry is titled with its raw url, which skipped the title
+check, so escape sequences in it reached the terminal through list.
+
+
+ docs/plans/2026-11-20-bookmark-share.md | 5 +++--
+ src/cli.ts                              | 3 ++-
+ test/cli.share.test.ts                  | 8 ++++++++
+ 3 files changed, 13 insertions(+), 3 deletions(-)
+
+0c9f0f6 bm: reject malformed shared files instead of crashing or storing them
+A file that is not a JSON list of { url, title? } crashed import with a
+stack trace and exit 1; a non-string title was stored as is, and a title
+with terminal escape sequences was later printed raw by list.
+
+
+ docs/plans/2026-11-20-bookmark-share.md |  5 ++++
+ src/cli.ts                              | 42 +++++++++++++++++++++++++++++++--
+ test/cli.share.test.ts                  | 40 +++++++++++++++++++++++++++++++
+ 3 files changed, 85 insertions(+), 2 deletions(-)
+
+--- git status --short ---
+

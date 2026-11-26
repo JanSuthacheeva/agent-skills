@@ -1,0 +1,24 @@
+{
+  "scores": {
+    "v0.7": {
+      "accuracy": 9,
+      "risk": 9,
+      "decisions": 9,
+      "readability": 8,
+      "note": "I checked the claims against the repo and they hold: the execFileSync fix, the http/https allowlist, a rejected-scheme test and 15/15 passing tests; the report also explains how the injection worked, ranks where to look and says what is routine."
+    },
+    "v0.8": {
+      "accuracy": 8,
+      "risk": 6,
+      "decisions": 6,
+      "readability": 7,
+      "note": "The commits, the 16/16 passing tests and the two fixes are real, but the report is a terse follow-up that sends the owner to the plan for details, leaves out the rejected-scheme test and where to look, and gives only one recommendation among four open items."
+    }
+  },
+  "ranking": [
+    "v0.7",
+    "v0.8"
+  ],
+  "reason": "X stands on its own: it says how each planted bug could be exploited, how it was fixed and tested, and which files carry the risk versus which are routine. It also gives a recommendation for each open decision. Y fixed the same things but reads like an answer to an earlier conversation, so the owner has to open the plan to understand the risk and decide the open items.",
+  "judge_cost_usd": 0.11510160000000003
+}

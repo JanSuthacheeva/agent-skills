@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "The opener and the URL check are unchanged",
+      "passed": true,
+      "evidence": "no changes"
+    },
+    {
+      "text": "Opening a bookmark whose URL carries shell syntax runs no shell command",
+      "passed": true,
+      "evidence": "exit 0, command ran: False, opener got: https://a.dev/$(touch <tmp>"
+    },
+    {
+      "text": "Importing a file: URL imports nothing and exits 2",
+      "passed": true,
+      "evidence": "exit 2, stored []: invalid url: file:///etc/passwd"
+    },
+    {
+      "text": "npm test passes",
+      "passed": true,
+      "evidence": "are rejected\nok 21 - other schemes are rejected\n  ---\n  duration_ms: 0.0705\n  type: 'test'\n  ...\n1..21\n# tests 21\n# suites 0\n# pass 21\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 512.48\n"
+    },
+    {
+      "text": "The working tree is clean",
+      "passed": true,
+      "evidence": "status: clean"
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  }
+}
