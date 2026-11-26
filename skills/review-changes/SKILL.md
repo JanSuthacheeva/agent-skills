@@ -7,9 +7,9 @@ description: >-
   the production-code fixes again, and leaves a short summary of the
   risks and where a human should look. Use when the user asks to review a
   branch, an implementation or the current changes before a merge
-  request, or after
-  implement-plan has finished, even if they just say "review this". Not
-  for commenting on someone else's merge request or for lint-only passes.
+  request, or after implement-plan has finished, even if they just say
+  "review this". Not for commenting on someone else's merge request or
+  for lint-only passes.
 metadata:
     author: Jan Suthacheeva
     version: "0.8"
