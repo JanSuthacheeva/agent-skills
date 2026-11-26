@@ -54,11 +54,13 @@ The skill ([`SKILL.md`](../../../../skills/review-changes/SKILL.md),
 version {{version}}) has six steps: isolate the review from the
 implementation's context, gather the diff, plan, project rules and a test
 baseline, review every changed line in order of the cost of a miss (data,
-boundaries, behavior against the plan, errors, tests, conventions), fix
-proven findings that are cheap to reverse with a failing test first and
-one commit each, have production-code fixes reviewed again by a fresh
-agent on a smaller model, and report the fixed findings, the open ones
-with recommendations, and two to four places to look in reading order.
+security, boundaries, behavior against the plan, errors, tests,
+conventions) alongside the harness's own security review where it has
+one, fix proven findings that are cheap to reverse with a failing test
+first and one commit each, have production-code fixes reviewed again by
+a fresh agent on a smaller model, and report the fixed findings, the
+open ones with recommendations, and two to four places to look in
+reading order.
 
 ### 2.2 Scenarios
 
