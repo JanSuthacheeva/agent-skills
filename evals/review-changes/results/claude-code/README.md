@@ -24,7 +24,7 @@ with `claude-sonnet-5-5` the scores were 35.7,
 expensive condition. Version 0.8, which adds the harness's security
 review, matched version 0.7 on eight scenarios including five with
 security defects, with the same detection and judged report quality at
-65% more cost per trial (section 6).
+64% more cost per trial (section 6).
 
 ## 1 Question
 
@@ -296,21 +296,21 @@ that only a security-focused pass finds.
 The mechanism worked as specified. With `origin/HEAD` set, every v0.8
 trial had a subagent invoke `/security-review`, and on the stacked
 branch every one of them reviewed `git diff <target>...HEAD` in place of
-the command's diff against `origin/HEAD` and found nothing, which is
-correct. Without `origin/HEAD` the command fails while loading; in the
+the command's diff against `origin/HEAD` and found no vulnerability
+in it, which is correct. Without `origin/HEAD` the command fails while loading; in the
 final runs the reviewer skipped it and said so, and its own pass still
 found both defects.
 
 The only failed check is a deliberate one: in all three stacked trials,
-v0.8's own pass (not the security agent) also reported the lower
-branch's command injection, as an open item to fix on that branch,
-without touching it; v0.7 never mentioned it. The judge scored this in
+the security agent noted the lower branch's command injection as
+outside the diff it reviewed, and v0.8 reported it as an open item to
+fix on that branch, without touching it; v0.7 never mentioned it. The judge scored this in
 v0.8's favour (34.7 against 31.7), reasoning that an owner about to
 merge the stack should know.
 
 Report quality did not differ beyond noise: 34.0 against 33.6 of 40,
 v0.8 first in 10 of 24 comparisons (two-sided sign test, p = 0.54).
-Cost rose by 65% per trial, from three subagents in place of one: the
+Cost rose by 64% per trial, from three subagents in place of one: the
 security agent and the command's own vulnerability and false-positive
 agents. Median duration rose by 8%, because the security review runs
 in parallel with the reviewer's own pass. The mean is dominated by one
