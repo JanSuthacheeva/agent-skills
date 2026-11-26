@@ -27,11 +27,12 @@ Verified facts:
 
 - Step 3 opens with: if the harness has a security review for changes (Claude Code's
   `/security-review`, Codex's `codex-security:security-diff-scan` when the plugin is
-  installed), start it in a parallel agent on `<target>...HEAD` while you review. Claude
-  Code's command always diffs against `origin/HEAD`: when the target is another branch,
-  or `origin/HEAD` is not set (a remote added by hand, not cloned), tell the agent to
-  review `git diff <target>...HEAD` in place of the diff the command shows. Without a
-  parallel agent, run it yourself after your own pass.
+  installed), start a parallel agent that invokes it by name on `<target>...HEAD` while
+  you review. Claude Code's command always diffs against `origin/HEAD`: when the target
+  is another branch, tell the agent to review `git diff <target>...HEAD` in place of the
+  diff the command shows. Without `origin/HEAD` (a remote added by hand, not cloned) the
+  command fails to load (seen in the eval): skip it and say so. Without a parallel
+  agent, run it yourself after your own pass.
 - Wait for its findings before fixing anything. They are the reviewer's own: prove each,
   fix the cheap ones, unproven ones go to Open as questions.
 - New checklist item 2, **Security**: untrusted input reaching queries, shells, paths or
