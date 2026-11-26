@@ -45,3 +45,49 @@ Verified facts:
 - [x] review-changes: start the harness's security review in parallel on the branch's
       range, treat its findings as the reviewer's own, add the Security checklist item and
       the summary line, bump to 0.8
+
+## Review
+
+Reviewed in an isolated agent against this plan. The change matches the
+plan: the parallel security review on `<target>...HEAD`, the
+`origin/HEAD` caveat, findings treated as the reviewer's own, the new
+**Security** item at 2, the Checks line and the bump to 0.8.
+
+**Fixed**
+
+- The description rewrap left `request, or after` alone on a line, then
+  ran on at the old width (730ebbd).
+- `/security-review` runs `git diff origin/HEAD...`; in a repository
+  whose remote was added by hand, not cloned, `origin/HEAD` is unset and
+  git fails with "ambiguous argument 'origin/HEAD...'" (shown in a
+  scratch repo). The skill now also passes the range in that case
+  (1e450a8, plan updated).
+- The eval report template still described the step-3 order without
+  security, so the next run would have described 0.8 wrongly (6d91b68).
+
+The fixes are text only and were re-read in a separate pass, not by an
+independent agent.
+
+**Open**
+
+- Nothing tells the reviewer to wait for the parallel security agent
+  before step 4 or the summary. "Its findings are yours" implies it;
+  recommend leaving it unless a flow run shows a summary written before
+  the agent returned.
+- The two-tool claims (Claude Code 2.1.332's fixed `origin/HEAD` base,
+  Codex's `security-diff-scan`) are tied to current versions. The
+  `origin/HEAD` base was confirmed in the 2.1.332 binary; the Codex side
+  was not checked here.
+
+**Where to look**
+
+- `skills/review-changes/SKILL.md` step 3, the opening paragraph: the
+  only real behaviour change, and the base-branch caveat that decides
+  whether a stacked branch gets reviewed correctly.
+- Checklist item 2 and the renumbering: routine, skim.
+
+**Checks**
+
+No tests, lint or type checks exist for skill text. YAML frontmatter
+parses (checked with Ruby) at 6d91b68. No security review tool was run:
+the diff is Markdown only.
