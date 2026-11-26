@@ -7,7 +7,9 @@
 # - sharing plan: security defects (fixture/share) or none
 #   (fixture/share-clean);
 # - stacked: a remove branch (fixture/remove) on top of the pushed,
-#   defective sharing branch, reviewed against that branch.
+#   defective sharing branch, reviewed against that branch;
+# - export: an HTML export (fixture/export) on top of the correct sharing
+#   feature, merged into main, whose escaping misses attribute quotes.
 # Usage: setup_fixture.sh <eval-name> <dest-dir>
 set -euo pipefail
 name=$1; dest=$2
@@ -19,6 +21,7 @@ case $name in
   security-diff|no-origin-head) variant=share ;;
   clean-branch) variant=share-clean ;;
   stacked-base) variant=stacked ;;
+  subtle-xss) variant=export ;;
   *) echo "unknown eval $name" >&2; exit 1 ;;
 esac
 rm -rf "$dest"; mkdir -p "$dest/repo"
@@ -65,6 +68,21 @@ case $variant in
   share|share-clean)
     share "$variant"
     [ "$name" = no-origin-head ] && git remote set-head origin -d
+    git rev-parse HEAD > "$dest/branch_sha"
+    exit 0 ;;
+  export)
+    share share-clean
+    git checkout -q main; git merge -q --ff-only feature/bookmark-share; git branch -q -D feature/bookmark-share
+    git push -q origin main
+    git rev-parse HEAD > "$dest/base_sha"
+    git checkout -q -b feature/bookmark-export
+    plan=docs/plans/2026-11-25-bookmark-export.md
+    cp "$here/fixture/plans/bookmark-export.md" "$plan"
+    git add -A; git commit -q -m "docs: plan the HTML export"
+    cp "$here/fixture/export/src/export.ts" src/; tick 1
+    git add -A; git commit -q -m "bm: render bookmarks as a web page"
+    cp "$here/fixture/export/src/cli.ts" src/; cp "$here/fixture/export/test/export.test.ts" test/; tick 2
+    git add -A; git commit -q -m "bm: add export command"
     git rev-parse HEAD > "$dest/branch_sha"
     exit 0 ;;
   stacked)

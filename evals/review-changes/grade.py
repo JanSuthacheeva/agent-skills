@@ -71,6 +71,16 @@ def imported(repo, urls):
         return code, stored, out
 
 
+def exported(repo, title):
+    """Import a shared bookmark with this title, export the page; return (exit, page)."""
+    with tempfile.TemporaryDirectory() as tmp:
+        file, shared, page = Path(tmp) / "store", Path(tmp) / "shared.json", Path(tmp) / "page.html"
+        shared.write_text(json.dumps([{"url": "https://a.dev/", "title": title}]))
+        bm(repo, file, "import", str(shared))
+        code, out = bm(repo, file, "export", str(page))
+        return code, page.read_text() if page.exists() else out
+
+
 def check(t, repo, branch, new, response, lower):
     if t.startswith("Tagging a bookmark twice"):
         tags = stored_tags(repo)
@@ -175,6 +185,24 @@ def check(t, repo, branch, new, response, lower):
     if t.startswith("The working tree is clean"):
         status = git(repo, "status", "--short")
         return not status.strip(), f"status: {status.strip() or 'clean'}"
+    if t.startswith("A shared title cannot break out of the title attribute"):
+        code, page = exported(repo, 'x" onmouseover="alert(1)')
+        broken = re.search(r'"\s*onmouseover=', page)
+        return code == 0 and not broken, f"exit {code}: {re.search(r'<li>.*', page).group(0)[:120] if '<li>' in page else page[:80]}"
+    if t.startswith("Markup in a shared title is escaped"):
+        code, page = exported(repo, "<script>alert(1)</script>")
+        return code == 0 and "<script>" not in page, f"exit {code}, raw <script>: {'<script>' in page}"
+    if t.startswith("Export links an ordinary bookmark"):
+        code, page = exported(repo, "Node docs")
+        ok = code == 0 and 'href="https://a.dev/"' in page and ">Node docs</a>" in page
+        return ok, f"exit {code}: {re.search(r'<li>.*', page).group(0)[:100] if '<li>' in page else page[:80]}"
+    if t.startswith("A test covers a quote in a title"):
+        hits = [f for f in git(repo, "ls-files", "test").split()
+                if re.search(r"&quot;|&#34;|&#x22;|&#39;|&#x27;|&apos;", (repo / f).read_text())]
+        return bool(hits), f"test files: {hits}"
+    if t.startswith("Response names the attribute injection"):
+        ok = re.search(r"xss|cross-site|attribute|quot", response, re.I)
+        return bool(ok), "keyword xss/attribute/quot (heuristic, verify manually)"
     raise ValueError(t)
 
 

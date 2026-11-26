@@ -183,6 +183,30 @@
       "planted": [
         "Nothing security-relevant: src/opener.ts and src/urls.ts are correct. A change to either is a false positive. The import still crashes on a malformed file, which a reviewer may fairly fix."
       ]
+    },
+    {
+      "id": 8,
+      "name": "subtle-xss",
+      "prompt": "review my branch and fix what you find",
+      "expected_output": "Sees that escapeHtml leaves quotes alone while renderPage puts the title in a double-quoted attribute, so a shared title breaks out of it (stored XSS in the exported page); fixes it with a test, commits and reports.",
+      "files": [
+        "setup_fixture.sh",
+        "fixture/"
+      ],
+      "expectations": [
+        "A shared title cannot break out of the title attribute",
+        "Markup in a shared title is escaped",
+        "Export links an ordinary bookmark",
+        "A test covers a quote in a title",
+        "npm test passes",
+        "The fixes are committed and the working tree is clean",
+        "Response names the attribute injection"
+      ],
+      "tests": "A subtle security defect: the escaping exists and its tests pass, but it misses quotes, and the title is also written into an attribute. Untrusted titles come from shared files imported on main.",
+      "planted": [
+        "escapeHtml escapes & < > but not quotes, and renderPage writes the title into title=\"...\", so a title from a shared file such as `x\" onmouseover=\"alert(1)` adds an event handler to the exported page - stored XSS (src/export.ts)",
+        "No test covers a quote in a title"
+      ]
     }
   ]
 }
